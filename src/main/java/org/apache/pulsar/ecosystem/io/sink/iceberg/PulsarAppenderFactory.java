@@ -18,7 +18,7 @@
  */
 package org.apache.pulsar.ecosystem.io.sink.iceberg;
 
-import java.io.Serializable;
+import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.avro.generic.GenericRecord;
 import org.apache.iceberg.FileFormat;
@@ -36,23 +36,20 @@ import org.apache.iceberg.io.FileAppenderFactory;
 import org.apache.iceberg.io.OutputFile;
 import org.apache.iceberg.parquet.Parquet;
 import org.apache.iceberg.parquet.ParquetAvroWriter;
-import org.apache.pulsar.common.schema.SchemaInfo;
 
 /**
  * Pulsar appender factory.
  */
 @Slf4j
-public class PulsarAppenderFactory implements FileAppenderFactory<GenericRecord>, Serializable {
-    private static final long serialVersionUID = 1L;
-
+public class PulsarAppenderFactory implements FileAppenderFactory<GenericRecord> {
     private final Schema schema;
     private final Table table;
     private final PartitionSpec spec;
-    private final int[] equalityFieldIds;
+    private final List<Integer> equalityFieldIds;
     private final Schema eqDeleteRowSchema;
     private final Schema posDeleteRowSchema;
-    private SchemaInfo eqDeletePulsarSchema = null;
-    private SchemaInfo posDeletePulsarSchema = null;
+    private Schema eqDeletePulsarSchema = null;
+    private Schema posDeletePulsarSchema = null;
 
     public PulsarAppenderFactory(Schema schema,
                                  Table table,
@@ -63,7 +60,7 @@ public class PulsarAppenderFactory implements FileAppenderFactory<GenericRecord>
     public PulsarAppenderFactory(Schema schema,
                                  Table table,
                                  PartitionSpec spec,
-                                 int[] equalityFieldIds,
+                                 List<Integer> equalityFieldIds,
                                  Schema eqDeleteRowSchema,
                                  Schema posDeleteRowSchema) {
         this.schema = schema;

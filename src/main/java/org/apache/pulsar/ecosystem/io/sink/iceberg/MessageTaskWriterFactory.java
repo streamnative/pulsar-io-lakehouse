@@ -30,13 +30,11 @@ import org.apache.iceberg.io.FileIO;
 import org.apache.iceberg.io.OutputFileFactory;
 import org.apache.iceberg.io.TaskWriter;
 import org.apache.iceberg.io.UnpartitionedWriter;
-import org.apache.iceberg.util.ArrayUtil;
 
 /**
  * Message task writer factory.
  */
 public class MessageTaskWriterFactory implements TaskWriterFactory<GenericRecord> {
-    private static final long serialVersionUID = 1L;
     private final Table table;
     private final Schema schema;
     private final org.apache.avro.Schema pulsarSchema;
@@ -70,7 +68,7 @@ public class MessageTaskWriterFactory implements TaskWriterFactory<GenericRecord
             this.appenderFactory = new PulsarAppenderFactory(schema, table, spec);
         } else {
             this.appenderFactory = new PulsarAppenderFactory(schema, table, spec,
-                ArrayUtil.toIntArray(equalityFieldIds), schema, null);
+                equalityFieldIds, schema, null);
         }
     }
 

@@ -18,14 +18,13 @@
  */
 package org.apache.pulsar.ecosystem.io.sink.iceberg;
 
-import java.io.Serializable;
 import org.apache.iceberg.io.TaskWriter;
 
 /**
  * Task writer factory.
  * @param <T>
  */
-public interface TaskWriterFactory<T> extends Serializable {
+public interface TaskWriterFactory<T> {
 
     void initialize(int taskId, int attemptId);
 
