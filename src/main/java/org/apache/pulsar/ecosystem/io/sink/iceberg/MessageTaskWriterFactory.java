@@ -36,6 +36,7 @@ import org.apache.iceberg.util.ArrayUtil;
  * Message task writer factory.
  */
 public class MessageTaskWriterFactory implements TaskWriterFactory<GenericRecord> {
+    private static final long serialVersionUID = 1L;
     private final Table table;
     private final Schema schema;
     private final org.apache.avro.Schema pulsarSchema;

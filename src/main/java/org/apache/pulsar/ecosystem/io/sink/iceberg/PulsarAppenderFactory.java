@@ -18,6 +18,7 @@
  */
 package org.apache.pulsar.ecosystem.io.sink.iceberg;
 
+import java.beans.Transient;
 import java.io.Serializable;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.avro.generic.GenericRecord;
@@ -43,6 +44,7 @@ import org.apache.pulsar.common.schema.SchemaInfo;
  */
 @Slf4j
 public class PulsarAppenderFactory implements FileAppenderFactory<GenericRecord>, Serializable {
+    private static final long serialVersionUID = 1L;
 
     private final Schema schema;
     private final Table table;
@@ -50,7 +52,6 @@ public class PulsarAppenderFactory implements FileAppenderFactory<GenericRecord>
     private final int[] equalityFieldIds;
     private final Schema eqDeleteRowSchema;
     private final Schema posDeleteRowSchema;
-
     private SchemaInfo eqDeletePulsarSchema = null;
     private SchemaInfo posDeletePulsarSchema = null;
 
