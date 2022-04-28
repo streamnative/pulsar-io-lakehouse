@@ -18,7 +18,6 @@
  */
 package org.apache.pulsar.ecosystem.io.sink.iceberg;
 
-import java.beans.Transient;
 import java.io.Serializable;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.avro.generic.GenericRecord;
