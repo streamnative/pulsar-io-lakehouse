@@ -16,7 +16,24 @@
  * specific language governing permissions and limitations
  * under the License.
  */
+
+package org.apache.pulsar.ecosystem.io.exception;
+
+import java.io.IOException;
+
 /**
- * Classes for implementing a pulsar IO connector that generates randomized messages.
+ * Incorrect parameter exception.
  */
-package org.apache.pulsar.ecosystem.io.random;
+public class IncorrectParameterException extends IOException {
+    public IncorrectParameterException(String msg) {
+        super(msg);
+    }
+
+    public IncorrectParameterException(Throwable e) {
+        super(e);
+    }
+
+    public IncorrectParameterException(String msg, Throwable e) {
+        super(msg, e);
+    }
+}
