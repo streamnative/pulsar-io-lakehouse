@@ -81,6 +81,10 @@ public class SinkConnector implements Sink<GenericRecord> {
                 log.error("{}", errmsg);
                 throw new IOException(errmsg);
             }
+
+            if (log.isDebugEnabled()) {
+                log.warn("pending on adding into the blocking queue.");
+            }
         }
     }
 

@@ -95,7 +95,6 @@ public class SinkWriter implements Runnable {
                     currentSchema = parser.parse(currentSchemaDefinition);
                     schemaUpdated = true;
                 }
-                lastRecord = record;
                 GenericRecord genericRecord = convertToAvroGenericData(record.getRecord());
 
                 if (genericRecord == null) {
@@ -117,6 +116,7 @@ public class SinkWriter implements Runnable {
                 }
 
                 writer.writeAvroRecord(genericRecord);
+                lastRecord = record;
 
                 if (needCommit()) {
                     if (writer.flush()) {
