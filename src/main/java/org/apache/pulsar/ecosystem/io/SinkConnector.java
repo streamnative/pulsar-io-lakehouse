@@ -24,6 +24,7 @@ import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -74,12 +75,13 @@ public class SinkConnector implements Sink<GenericRecord> {
 
     @Override
     public void write(Record<GenericRecord> record) throws Exception {
-        if (shouldFail.get()) {
-            String errmsg = "processing encounter exception will stop reading record and connector will exit";
-            log.error("{}", errmsg);
-            throw new IOException(errmsg);
+        while (!queue.offer(new PulsarSinkRecord(record), 1, TimeUnit.SECONDS)) {
+            if (shouldFail.get()) {
+                String errmsg = "processing encounter exception will stop reading record and connector will exit";
+                log.error("{}", errmsg);
+                throw new IOException(errmsg);
+            }
         }
-        queue.put(new PulsarSinkRecord(record));
     }
 
     @Override
