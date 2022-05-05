@@ -42,11 +42,11 @@ import org.apache.pulsar.ecosystem.io.sink.iceberg.IcebergSinkConnectorConfig;
 public abstract class SinkConnectorConfig implements Serializable {
     private static final long serialVersionUID = 1L;
 
-    protected static final int MB = 1024 * 1024;
-    protected static final int DEFAULT_SINK_CONNECTOR_QUEUE_SIZE = 10_000;
-    protected static final int DEFAULT_MAX_COMMIT_INTERVAL = 120;
-    protected static final int DEFAULT_MAX_RECORDS_PER_COMMIT = 10_0000;
-    protected static final int DEFAULT_MAX_COMMIT_FAILED_TIMES = 5;
+    public static final int MB = 1024 * 1024;
+    public static final int DEFAULT_SINK_CONNECTOR_QUEUE_SIZE = 10_000;
+    public static final int DEFAULT_MAX_COMMIT_INTERVAL = 120;
+    public static final int DEFAULT_MAX_RECORDS_PER_COMMIT = 10_0000;
+    public static final int DEFAULT_MAX_COMMIT_FAILED_TIMES = 5;
 
     public static final String HUDI_SINK = "hudi";
     public static final String ICEBERG_SINK = "iceberg";
@@ -108,7 +108,7 @@ public abstract class SinkConnectorConfig implements Serializable {
         return null;
     }
 
-    static ObjectMapper jsonMapper() {
+    public static ObjectMapper jsonMapper() {
         return ObjectMapperFactory.getThreadLocal();
     }
 

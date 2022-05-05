@@ -51,6 +51,7 @@ import org.apache.iceberg.types.Types;
 import org.apache.pulsar.client.api.schema.GenericRecord;
 import org.apache.pulsar.common.schema.SchemaType;
 import org.apache.pulsar.ecosystem.io.SinkConnector;
+import org.apache.pulsar.ecosystem.io.common.TestSinkContext;
 import org.apache.pulsar.functions.api.Record;
 import org.awaitility.Awaitility;
 import org.junit.Test;
