@@ -36,7 +36,8 @@ import org.apache.pulsar.ecosystem.io.common.FieldContext;
 @Data
 public class IcebergSinkConnectorConfig extends SinkConnectorConfig {
 
-    protected static final String DEFAULT_CATALOG_IMPL = "hadoopCatalog";
+    protected static final String HIVE_CATALOG = "hiveCatalog";
+    protected static final String HADOOP_CATALOG = "hadoopCatalog";
 
     @FieldContext(
         category = CATEGORY_SINK,
@@ -78,7 +79,7 @@ public class IcebergSinkConnectorConfig extends SinkConnectorConfig {
         super.validate();
 
         catalogImpl = String.valueOf(catalogProperties.getOrDefault(CatalogProperties.CATALOG_IMPL,
-            DEFAULT_CATALOG_IMPL));
+            HADOOP_CATALOG));
         warehouse = String.valueOf(catalogProperties.get(CatalogProperties.WAREHOUSE_LOCATION));
 
         String formatString = "";
@@ -99,7 +100,7 @@ public class IcebergSinkConnectorConfig extends SinkConnectorConfig {
             throw new IllegalArgumentException(msg);
         }
 
-        if (!catalogImpl.equals(DEFAULT_CATALOG_IMPL) && !catalogImpl.equals("hiveCatalog")) {
+        if (!catalogImpl.equals(HADOOP_CATALOG) && !catalogImpl.equals(HIVE_CATALOG)) {
             String msg = "catalogImpl should be hadoopCatalog or hiveCatalog";
             log.error("{}", msg);
             throw new IllegalArgumentException(msg);

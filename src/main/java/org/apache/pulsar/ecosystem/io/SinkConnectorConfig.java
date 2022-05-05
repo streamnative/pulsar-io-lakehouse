@@ -45,7 +45,8 @@ public abstract class SinkConnectorConfig implements Serializable {
     protected static final int MB = 1024 * 1024;
     protected static final int DEFAULT_SINK_CONNECTOR_QUEUE_SIZE = 10_000;
     protected static final int DEFAULT_MAX_COMMIT_INTERVAL = 120;
-    protected static final String DEFAULT_CATALOG_IMPL = "hadoopCatalog";
+    protected static final int DEFAULT_MAX_RECORDS_PER_COMMIT = 10_0000;
+    protected static final int DEFAULT_MAX_COMMIT_FAILED_TIMES = 5;
 
     public static final String HUDI_SINK = "hudi";
     public static final String ICEBERG_SINK = "iceberg";
@@ -63,9 +64,21 @@ public abstract class SinkConnectorConfig implements Serializable {
 
     @FieldContext(
         category = CATEGORY_SINK,
-        doc = "max flush interval in seconds for each batch "
+        doc = "Max flush interval in seconds for each batch. Default is 120s "
     )
     int maxCommitInterval = DEFAULT_MAX_COMMIT_INTERVAL;
+
+    @FieldContext(
+        category = CATEGORY_SINK,
+        doc = "Max records number for each batch to commit. Default is 100_000"
+    )
+    int maxRecordsPerCommit = DEFAULT_MAX_RECORDS_PER_COMMIT;
+
+    @FieldContext(
+        category = CATEGORY_SINK,
+        doc = "Max commit fail times to fail the process. Default is 5"
+    )
+    int maxCommitFailedTimes = DEFAULT_MAX_COMMIT_FAILED_TIMES;
 
     @FieldContext(
         category = CATEGORY_SINK,
@@ -119,6 +132,12 @@ public abstract class SinkConnectorConfig implements Serializable {
             log.warn("sinkConnectorQueueSize: {} should be > 0, using default: {}",
                 sinkConnectorQueueSize, DEFAULT_SINK_CONNECTOR_QUEUE_SIZE);
             sinkConnectorQueueSize = DEFAULT_SINK_CONNECTOR_QUEUE_SIZE;
+        }
+
+        if (maxRecordsPerCommit <= 0) {
+            log.warn("maxRecordsPerCommit: {} should be > 0, using default: {}",
+                maxRecordsPerCommit, DEFAULT_MAX_RECORDS_PER_COMMIT);
+            maxRecordsPerCommit = DEFAULT_MAX_RECORDS_PER_COMMIT;
         }
     }
 

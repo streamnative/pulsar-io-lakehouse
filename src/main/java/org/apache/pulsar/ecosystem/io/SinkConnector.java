@@ -19,16 +19,18 @@
 package org.apache.pulsar.ecosystem.io;
 
 import io.netty.util.concurrent.DefaultThreadFactory;
+import java.io.IOException;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.atomic.AtomicBoolean;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.pulsar.client.api.SubscriptionType;
 import org.apache.pulsar.client.api.schema.GenericRecord;
 import org.apache.pulsar.ecosystem.io.sink.PulsarSinkRecord;
-import org.apache.pulsar.ecosystem.io.sink.WriterThread;
+import org.apache.pulsar.ecosystem.io.sink.SinkWriter;
 import org.apache.pulsar.functions.api.Record;
 import org.apache.pulsar.io.core.Sink;
 import org.apache.pulsar.io.core.SinkContext;
@@ -43,7 +45,8 @@ public class SinkConnector implements Sink<GenericRecord> {
     private SinkContext context;
     private LinkedBlockingQueue<PulsarSinkRecord> queue;
     private ExecutorService executor;
-    private WriterThread writer;
+    private SinkWriter writer;
+    private final AtomicBoolean shouldFail = new AtomicBoolean(false);
 
     @Override
     public void open(Map<String, Object> config, SinkContext sinkContext) throws Exception {
@@ -64,13 +67,18 @@ public class SinkConnector implements Sink<GenericRecord> {
         log.info("{} sink connector config: {}", this.config.getType(), this.config);
 
         queue = new LinkedBlockingQueue<>(this.config.getSinkConnectorQueueSize());
-        writer = new WriterThread(this);
+        writer = new SinkWriter(this);
         executor = Executors.newSingleThreadExecutor(new DefaultThreadFactory("lakehouse-io"));
         executor.execute(writer);
     }
 
     @Override
     public void write(Record<GenericRecord> record) throws Exception {
+        if (shouldFail.get()) {
+            String errmsg = "processing encounter exception will stop reading record and connector will exit";
+            log.error("{}", errmsg);
+            throw new IOException(errmsg);
+        }
         queue.put(new PulsarSinkRecord(record));
     }
 

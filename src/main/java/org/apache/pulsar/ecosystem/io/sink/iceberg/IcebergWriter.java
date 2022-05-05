@@ -19,6 +19,8 @@
 
 package org.apache.pulsar.ecosystem.io.sink.iceberg;
 
+import static org.apache.pulsar.ecosystem.io.sink.iceberg.IcebergSinkConnectorConfig.HADOOP_CATALOG;
+import static org.apache.pulsar.ecosystem.io.sink.iceberg.IcebergSinkConnectorConfig.HIVE_CATALOG;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -52,16 +54,27 @@ public class IcebergWriter implements LakehouseWriter {
     private final TableLoader tableLoader;
     private volatile TaskWriter<GenericRecord> taskWriter;
     private volatile PulsarFileCommitter fileCommitter = null;
-    private long lastCheckpointTimestamp;
-    private final int checkpointInterval;
 
     public IcebergWriter(SinkConnectorConfig sinkConfig, Schema schema) {
         this.config = (IcebergSinkConnectorConfig) sinkConfig;
         this.schema = schema;
 
-        CatalogLoader catalogLoader = config.catalogImpl.equals("hadoopCatalog")
-            ? CatalogLoader.hadoop(config.getCatalogName(), new Configuration(), config.catalogProperties)
-            : CatalogLoader.hive(config.getCatalogName(), new Configuration(), config.catalogProperties);
+        CatalogLoader catalogLoader = null;
+        switch (config.catalogImpl) {
+            case HADOOP_CATALOG:
+                catalogLoader = CatalogLoader.hadoop(config.getCatalogName(),
+                    new Configuration(), config.catalogProperties);
+                break;
+            case HIVE_CATALOG:
+                catalogLoader = CatalogLoader.hive(config.getCatalogName(),
+                    new Configuration(), config.catalogProperties);
+                break;
+            default:
+                String errmsg = "Not support catalog: " + config.catalogImpl
+                    + ", catalog name: " + config.getCatalogName();
+                log.error("{}", errmsg);
+                throw new IllegalArgumentException(errmsg);
+        }
 
         TableIdentifier identifier = TableIdentifier.of(config.getTableNamespace(), config.getTableName());
         tableLoader = TableLoader.fromCatalog(catalogLoader, identifier);
@@ -77,8 +90,6 @@ public class IcebergWriter implements LakehouseWriter {
         taskWriterFactory.initialize(0, 1);
 
         taskWriter = taskWriterFactory.create();
-        lastCheckpointTimestamp = System.currentTimeMillis();
-        checkpointInterval = config.getMaxCommitInterval();
     }
 
     protected void createTable(Schema schema, TableLoader tableLoader,

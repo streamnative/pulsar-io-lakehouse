@@ -22,6 +22,7 @@ package org.apache.pulsar.ecosystem.io.sink;
 import static org.apache.pulsar.ecosystem.io.SinkConnectorConfig.ICEBERG_SINK;
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.avro.Schema;
 import org.apache.avro.generic.GenericDatumReader;
@@ -33,6 +34,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.pulsar.ecosystem.io.SinkConnector;
 import org.apache.pulsar.ecosystem.io.SinkConnectorConfig;
 import org.apache.pulsar.ecosystem.io.common.SchemaConverter;
+import org.apache.pulsar.ecosystem.io.exception.CommitFailedException;
 import org.apache.pulsar.ecosystem.io.sink.iceberg.IcebergWriter;
 import org.apache.pulsar.functions.api.Record;
 
@@ -40,7 +42,7 @@ import org.apache.pulsar.functions.api.Record;
  * Writer thread. Fetch records from queue, and write them into lakehouse table.
  */
 @Slf4j
-public class WriterThread extends Thread {
+public class SinkWriter implements Runnable {
     private final SinkConnector sink;
     private volatile boolean running;
     private LakehouseWriter writer;
@@ -53,21 +55,31 @@ public class WriterThread extends Thread {
     private DatumReader<GenericRecord> datumReader;
     private final long timeIntervalPerCommit;
     private long lastCommitTime;
+    private long recordsCnt;
+    private final long maxRecordsPerCommit;
+    private final int maxCommitFailedTimes;
+    private final AtomicBoolean shouldFail;
 
 
-    public WriterThread(SinkConnector sink) {
+    public SinkWriter(SinkConnector sink) {
         this.sink = sink;
         this.running = true;
         this.parser = new Schema.Parser();
         this.currentSchemaDefinition = null;
         this.writer = null;
         this.currentSchema = null;
+        this.lastRecord = null;
         this.schemaUpdated = false;
         this.timeIntervalPerCommit = TimeUnit.SECONDS.toMillis(sink.getConfig().getMaxCommitInterval());
+        this.maxRecordsPerCommit = sink.getConfig().getMaxRecordsPerCommit();
+        this.maxCommitFailedTimes = sink.getConfig().getMaxCommitFailedTimes();
         this.lastCommitTime = System.currentTimeMillis();
+        this.recordsCnt = 0;
+        this.shouldFail = sink.getShouldFail();
     }
 
     public void run() {
+        int commitFailedCnt = 0;
         while (running) {
             try {
                 PulsarSinkRecord record = sink.getQueue().poll(100, TimeUnit.MILLISECONDS);
@@ -97,20 +109,43 @@ public class WriterThread extends Thread {
                 if (schemaUpdated) {
                     if (writer.updateSchema(currentSchema)) {
                         lastRecord.ack();
+                        lastCommitTime = System.currentTimeMillis();
+                        recordsCnt = 0;
+                        commitFailedCnt = 0;
                     }
                     schemaUpdated = false;
                 }
 
                 writer.writeAvroRecord(genericRecord);
-                if (lastCommitTime - System.currentTimeMillis() > timeIntervalPerCommit && writer.flush()) {
-                    lastRecord.ack();
-                    lastCommitTime = System.currentTimeMillis();
+
+                if (needCommit()) {
+                    if (writer.flush()) {
+                        lastRecord.ack();
+                        lastCommitTime = System.currentTimeMillis();
+                        recordsCnt = 0;
+                        commitFailedCnt = 0;
+                    } else {
+                        commitFailedCnt++;
+
+                        if (commitFailedCnt > maxCommitFailedTimes) {
+                            String errmsg = "Failed commit times: " + commitFailedCnt
+                                + " exceed maxCommitFailedTimes: " + maxCommitFailedTimes;
+                            log.error("{}", errmsg);
+                            throw new CommitFailedException(errmsg);
+                        }
+                    }
                 }
             } catch (InterruptedException | IOException e) {
                 log.error("process record failed. ", e);
-                // TODO add retry logic.
+                // fail the sink connector.
+                shouldFail.set(true);
             }
         }
+    }
+
+    private boolean needCommit() {
+        return lastCommitTime - System.currentTimeMillis() > timeIntervalPerCommit
+            || recordsCnt > maxRecordsPerCommit;
     }
 
     protected GenericRecord convertToAvroGenericData(Record<org.apache.pulsar.client.api.schema.GenericRecord> record)
@@ -138,8 +173,13 @@ public class WriterThread extends Thread {
 
     public void close() throws IOException {
         running = false;
-        writer.close();
-        lastRecord.ack();
+        if (writer != null) {
+            writer.close();
+        }
+
+        if (lastRecord != null) {
+            lastRecord.ack();
+        }
     }
 
     protected LakehouseWriter createWriter(SinkConnectorConfig config, Schema schema) {
