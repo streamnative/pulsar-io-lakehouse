@@ -18,6 +18,6 @@
  */
 
 /**
- * Classes for implementing a pulsar IO connector that read data from delta lake.
+ * Classes for implementing a parquet reader and writer.
  */
 package org.apache.pulsar.ecosystem.io.parquet;
