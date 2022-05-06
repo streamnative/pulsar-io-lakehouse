@@ -17,7 +17,7 @@
  * under the License.
  */
 
-package org.apache.pulsar.ecosystem.io.sink.delta;
+package org.apache.pulsar.ecosystem.io.sink;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -35,7 +35,7 @@ import org.apache.pulsar.functions.api.Record;
  * Delta lake sink connector utils.
  *
  */
-public class DeltaLakeSinkConnectorUtils {
+public class SinkConnectorUtils {
     public static Record<GenericRecord> generateRecord(Map<String, SchemaType> schemaMap,
                                                       Map<String, Object> objectMap,
                                                       SchemaType schemaType,

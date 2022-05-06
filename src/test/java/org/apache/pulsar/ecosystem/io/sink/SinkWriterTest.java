@@ -16,32 +16,39 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-
-package org.apache.pulsar.ecosystem.io.sink.delta;
+package org.apache.pulsar.ecosystem.io.sink;
 
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.fail;
+import java.io.IOException;
 import java.util.HashMap;
-import java.util.Locale;
 import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.avro.Schema;
-import org.apache.pulsar.client.api.schema.Field;
-import org.apache.pulsar.client.api.schema.GenericRecord;
-import org.apache.pulsar.common.schema.SchemaInfo;
+import org.apache.avro.generic.GenericRecord;
 import org.apache.pulsar.common.schema.SchemaType;
-import org.apache.pulsar.ecosystem.io.sink.PulsarSinkRecord;
+import org.apache.pulsar.ecosystem.io.SinkConnector;
+import org.apache.pulsar.ecosystem.io.SinkConnectorConfig;
+import org.apache.pulsar.ecosystem.io.sink.delta.DeltaSinkConnectorConfig;
 import org.apache.pulsar.functions.api.Record;
 import org.testng.annotations.Test;
 
 
+
 /**
- * delta sink record test.
+ * Delta writer thread test.
+ *
  */
 @Slf4j
-public class DeltaSinkRecordTest {
+public class SinkWriterTest {
 
     @Test
-    public void testRecordSchema() {
+    public void testAvroGenericDataConverter() {
+        SinkConnector sinkConnector = new SinkConnector();
+        SinkConnectorConfig sinkConnectorConfig = new DeltaSinkConnectorConfig();
+        sinkConnector.setConfig(sinkConnectorConfig);
+        log.info("{}", sinkConnector.getConfig());
+        SinkWriter sinkWriter = new SinkWriter(sinkConnector);
+
         Map<String, SchemaType> schemaMap = new HashMap<>();
         schemaMap.put("name", SchemaType.STRING);
         schemaMap.put("age", SchemaType.INT32);
@@ -56,32 +63,31 @@ public class DeltaSinkRecordTest {
         recordMap.put("address", "GuangZhou, China");
         recordMap.put("score", 59.9);
 
-        Record<GenericRecord> record = DeltaLakeSinkConnectorUtils.generateRecord(schemaMap, recordMap,
+        Record<org.apache.pulsar.client.api.schema.GenericRecord> record =
+            SinkConnectorUtils.generateRecord(schemaMap, recordMap,
             SchemaType.AVRO, "MyRecord");
 
-        PulsarSinkRecord sinkRecord = new PulsarSinkRecord(record);
-
-        assertEquals(sinkRecord.getRecord().getPartitionIndex().get(), Integer.valueOf(1));
-        assertEquals(sinkRecord.getRecord().getProperties().get("key-a"), "value-a");
-
-        Record<GenericRecord> r = sinkRecord.getRecord();
-        // assert schema
-        SchemaInfo schemaInfo = r.getSchema().getSchemaInfo();
-        assertEquals(schemaInfo.getName(), "MyRecord");
-        assertEquals(schemaInfo.getType(), SchemaType.AVRO);
-
-        Schema schema = new Schema.Parser().parse(schemaInfo.getSchemaDefinition());
-        for (Schema.Field field : schema.getFields()) {
-            if (field.schema().getType().name().toUpperCase(Locale.ROOT).equals("INT")) {
-                continue;
-            }
-            assertEquals(schemaMap.get(field.name()).toString().toUpperCase(Locale.ROOT),
-                field.schema().getType().getName().toUpperCase(Locale.ROOT));
+        try {
+            GenericRecord genericRecord = sinkWriter.convertToAvroGenericData(record);
+            assertEquals(genericRecord.get("name"), "hang");
+            assertEquals(genericRecord.get("age"), 18);
+            assertEquals(genericRecord.get("phone"), "110");
+            assertEquals(genericRecord.get("address"), "GuangZhou, China");
+            assertEquals(genericRecord.get("score"), 59.9);
+            assertEquals(genericRecord.getSchema().toString(),
+                record.getSchema().getSchemaInfo().getSchemaDefinition());
+        } catch (IOException e) {
+            fail();
         }
+    }
 
-        // assert value
-        for (Field field: r.getValue().getFields()) {
-            assertEquals(r.getValue().getField(field), recordMap.get(field.getName()));
-        }
+    @Test
+    public void testJsonGenericDataConverter() {
+        // TODO
+    }
+
+    @Test
+    public void testPrimitiveSchemaTypeConverter() {
+        // TODO
     }
 }

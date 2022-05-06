@@ -51,6 +51,7 @@ import org.apache.pulsar.client.api.schema.GenericRecord;
 import org.apache.pulsar.common.schema.SchemaType;
 import org.apache.pulsar.ecosystem.io.SinkConnector;
 import org.apache.pulsar.ecosystem.io.common.TestSinkContext;
+import org.apache.pulsar.ecosystem.io.sink.SinkConnectorUtils;
 import org.apache.pulsar.functions.api.Record;
 import org.testng.annotations.Test;
 
@@ -78,9 +79,8 @@ public class DeltaLakeSinkConnectorTest {
     public void testNonPartitionedIntegration() throws Exception {
         String tablePath = "/tmp/delta-test-data-" + UUID.randomUUID();
         Map<String, Object> config = new HashMap<>();
-        config.put("maxParquetFileSize", 1024 * 1024 * 64);
         config.put("tablePath", tablePath);
-        config.put("fileSystemType", "filesystem");
+        config.put("type", "delta");
 
         SinkConnector sinkConnector = new SinkConnector();
         sinkConnector.open(config, new TestSinkContext());
@@ -101,7 +101,7 @@ public class DeltaLakeSinkConnectorTest {
         for (int i = 0; i < 1500; ++i) {
             recordMap.put("age", i);
             recordMap.put("score", 59.9 + i);
-            Record<GenericRecord> record = DeltaLakeSinkConnectorUtils.generateRecord(schemaMap, recordMap,
+            Record<GenericRecord> record = SinkConnectorUtils.generateRecord(schemaMap, recordMap,
                 SchemaType.AVRO, "MyRecord");
             sinkConnector.write(record);
         }
@@ -168,9 +168,8 @@ public class DeltaLakeSinkConnectorTest {
         String tablePath = "/tmp/delta-test-data-" + UUID.randomUUID();
 
         Map<String, Object> config = new HashMap<>();
-        config.put("maxParquetFileSize", 1024 * 1024);
         config.put("tablePath", tablePath);
-        config.put("fileSystemType", "filesystem");
+        config.put("type", "delta");
         config.put("partitionColumns", Arrays.asList("age", "phone"));
 
         SinkConnector sinkConnector = new SinkConnector();
@@ -195,7 +194,7 @@ public class DeltaLakeSinkConnectorTest {
             recordMap.put("age", random.nextInt(10));
             recordMap.put("phone", String.valueOf(random.nextInt(5) + 30));
             recordMap.put("score", 59.9 + i);
-            Record<GenericRecord> record = DeltaLakeSinkConnectorUtils.generateRecord(schemaMap, recordMap,
+            Record<GenericRecord> record = SinkConnectorUtils.generateRecord(schemaMap, recordMap,
                 SchemaType.AVRO, "MyRecord");
             sinkConnector.write(record);
         }
@@ -278,7 +277,7 @@ public class DeltaLakeSinkConnectorTest {
         recordMap.put("address", "GuangZhou, China");
         recordMap.put("score", 59.9);
 
-        return DeltaLakeSinkConnectorUtils.generateRecord(schemaMap, recordMap,
+        return SinkConnectorUtils.generateRecord(schemaMap, recordMap,
             SchemaType.AVRO, "MyRecord");
     }
 

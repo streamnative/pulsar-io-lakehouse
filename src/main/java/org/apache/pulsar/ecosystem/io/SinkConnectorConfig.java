@@ -32,6 +32,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.pulsar.common.util.ObjectMapperFactory;
 import org.apache.pulsar.ecosystem.io.common.Category;
 import org.apache.pulsar.ecosystem.io.common.FieldContext;
+import org.apache.pulsar.ecosystem.io.sink.delta.DeltaSinkConnectorConfig;
 import org.apache.pulsar.ecosystem.io.sink.iceberg.IcebergSinkConnectorConfig;
 
 /**
@@ -104,6 +105,9 @@ public abstract class SinkConnectorConfig implements Serializable {
             case ICEBERG_SINK:
                 return jsonMapper().readValue(new ObjectMapper().writeValueAsString(map),
                     IcebergSinkConnectorConfig.class);
+            case DELTA_SINK:
+                return jsonMapper().readValue(new ObjectMapper().writeValueAsString(map),
+                    DeltaSinkConnectorConfig.class);
         }
         return null;
     }

@@ -40,8 +40,9 @@ public class DeltaLakeSinkConnectorConfigTest {
         config.put("tablePath", "/tmp/test_v1");
         config.put("partitionColumns", Arrays.asList("a", "b", "c"));
         config.put("compression", "snappy");
+        config.put("type", "delta");
 
-        DeltaLakeSinkConnectorConfig deltaLakeSinkConnectorConfig = DeltaLakeSinkConnectorConfig.load(config);
+        DeltaSinkConnectorConfig deltaLakeSinkConnectorConfig = DeltaSinkConnectorConfig.load(config);
         deltaLakeSinkConnectorConfig.validate();
 
         assertEquals(deltaLakeSinkConnectorConfig.getMaxCommitInterval(), 100);
@@ -63,8 +64,9 @@ public class DeltaLakeSinkConnectorConfigTest {
         config.put("fileSystemType", "filesystem");
         config.put("partitionColumns", Arrays.asList("a", "b", "c"));
         config.put("compression", "aa");
+        config.put("type", "delta");
 
-        DeltaLakeSinkConnectorConfig deltaLakeSinkConnectorConfig = DeltaLakeSinkConnectorConfig.load(config);
+        DeltaSinkConnectorConfig deltaLakeSinkConnectorConfig = DeltaSinkConnectorConfig.load(config);
         deltaLakeSinkConnectorConfig.validate();
 
         assertEquals(deltaLakeSinkConnectorConfig.getCompression(), "SNAPPY");
@@ -74,18 +76,19 @@ public class DeltaLakeSinkConnectorConfigTest {
     public void testDefaultConfigValue() throws IOException {
         Map<String, Object> config = new HashMap<>();
         config.put("tablePath", "/tmp/test_v1");
+        config.put("type", "delta");
 
-        DeltaLakeSinkConnectorConfig deltaLakeSinkConnectorConfig = DeltaLakeSinkConnectorConfig.load(config);
+        DeltaSinkConnectorConfig deltaLakeSinkConnectorConfig = DeltaSinkConnectorConfig.load(config);
         deltaLakeSinkConnectorConfig.validate();
 
         assertEquals(deltaLakeSinkConnectorConfig.getMaxCommitInterval(),
-            DeltaLakeSinkConnectorConfig.DEFAULT_MAX_COMMIT_INTERVAL);
+            DeltaSinkConnectorConfig.DEFAULT_MAX_COMMIT_INTERVAL);
         assertEquals(deltaLakeSinkConnectorConfig.getSinkConnectorQueueSize(),
-            DeltaLakeSinkConnectorConfig.DEFAULT_SINK_CONNECTOR_QUEUE_SIZE);
+            DeltaSinkConnectorConfig.DEFAULT_SINK_CONNECTOR_QUEUE_SIZE);
         assertEquals(deltaLakeSinkConnectorConfig.getTablePath(), "/tmp/test_v1");
         assertTrue(deltaLakeSinkConnectorConfig.getPartitionColumns().isEmpty());
         assertEquals(deltaLakeSinkConnectorConfig.getCompression(),
-            DeltaLakeSinkConnectorConfig.DEFAULT_PARQUET_COMPRESSION_TYPE);
+            DeltaSinkConnectorConfig.DEFAULT_PARQUET_COMPRESSION_TYPE);
 
     }
 
@@ -94,12 +97,11 @@ public class DeltaLakeSinkConnectorConfigTest {
         Map<String, Object> config = new HashMap<>();
 
         try {
-            DeltaLakeSinkConnectorConfig deltaLakeSinkConnectorConfig = DeltaLakeSinkConnectorConfig.load(config);
+            DeltaSinkConnectorConfig deltaLakeSinkConnectorConfig = DeltaSinkConnectorConfig.load(config);
             deltaLakeSinkConnectorConfig.validate();
             fail();
         } catch (IOException | IllegalArgumentException e) {
-            assertEquals(e.getMessage(), "tablePath or fileSystemType are required field, "
-                + "they must be configured.");
+            assertEquals(e.getMessage(), "type must be set and must be one of hudi, iceberg or delta");
         }
 
     }

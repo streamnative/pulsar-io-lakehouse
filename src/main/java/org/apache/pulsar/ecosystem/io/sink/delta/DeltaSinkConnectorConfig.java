@@ -35,7 +35,7 @@ import org.apache.pulsar.ecosystem.io.common.FieldContext;
  */
 @Slf4j
 @Data
-public class DeltaLakeSinkConnectorConfig extends SinkConnectorConfig {
+public class DeltaSinkConnectorConfig extends SinkConnectorConfig {
     protected static final String DEFAULT_PARQUET_COMPRESSION_TYPE = CompressionCodecName.SNAPPY.name();
     protected static final String DEFAULT_DELTA_FILE_TYPE = "parquet";
     protected static final String DEFAULT_APP_ID = "pulsar-delta-sink-connector";
@@ -77,8 +77,8 @@ public class DeltaLakeSinkConnectorConfig extends SinkConnectorConfig {
         }
     }
 
-    public static DeltaLakeSinkConnectorConfig load(Map<String, Object> map) throws IOException {
-        return jsonMapper().readValue(new ObjectMapper().writeValueAsString(map), DeltaLakeSinkConnectorConfig.class);
+    public static DeltaSinkConnectorConfig load(Map<String, Object> map) throws IOException {
+        return jsonMapper().readValue(new ObjectMapper().writeValueAsString(map), DeltaSinkConnectorConfig.class);
     }
 
 

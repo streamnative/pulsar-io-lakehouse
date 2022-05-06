@@ -57,14 +57,14 @@ public class DeltaWriter implements LakehouseWriter {
     protected static final String DESCRIPTION = "metadata change";
     protected static final String COMMIT_INFO = "pulsar-sink-connector-version-2.9.1";
 
-    private final DeltaLakeSinkConnectorConfig config;
+    private final DeltaSinkConnectorConfig config;
     private final String appId;
     private DeltaLog deltaLog;
     private final Schema schema;
     private DeltaParquetWriter writer;
 
     public DeltaWriter(SinkConnectorConfig cfg, Schema schema) {
-        this.config = (DeltaLakeSinkConnectorConfig) cfg;
+        this.config = (DeltaSinkConnectorConfig) cfg;
         this.appId = this.config.getAppId();
         this.schema = schema;
 

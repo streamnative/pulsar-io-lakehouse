@@ -43,6 +43,7 @@ import org.apache.pulsar.client.api.schema.GenericRecord;
 import org.apache.pulsar.common.schema.SchemaType;
 import org.apache.pulsar.ecosystem.io.common.SchemaConverter;
 import org.apache.pulsar.ecosystem.io.parquet.DeltaParquetWriter;
+import org.apache.pulsar.ecosystem.io.sink.SinkConnectorUtils;
 import org.apache.pulsar.functions.api.Record;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
@@ -55,7 +56,7 @@ import org.testng.annotations.Test;
 @Slf4j
 public class DeltaWriterTest {
 
-    private DeltaLakeSinkConnectorConfig config;
+    private DeltaSinkConnectorConfig config;
     private Schema schema;
     private org.apache.avro.generic.GenericRecord genericRecord;
     private String tablePath;
@@ -66,11 +67,10 @@ public class DeltaWriterTest {
     public void setup() throws IOException {
         tablePath = "/tmp/delta-test-data-" + UUID.randomUUID();
         Map<String, Object> configMap = new HashMap<>();
-        configMap.put("maxParquetFileSize", 1024 * 1024 * 64);
         configMap.put("tablePath", tablePath);
-        configMap.put("fileSystemType", "filesystem");
+        configMap.put("type", "delta");
 
-        config = DeltaLakeSinkConnectorConfig.load(configMap);
+        config = DeltaSinkConnectorConfig.load(configMap);
         config.validate();
 
         schemaMap = new HashMap<>();
@@ -86,7 +86,7 @@ public class DeltaWriterTest {
         recordMap.put("phone", "110");
         recordMap.put("address", "GuangZhou, China");
         recordMap.put("score", 59.9);
-        Record<GenericRecord> record = DeltaLakeSinkConnectorUtils.generateRecord(schemaMap, recordMap,
+        Record<GenericRecord> record = SinkConnectorUtils.generateRecord(schemaMap, recordMap,
                 SchemaType.AVRO, "MyRecord");
 
         schema = new Schema.Parser().parse(record.getSchema().getSchemaInfo().getSchemaDefinition());
@@ -199,7 +199,7 @@ public class DeltaWriterTest {
             recordMap.put("address", "GuangZhou, China");
             recordMap.put("score", 59.9);
             recordMap.put("grade", 1);
-            Record<GenericRecord> record = DeltaLakeSinkConnectorUtils.generateRecord(schemaMap, recordMap,
+            Record<GenericRecord> record = SinkConnectorUtils.generateRecord(schemaMap, recordMap,
                 SchemaType.AVRO, "MyRecord");
 
             Schema newSchema = new Schema.Parser().parse(record.getSchema().getSchemaInfo().getSchemaDefinition());
@@ -225,12 +225,11 @@ public class DeltaWriterTest {
     public void testPartitionedDeltaTable() throws IOException {
         String partitionedTablePath = "/tmp/delta-test-data-" + UUID.randomUUID();
         Map<String, Object> configMap = new HashMap<>();
-        configMap.put("maxParquetFileSize", 1024 * 1024 * 64);
         configMap.put("tablePath", partitionedTablePath);
-        configMap.put("fileSystemType", "filesystem");
         configMap.put("partitionColumns", Arrays.asList("name", "age"));
+        configMap.put("type", "delta");
 
-        DeltaLakeSinkConnectorConfig partitionedConfig = DeltaLakeSinkConnectorConfig.load(configMap);
+        DeltaSinkConnectorConfig partitionedConfig = DeltaSinkConnectorConfig.load(configMap);
         partitionedConfig.validate();
 
         DeltaWriter writer = new DeltaWriter(partitionedConfig, schema);
@@ -238,7 +237,7 @@ public class DeltaWriterTest {
             // test write record
             for (int i = 0; i < 100; ++i) {
                 recordMap.put("age", 18 + i % 10);
-                Record<GenericRecord> record = DeltaLakeSinkConnectorUtils.generateRecord(schemaMap, recordMap,
+                Record<GenericRecord> record = SinkConnectorUtils.generateRecord(schemaMap, recordMap,
                     SchemaType.AVRO, "MyRecord");
                 org.apache.avro.generic.GenericRecord r =
                     (org.apache.avro.generic.GenericRecord) record.getValue().getNativeObject();
@@ -284,7 +283,7 @@ public class DeltaWriterTest {
             recordMap.put("address", "GuangZhou, China");
             recordMap.put("score", 59.9);
             recordMap.put("grade", 1);
-            Record<GenericRecord> record = DeltaLakeSinkConnectorUtils.generateRecord(schemaMap, recordMap,
+            Record<GenericRecord> record = SinkConnectorUtils.generateRecord(schemaMap, recordMap,
                 SchemaType.AVRO, "MyRecord");
 
             Schema newSchema = new Schema.Parser().parse(record.getSchema().getSchemaInfo().getSchemaDefinition());
@@ -298,7 +297,7 @@ public class DeltaWriterTest {
 
             for (int i = 0; i < 200; ++i) {
                 recordMap.put("age", 18 + i % 20);
-                record = DeltaLakeSinkConnectorUtils.generateRecord(schemaMap, recordMap,
+                record = SinkConnectorUtils.generateRecord(schemaMap, recordMap,
                     SchemaType.AVRO, "MyRecord");
                 org.apache.avro.generic.GenericRecord r =
                     (org.apache.avro.generic.GenericRecord) record.getValue().getNativeObject();

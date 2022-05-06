@@ -40,7 +40,7 @@ import org.apache.parquet.hadoop.ParquetWriter;
 import org.apache.parquet.hadoop.example.GroupReadSupport;
 import org.apache.pulsar.client.api.schema.GenericRecord;
 import org.apache.pulsar.common.schema.SchemaType;
-import org.apache.pulsar.ecosystem.io.sink.delta.DeltaLakeSinkConnectorUtils;
+import org.apache.pulsar.ecosystem.io.sink.SinkConnectorUtils;
 import org.apache.pulsar.functions.api.Record;
 import org.testng.annotations.Test;
 
@@ -110,7 +110,7 @@ public class DeltaParquetFileWriterTest {
         recordMap.put("address", "GuangZhou, China");
         recordMap.put("score", 59.9);
 
-        Record<GenericRecord> record = DeltaLakeSinkConnectorUtils.generateRecord(schemaMap, recordMap,
+        Record<GenericRecord> record = SinkConnectorUtils.generateRecord(schemaMap, recordMap,
             SchemaType.AVRO, "MyRecord");
         Schema schema = new Schema.Parser().parse(record.getSchema().getSchemaInfo().getSchemaDefinition());
 
@@ -153,7 +153,7 @@ public class DeltaParquetFileWriterTest {
 
         List<Record<GenericRecord>> recordList = new ArrayList<>();
         try {
-            Record<GenericRecord> record = DeltaLakeSinkConnectorUtils.generateRecord(schemaMap, recordMap,
+            Record<GenericRecord> record = SinkConnectorUtils.generateRecord(schemaMap, recordMap,
                 SchemaType.AVRO, "MyRecord");
             Schema schema = new Schema.Parser().parse(record.getSchema().getSchemaInfo().getSchemaDefinition());
 
@@ -163,7 +163,7 @@ public class DeltaParquetFileWriterTest {
             for (int i = 0; i < 100; ++i) {
                 recordMap.put("age", i);
                 recordMap.put("score", 59.9 + i);
-                record = DeltaLakeSinkConnectorUtils.generateRecord(schemaMap, recordMap,
+                record = SinkConnectorUtils.generateRecord(schemaMap, recordMap,
                     SchemaType.AVRO, "MyRecord");
                 recordList.add(record);
                 writer.write((org.apache.avro.generic.GenericRecord) record.getValue().getNativeObject());
