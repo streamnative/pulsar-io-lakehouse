@@ -18,6 +18,7 @@
  */
 package org.apache.pulsar.ecosystem.io.sink.hudi;
 
+import java.io.IOException;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hudi.client.HoodieJavaWriteClient;
 import org.apache.hudi.client.common.HoodieJavaEngineContext;
@@ -30,8 +31,6 @@ import org.apache.hudi.config.HoodieCompactionConfig;
 import org.apache.hudi.config.HoodieIndexConfig;
 import org.apache.hudi.config.HoodieWriteConfig;
 import org.apache.hudi.index.HoodieIndex;
-
-import java.io.IOException;
 
 public class HoodieWriterProvider {
 

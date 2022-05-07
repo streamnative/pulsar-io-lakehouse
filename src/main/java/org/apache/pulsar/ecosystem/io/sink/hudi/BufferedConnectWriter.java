@@ -18,6 +18,9 @@
  */
 package org.apache.pulsar.ecosystem.io.sink.hudi;
 
+import java.io.IOException;
+import java.util.LinkedList;
+import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.avro.Schema;
 import org.apache.hudi.client.HoodieJavaWriteClient;
@@ -32,10 +35,6 @@ import org.apache.hudi.config.HoodieWriteConfig;
 import org.apache.hudi.exception.HoodieIOException;
 import org.apache.hudi.io.IOUtils;
 import org.apache.pulsar.ecosystem.io.sink.hudi.exceptions.HoodieConnectorException;
-
-import java.io.IOException;
-import java.util.LinkedList;
-import java.util.List;
 
 @Slf4j
 public class BufferedConnectWriter {

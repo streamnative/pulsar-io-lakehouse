@@ -18,6 +18,7 @@
  */
 package org.apache.pulsar.ecosystem.io.sink.hudi;
 
+import java.io.IOException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.avro.Schema;
 import org.apache.avro.generic.GenericRecord;
@@ -30,21 +31,19 @@ import org.apache.pulsar.ecosystem.io.SinkConnectorConfig;
 import org.apache.pulsar.ecosystem.io.sink.LakehouseWriter;
 import org.apache.pulsar.ecosystem.io.sink.hudi.exceptions.HoodieConnectorException;
 
-import java.io.IOException;
-
 @Slf4j
 public class HoodieWriter implements LakehouseWriter {
 
-    org.apache.pulsar.ecosystem.io.sink.hudi.BufferedConnectWriter writer;
-    org.apache.pulsar.ecosystem.io.sink.hudi.HoodieWriterProvider writerProvider;
-    org.apache.pulsar.ecosystem.io.sink.hudi.HoodieSinkConfigs hoodieSinkConfigs;
+    BufferedConnectWriter writer;
+    HoodieWriterProvider writerProvider;
+    HoodieSinkConfigs hoodieSinkConfigs;
     private KeyGenerator keyGenerator;
 
     public HoodieWriter(SinkConnectorConfig sinkConnectorConfig, Schema schema) throws IOException {
-        this.hoodieSinkConfigs = org.apache.pulsar.ecosystem.io.sink.hudi.HoodieSinkConfigs.newBuilder()
+        this.hoodieSinkConfigs = HoodieSinkConfigs.newBuilder()
             .withProperties(sinkConnectorConfig.getProperties())
             .build();
-        this.writerProvider = new org.apache.pulsar.ecosystem.io.sink.hudi.HoodieWriterProvider(hoodieSinkConfigs);
+        this.writerProvider = new HoodieWriterProvider(hoodieSinkConfigs);
         this.keyGenerator = HoodieAvroKeyGeneratorFactory.createKeyGenerator(hoodieSinkConfigs.getProps());
         this.writer = writerProvider.open(schema.toString());
     }
@@ -58,7 +57,8 @@ public class HoodieWriter implements LakehouseWriter {
 
     @Override
     public void writeAvroRecord(GenericRecord record) throws IOException {
-        HoodieRecord hoodieRecord = new HoodieRecord(keyGenerator.getKey(record), new HoodieAvroPayload(Option.of(record)));
+        HoodieRecord hoodieRecord = new HoodieRecord(
+            keyGenerator.getKey(record), new HoodieAvroPayload(Option.of(record)));
         writer.writeHoodieRecord(hoodieRecord);
     }
 

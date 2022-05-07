@@ -27,8 +27,6 @@ import org.apache.hudi.common.model.HoodieRecord;
 import org.apache.hudi.common.util.Option;
 import org.apache.hudi.keygen.KeyGenerator;
 import org.apache.hudi.utilities.sources.helpers.AvroConvertor;
-import org.apache.pulsar.client.admin.PulsarAdmin;
-import org.apache.pulsar.client.api.PulsarClientException;
 import org.apache.pulsar.ecosystem.io.sink.PulsarSinkRecord;
 @Slf4j
 public class Utils {
@@ -46,7 +44,7 @@ public class Utils {
         return new HoodieRecord<>(keyGenerator.getKey(avroRecord.get()), new HoodieAvroPayload(avroRecord));
     }
 
-    public static Configuration getDefaultHadoopConf(org.apache.pulsar.ecosystem.io.sink.hudi.HoodieSinkConfigs configs) {
+    public static Configuration getDefaultHadoopConf(HoodieSinkConfigs configs) {
         Configuration hadoopConf = new Configuration();
         configs.getProps().keySet().stream().filter(prop -> {
             return prop.toString().startsWith(HADOOP_CONF_PREFIX);
@@ -55,11 +53,5 @@ public class Utils {
                 configs.getProps().get(prop.toString()).toString());
         });
         return hadoopConf;
-    }
-
-    public static PulsarAdmin getPulsarAdmin(org.apache.pulsar.ecosystem.io.sink.hudi.HoodieSinkConfigs configs) throws PulsarClientException {
-        return PulsarAdmin.builder()
-            .serviceHttpUrl(configs.getPulsarServiceUrl())
-            .build();
     }
 }

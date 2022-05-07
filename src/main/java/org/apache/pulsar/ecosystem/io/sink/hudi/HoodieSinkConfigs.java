@@ -18,11 +18,10 @@
  */
 package org.apache.pulsar.ecosystem.io.sink.hudi;
 
-import org.apache.hudi.common.config.ConfigProperty;
-import org.apache.hudi.common.config.HoodieConfig;
-
 import java.util.Map;
 import java.util.Properties;
+import org.apache.hudi.common.config.ConfigProperty;
+import org.apache.hudi.common.config.HoodieConfig;
 
 public class HoodieSinkConfigs extends HoodieConfig {
 
