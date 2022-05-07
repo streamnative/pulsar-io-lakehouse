@@ -17,7 +17,7 @@
  * under the License.
  */
 
-package org.apache.pulsar.ecosystem.io.sink.iceberg;
+package org.apache.pulsar.ecosystem.io.common;
 
 import java.nio.ByteBuffer;
 import java.util.Collection;
@@ -32,7 +32,7 @@ import org.slf4j.Logger;
 /**
  * test sink context.
  */
-class TestSinkContext implements SinkContext {
+public class TestSinkContext implements SinkContext {
     static Map<String, String> secretsMap = new HashMap<>();
     static {
         secretsMap.put("password", "my-sink-password");

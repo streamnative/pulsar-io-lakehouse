@@ -55,10 +55,13 @@
     <hadoop.version>3.2.1</hadoop.version>
     <iceberg.version>0.13.1</iceberg.version>
     <parquet.version>1.12.0</parquet.version>
+    <delta.version>0.3.0</delta.version>
+    <parquet.avro.version>1.12.2</parquet.avro.version>
 
     <!-- test dependencies -->
     <testng.version>7.3.0</testng.version>
     <awaitility.version>4.0.3</awaitility.version>
+    <mockito.version>3.12.4</mockito.version>
 
     <!-- build plugin dependencies -->
     <license.plugin.version>3.0</license.plugin.version>
@@ -112,40 +115,49 @@
         <artifactId>hadoop-client</artifactId>
         <version>${hadoop.version}</version>
       </dependency>
+
+      <!-- iceberg dependency -->
       <dependency>
         <groupId>org.apache.iceberg</groupId>
         <artifactId>iceberg-api</artifactId>
         <version>${iceberg.version}</version>
       </dependency>
-
       <dependency>
         <groupId>org.apache.iceberg</groupId>
         <artifactId>iceberg-core</artifactId>
         <version>${iceberg.version}</version>
       </dependency>
-
       <dependency>
         <groupId>org.apache.iceberg</groupId>
         <artifactId>iceberg-parquet</artifactId>
         <version>${iceberg.version}</version>
       </dependency>
-
       <dependency>
         <groupId>org.apache.iceberg</groupId>
         <artifactId>iceberg-common</artifactId>
         <version>${iceberg.version}</version>
       </dependency>
-
       <dependency>
         <groupId>org.apache.iceberg</groupId>
         <artifactId>iceberg-data</artifactId>
         <version>${iceberg.version}</version>
       </dependency>
-
       <dependency>
         <groupId>org.apache.iceberg</groupId>
         <artifactId>iceberg-hive-metastore</artifactId>
         <version>${iceberg.version}</version>
+      </dependency>
+
+      <!-- delta lake dependency -->
+      <dependency>
+        <groupId>io.delta</groupId>
+        <artifactId>delta-standalone_2.12</artifactId>
+        <version>${delta.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.parquet</groupId>
+        <artifactId>parquet-avro</artifactId>
+        <version>${parquet.avro.version}</version>
       </dependency>
 
       <dependency>
@@ -195,6 +207,13 @@
         <version>${awaitility.version}</version>
         <scope>test</scope>
       </dependency>
+      <dependency>
+        <groupId>org.mockito</groupId>
+        <artifactId>mockito-core</artifactId>
+        <version>${mockito.version}</version>
+        <scope>test</scope>
+      </dependency>
+
 
     </dependencies>
   </dependencyManagement>
@@ -275,6 +294,15 @@
     </dependency>
 
     <dependency>
+      <groupId>io.delta</groupId>
+      <artifactId>delta-standalone_2.12</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.parquet</groupId>
+      <artifactId>parquet-avro</artifactId>
+    </dependency>
+
+    <dependency>
       <groupId>org.apache.parquet</groupId>
       <artifactId>parquet-column</artifactId>
     </dependency>
@@ -314,6 +342,12 @@
       <artifactId>awaitility</artifactId>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>org.mockito</groupId>
+      <artifactId>mockito-core</artifactId>
+      <scope>test</scope>
+    </dependency>
+
 
   </dependencies>
 

@@ -18,6 +18,17 @@
  */
 package org.apache.pulsar.ecosystem.io.common;
 
+import io.delta.standalone.types.ArrayType;
+import io.delta.standalone.types.BooleanType;
+import io.delta.standalone.types.DoubleType;
+import io.delta.standalone.types.FloatType;
+import io.delta.standalone.types.IntegerType;
+import io.delta.standalone.types.LongType;
+import io.delta.standalone.types.MapType;
+import io.delta.standalone.types.NullType;
+import io.delta.standalone.types.StringType;
+import io.delta.standalone.types.StructField;
+import io.delta.standalone.types.StructType;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
@@ -28,6 +39,80 @@ import org.apache.avro.Schema;
  */
 @Slf4j
 public class SchemaConverter {
+    public static StructField convertOneAvroFieldToDeltaField(
+        String name, Schema avroSchema) throws UnsupportedOperationException {
+        StructField newField = null;
+        switch(avroSchema.getType()) {
+            case RECORD:
+                List<StructField> fields = new ArrayList<>();
+                avroSchema.getFields().forEach(field -> {
+                    fields.add(convertOneAvroFieldToDeltaField(field.name(), field.schema()));
+                });
+                newField = new StructField(avroSchema.getName(),
+                    new StructType(fields.toArray(new StructField[0])), true);
+                break;
+            case MAP:
+                Schema valueSchema = avroSchema.getValueType();
+                StructField deltaValueField = convertOneAvroFieldToDeltaField(valueSchema.getName(), valueSchema);
+                log.info("value schema {} deltaSchema {}", valueSchema, deltaValueField);
+                StructField keyField = new StructField("key", new StringType(), false);
+                StructField valueField = new StructField("value", deltaValueField.getDataType(), false);
+                List<StructField> structFields = new ArrayList<>();
+                structFields.add(keyField);
+                structFields.add(valueField);
+                ArrayType arrayType = new ArrayType(new StructType(structFields.toArray(new StructField[0])), false);
+                MapType mapType = new MapType(new StringType(), arrayType, false);
+                newField = new StructField(name, mapType, true);
+                break;
+            case ARRAY:
+                Schema itemSchema = avroSchema.getElementType();
+                StructField deltaItemField = convertOneAvroFieldToDeltaField(itemSchema.getName(), itemSchema);
+                ArrayType arrayType1 = new ArrayType(deltaItemField.getDataType(), true);
+                newField = new StructField(name, arrayType1, true);
+                break;
+            case UNION:
+                throw new UnsupportedOperationException("not support union in delta schema");
+            case FIXED:
+                throw new UnsupportedOperationException("not support fixed in delta schema");
+            case STRING:
+                newField = new StructField(name, new StringType(), avroSchema.isNullable());
+                break;
+            case BYTES:
+                newField = new StructField(name, new StringType(), avroSchema.isNullable());
+                break;
+            case INT:
+                newField = new StructField(name, new IntegerType(), avroSchema.isNullable());
+                break;
+            case LONG:
+                newField = new StructField(name, new LongType(), avroSchema.isNullable());
+                break;
+            case FLOAT:
+                newField = new StructField(name, new FloatType(), avroSchema.isNullable());
+                break;
+            case DOUBLE:
+                newField = new StructField(name, new DoubleType(), avroSchema.isNullable());
+                break;
+            case BOOLEAN:
+                newField = new StructField(name, new BooleanType(), avroSchema.isNullable());
+                break;
+            case NULL:
+                newField = new StructField(name, new NullType(), avroSchema.isNullable());
+                break;
+            default:
+                log.error("not support schema type {} in convert ", avroSchema.getType());
+                break;
+        }
+        return newField;
+    }
+
+    public static StructType convertAvroSchemaToDeltaSchema(Schema pulsarAvroSchema) {
+        log.info("pulsar schema: {}", pulsarAvroSchema);
+        Schema avroSchema = convertPulsarAvroSchemaToNonNullSchema(pulsarAvroSchema);
+        log.info("after convert: {}", avroSchema);
+        StructField field = convertOneAvroFieldToDeltaField(pulsarAvroSchema.getName(), avroSchema);
+        return (StructType) field.getDataType();
+    }
+
     public static Schema convertPulsarAvroSchemaToNonNullSchema(Schema schema) {
         List<Schema.Field> newFields = new ArrayList<>();
         schema.getFields().forEach(f->{
