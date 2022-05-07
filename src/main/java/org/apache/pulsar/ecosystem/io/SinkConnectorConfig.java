@@ -42,6 +42,8 @@ import org.apache.pulsar.ecosystem.io.sink.iceberg.IcebergSinkConnectorConfig;
 public abstract class SinkConnectorConfig implements Serializable {
     private static final long serialVersionUID = 1L;
 
+    private static Map properties;
+
     protected static final int MB = 1024 * 1024;
     protected static final int DEFAULT_SINK_CONNECTOR_QUEUE_SIZE = 10_000;
     protected static final int DEFAULT_MAX_COMMIT_INTERVAL = 120;
@@ -93,6 +95,7 @@ public abstract class SinkConnectorConfig implements Serializable {
     List<String> partitionColumns = Collections.emptyList();
 
     static SinkConnectorConfig load(Map<String, Object> map) throws IOException {
+        properties = map;
         String type = (String) map.get("type");
         if (StringUtils.isBlank(type)) {
             String error = "type must be set.";
@@ -139,6 +142,10 @@ public abstract class SinkConnectorConfig implements Serializable {
                 maxRecordsPerCommit, DEFAULT_MAX_RECORDS_PER_COMMIT);
             maxRecordsPerCommit = DEFAULT_MAX_RECORDS_PER_COMMIT;
         }
+    }
+
+    public Map getProperties() {
+        return properties;
     }
 
     @Override
