@@ -111,7 +111,7 @@ public class DeltaParquetFileWriterTest {
         recordMap.put("address", "GuangZhou, China");
         recordMap.put("score", 59.9);
 
-        Record<GenericRecord> record = SinkConnectorUtils.generateRecord(schemaMap, recordMap,
+        Record<GenericObject> record = SinkConnectorUtils.generateRecord(schemaMap, recordMap,
             SchemaType.AVRO, "MyRecord");
         Schema schema = new Schema.Parser().parse(record.getSchema().getSchemaInfo().getSchemaDefinition());
 
