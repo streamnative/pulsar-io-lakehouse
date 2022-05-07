@@ -76,14 +76,14 @@ public class DeltaRecord implements Record<GenericRecord> {
 
     private Map<String, String> properties;
     private GenericRecord value;
-    protected static GenericSchema<GenericRecord> pulsarSchema;
-    protected static StructType deltaSchema;
+    private static GenericSchema<GenericRecord> pulsarSchema;
+    private static StructType deltaSchema;
     private String topic;
     private DeltaReader.RowRecordData rowRecordData;
-    protected static Map<Integer, Long> msgSeqCntMap;
-    protected static Map<Integer, DeltaCheckpoint> saveCheckpointMap;
+    private static Map<Integer, Long> msgSeqCntMap;
+    private static Map<Integer, DeltaCheckpoint> saveCheckpointMap;
     private long sequence;
-    private long partition;
+    private int partition;
     private String partitionValue;
     private AtomicInteger processingException;
 
@@ -100,12 +100,12 @@ public class DeltaRecord implements Record<GenericRecord> {
         this.topic = topic;
 
         if (deltaSchema != null && !deltaSchema.equals(DeltaRecord.deltaSchema)) {
-            DeltaRecord.deltaSchema = deltaSchema;
-            DeltaRecord.pulsarSchema = convertToPulsarSchema(deltaSchema);
+            setDeltaSchema(deltaSchema);
+            setPulsarSchema(convertToPulsarSchema(deltaSchema));
         }
 
         if (pulsarSchema != null && !pulsarSchema.equals(DeltaRecord.pulsarSchema)) {
-            DeltaRecord.pulsarSchema = pulsarSchema;
+            setPulsarSchema(pulsarSchema);
         }
 
         Action action = rowRecordData.nextCursor.act;
@@ -138,16 +138,34 @@ public class DeltaRecord implements Record<GenericRecord> {
 
         String partitionValueStr = properties.get(PARTITION_VALUE_FIELD);
         partition = DeltaReader.getPartitionIdByDeltaPartitionValue(partitionValueStr,
-                        DeltaReader.topicPartitionNum);
+                        DeltaReader.getTopicPartitionNum());
+        long msgCount = msgSeqCntMap == null ? 0 : msgSeqCntMap.getOrDefault((int) partition, 0L);
+        sequence = msgCount++;
+        putMsgSeqCntMap(partition, msgCount);
+    }
+
+    public static synchronized void setPulsarSchema(GenericSchema<GenericRecord> schema) {
+        DeltaRecord.pulsarSchema = schema;
+    }
+
+    public static synchronized void setDeltaSchema(StructType schema) {
+        DeltaRecord.deltaSchema = schema;
+    }
+
+    public static GenericSchema<GenericRecord> getPulsarSchema() {
+        return DeltaRecord.pulsarSchema;
+    }
+
+    public static StructType getDeltaSchema() {
+        return DeltaRecord.deltaSchema;
+    }
+
+    public static synchronized void putMsgSeqCntMap(int partition, long msgCnt) {
         if (msgSeqCntMap == null) {
             msgSeqCntMap = new ConcurrentHashMap<>();
         }
-        if (saveCheckpointMap == null) {
-            saveCheckpointMap = new ConcurrentHashMap<>();
-        }
-        Long msgCount = msgSeqCntMap.getOrDefault((int) partition, 0L);
-        sequence = msgCount++;
-        msgSeqCntMap.put((int) partition, msgCount);
+
+        msgSeqCntMap.put(partition, msgCnt);
     }
 
     public static GenericSchema<GenericRecord> convertToPulsarSchema(StructType deltaSchema)
@@ -363,7 +381,15 @@ public class DeltaRecord implements Record<GenericRecord> {
         checkpoint.setMetadataChangeFileIndex(cursor.changeIndex);
         checkpoint.setRowNum(cursor.rowNum);
         checkpoint.setSeqCount(sequence);
-        saveCheckpointMap.put((int) partition, checkpoint);
+        putSaveCheckpointMap(partition, checkpoint);
+    }
+
+    public static synchronized void putSaveCheckpointMap(int partition, DeltaCheckpoint checkpoint) {
+        if (saveCheckpointMap == null) {
+            saveCheckpointMap = new ConcurrentHashMap<>();
+        }
+
+        saveCheckpointMap.put(partition, checkpoint);
     }
 
     @Override

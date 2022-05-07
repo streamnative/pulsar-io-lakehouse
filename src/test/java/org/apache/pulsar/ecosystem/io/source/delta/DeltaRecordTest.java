@@ -158,16 +158,16 @@ public class DeltaRecordTest {
 
             int cnt = 0;
             String topic = "delta_test_v1";
-            DeltaReader.topicPartitionNum = 10;
+            DeltaReader.setTopicPartitionNum(10);
             GenericSchema<GenericRecord> pulsarSchema = DeltaRecord.convertToPulsarSchema(deltaSchema);
             AtomicInteger processingException = new AtomicInteger(0);
             while (!queue.isEmpty() && cnt < 10) {
                 rowRecordData = queue.get(cnt);
                 DeltaRecord deltaRecord = new DeltaRecord(rowRecordData, topic,
                     deltaSchema, null, processingException);
-                assertEquals(deltaSchema, DeltaRecord.deltaSchema);
+                assertEquals(deltaSchema, DeltaRecord.getDeltaSchema());
                 assertEquals(pulsarSchema.getSchemaInfo().getSchemaDefinition(),
-                    DeltaRecord.pulsarSchema.getSchemaInfo().getSchemaDefinition());
+                    DeltaRecord.getPulsarSchema().getSchemaInfo().getSchemaDefinition());
                 assertEquals(topic, deltaRecord.getTopic());
 
                 // validate record

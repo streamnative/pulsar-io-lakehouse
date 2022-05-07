@@ -67,10 +67,10 @@ public class DeltaReader {
     private DeltaCheckpoint startCheckpoint;
     private DeltaLog deltaLog;
     private Function<ReadCursor, Boolean> filter;
-    protected static int topicPartitionNum;
+    private static int topicPartitionNum;
     private DeltaSourceConfig config;
     private Configuration conf;
-    protected static long filteredCnt = 0;
+    private static long filteredCnt = 0;
 
 
     public static int getPartitionIdByDeltaPartitionValue(String partitionValue,
@@ -83,6 +83,18 @@ public class DeltaReader {
         }
         return Murmur32Hash.getInstance().makeHash(partitionValue.getBytes(StandardCharsets.UTF_8))
                 % topicPartitionNum;
+    }
+
+    public static synchronized void setTopicPartitionNum(int partitionNum) {
+        DeltaReader.topicPartitionNum = partitionNum;
+    }
+
+    public static int getTopicPartitionNum() {
+        return topicPartitionNum;
+    }
+
+    public static synchronized long increaseFilteredCnt() {
+        return DeltaReader.filteredCnt++;
     }
 
     /**
@@ -154,7 +166,7 @@ public class DeltaReader {
     public DeltaReader(DeltaSourceConfig config, int topicPartitionNum)
         throws Exception {
         this.config = config;
-        DeltaReader.topicPartitionNum = topicPartitionNum;
+        setTopicPartitionNum(topicPartitionNum);
         open();
     }
 
@@ -253,7 +265,7 @@ public class DeltaReader {
                     actionList.add(cursor);
                     totalReadBytes += addFile.getSize();
                 } else {
-                    sourceContext.recordMetric(FILTERED_FILES, ++filteredCnt);
+                    sourceContext.recordMetric(FILTERED_FILES, increaseFilteredCnt());
                 }
             }
         } else {
@@ -293,7 +305,7 @@ public class DeltaReader {
                             actionList.add(cursor);
                             totalReadBytes += addFile.getSize();
                         } else {
-                            sourceContext.recordMetric(FILTERED_FILES, ++filteredCnt);
+                            sourceContext.recordMetric(FILTERED_FILES, increaseFilteredCnt());
                         }
                     } else if (action instanceof CommitInfo) {
                         CommitInfo info = (CommitInfo) action;
@@ -326,7 +338,7 @@ public class DeltaReader {
                                 totalReadBytes += removeFile.getSize().get();
                             }
                         } else {
-                            sourceContext.recordMetric(FILTERED_FILES, ++filteredCnt);
+                            sourceContext.recordMetric(FILTERED_FILES, increaseFilteredCnt());
                         }
                     } else if (action instanceof Metadata){
                         Metadata meta = (Metadata) action;
