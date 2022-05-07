@@ -16,14 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.apache.pulsar.ecosystem.io;
-
-import java.io.Serializable;
-
 /**
- * Abstract class of source connector config, providing common configuration fields for all lakehouse products.
- *
+ * Classes for implementing a pulsar IO connector that generates randomized messages.
  */
-public abstract class SourceConnectorConfig implements Serializable {
-    private static final long serialVersionUID = 1L;
-}
+package org.apache.pulsar.ecosystem.io.source.delta;
