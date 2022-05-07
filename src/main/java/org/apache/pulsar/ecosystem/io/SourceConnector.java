@@ -249,6 +249,7 @@ public class SourceConnector implements Source<GenericRecord> {
             }
 
             String jsonString = StandardCharsets.UTF_8.decode(byteBuffer).toString();
+            byteBuffer.rewind();
             ObjectMapper mapper = ObjectMapperFactory.getThreadLocal();
             DeltaCheckpoint checkpoint;
             try {

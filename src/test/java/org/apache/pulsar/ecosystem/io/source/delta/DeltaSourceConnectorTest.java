@@ -198,7 +198,6 @@ public class DeltaSourceConnectorTest {
         // prepare deltaLakeConnectorConfig
         Map<String, Object> map = new HashMap<>();
         map.put("tablePath", "/tmp/test.conf");
-        map.put("fileSystemType", "filesystem");
         map.put("startSnapshotVersion", 3);
         DeltaSourceConfig config = DeltaSourceConfig.load(map);
         config.validate();
