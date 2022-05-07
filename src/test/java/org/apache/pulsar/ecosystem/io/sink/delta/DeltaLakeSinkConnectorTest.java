@@ -47,6 +47,7 @@ import java.util.Random;
 import java.util.UUID;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.hadoop.conf.Configuration;
+import org.apache.pulsar.client.api.schema.GenericObject;
 import org.apache.pulsar.client.api.schema.GenericRecord;
 import org.apache.pulsar.common.schema.SchemaType;
 import org.apache.pulsar.ecosystem.io.SinkConnector;
@@ -65,14 +66,14 @@ public class DeltaLakeSinkConnectorTest {
     @Test
     public void testGenerateRecord() {
 
-        Record<GenericRecord> record = generateRecord();
+        Record<GenericObject> record = generateRecord();
 
-        GenericRecord r = record.getValue();
-        assertEquals(r.getField("name"), "hang");
-        assertEquals(r.getField("age"), 18);
-        assertEquals(r.getField("phone"), "110");
-        assertEquals(r.getField("address"), "GuangZhou, China");
-        assertEquals(r.getField("score"), 59.9);
+        GenericObject r = record.getValue();
+        assertEquals(((GenericRecord) r).getField("name"), "hang");
+        assertEquals(((GenericRecord) r).getField("age"), 18);
+        assertEquals(((GenericRecord) r).getField("phone"), "110");
+        assertEquals(((GenericRecord) r).getField("address"), "GuangZhou, China");
+        assertEquals(((GenericRecord) r).getField("score"), 59.9);
     }
 
     @Test
@@ -101,7 +102,7 @@ public class DeltaLakeSinkConnectorTest {
         for (int i = 0; i < 1500; ++i) {
             recordMap.put("age", i);
             recordMap.put("score", 59.9 + i);
-            Record<GenericRecord> record = SinkConnectorUtils.generateRecord(schemaMap, recordMap,
+            Record<GenericObject> record = SinkConnectorUtils.generateRecord(schemaMap, recordMap,
                 SchemaType.AVRO, "MyRecord");
             sinkConnector.write(record);
         }
@@ -194,7 +195,7 @@ public class DeltaLakeSinkConnectorTest {
             recordMap.put("age", random.nextInt(10));
             recordMap.put("phone", String.valueOf(random.nextInt(5) + 30));
             recordMap.put("score", 59.9 + i);
-            Record<GenericRecord> record = SinkConnectorUtils.generateRecord(schemaMap, recordMap,
+            Record<GenericObject> record = SinkConnectorUtils.generateRecord(schemaMap, recordMap,
                 SchemaType.AVRO, "MyRecord");
             sinkConnector.write(record);
         }
@@ -262,7 +263,7 @@ public class DeltaLakeSinkConnectorTest {
         deletePath(tablePath);
     }
 
-    private Record<GenericRecord> generateRecord() {
+    private Record<GenericObject> generateRecord() {
         Map<String, SchemaType> schemaMap = new HashMap<>();
         schemaMap.put("name", SchemaType.STRING);
         schemaMap.put("age", SchemaType.INT32);

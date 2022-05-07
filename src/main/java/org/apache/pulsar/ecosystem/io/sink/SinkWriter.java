@@ -32,6 +32,7 @@ import org.apache.avro.io.DatumReader;
 import org.apache.avro.io.Decoder;
 import org.apache.avro.io.DecoderFactory;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.pulsar.client.api.schema.GenericObject;
 import org.apache.pulsar.ecosystem.io.SinkConnector;
 import org.apache.pulsar.ecosystem.io.SinkConnectorConfig;
 import org.apache.pulsar.ecosystem.io.common.SchemaConverter;
@@ -150,7 +151,7 @@ public class SinkWriter implements Runnable {
             || recordsCnt > maxRecordsPerCommit;
     }
 
-    public GenericRecord convertToAvroGenericData(Record<org.apache.pulsar.client.api.schema.GenericRecord> record)
+    protected GenericRecord convertToAvroGenericData(Record<GenericObject> record)
         throws IOException {
         switch (record.getValue().getSchemaType()) {
             case AVRO:

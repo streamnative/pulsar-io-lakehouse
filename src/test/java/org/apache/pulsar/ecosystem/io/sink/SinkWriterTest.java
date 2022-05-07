@@ -25,6 +25,7 @@ import java.util.HashMap;
 import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.avro.generic.GenericRecord;
+import org.apache.pulsar.client.api.schema.GenericObject;
 import org.apache.pulsar.common.schema.SchemaType;
 import org.apache.pulsar.ecosystem.io.SinkConnector;
 import org.apache.pulsar.ecosystem.io.SinkConnectorConfig;
@@ -63,7 +64,7 @@ public class SinkWriterTest {
         recordMap.put("address", "GuangZhou, China");
         recordMap.put("score", 59.9);
 
-        Record<org.apache.pulsar.client.api.schema.GenericRecord> record =
+        Record<GenericObject> record =
             SinkConnectorUtils.generateRecord(schemaMap, recordMap,
             SchemaType.AVRO, "MyRecord");
 

@@ -31,6 +31,7 @@ import java.util.Locale;
 import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.avro.Schema;
+import org.apache.pulsar.client.api.schema.GenericObject;
 import org.apache.pulsar.client.api.schema.GenericRecord;
 import org.apache.pulsar.common.schema.SchemaType;
 import org.apache.pulsar.ecosystem.io.sink.SinkConnectorUtils;
@@ -61,7 +62,7 @@ public class SchemaConverterTest {
         recordMap.put("phone", "110");
         recordMap.put("address", "GuangZhou, China");
         recordMap.put("score", 59.9);
-        Record<GenericRecord> record = SinkConnectorUtils.generateRecord(schemaMap, recordMap,
+        Record<GenericObject> record = SinkConnectorUtils.generateRecord(schemaMap, recordMap,
             SchemaType.AVRO, "MyRecord");
 
         Schema schema = new Schema.Parser().parse(record.getSchema().getSchemaInfo().getSchemaDefinition());

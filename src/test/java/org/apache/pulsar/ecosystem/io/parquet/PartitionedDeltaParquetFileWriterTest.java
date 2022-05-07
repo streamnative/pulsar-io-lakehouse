@@ -23,6 +23,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import org.apache.pulsar.client.api.schema.GenericObject;
 import org.apache.pulsar.client.api.schema.GenericRecord;
 import org.apache.pulsar.common.schema.SchemaType;
 import org.apache.pulsar.ecosystem.io.sink.SinkConnectorUtils;
@@ -58,7 +59,7 @@ public class PartitionedDeltaParquetFileWriterTest {
             recordMap.put("age", 18 + i);
             recordMap.put("score", 59.9 + i);
 
-            Record<GenericRecord> record = SinkConnectorUtils.generateRecord(schemaMap, recordMap,
+            Record<GenericObject> record = SinkConnectorUtils.generateRecord(schemaMap, recordMap,
                 SchemaType.AVRO, "MyRecord");
 
             Map<String, String> partitionValues =
@@ -91,7 +92,7 @@ public class PartitionedDeltaParquetFileWriterTest {
             recordMap.put("age", 18 + i);
             recordMap.put("score", 59.9 + i);
 
-            Record<GenericRecord> record = SinkConnectorUtils.generateRecord(schemaMap, recordMap,
+            Record<GenericObject> record = SinkConnectorUtils.generateRecord(schemaMap, recordMap,
                 SchemaType.AVRO, "MyRecord");
 
             String path = PartitionedDeltaParquetFileWriter.getPartitionValuePath(
