@@ -19,6 +19,7 @@
 
 package org.apache.pulsar.ecosystem.io.sink;
 
+import static org.apache.pulsar.ecosystem.io.SinkConnectorConfig.DELTA_SINK;
 import static org.apache.pulsar.ecosystem.io.SinkConnectorConfig.ICEBERG_SINK;
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
@@ -35,6 +36,7 @@ import org.apache.pulsar.ecosystem.io.SinkConnector;
 import org.apache.pulsar.ecosystem.io.SinkConnectorConfig;
 import org.apache.pulsar.ecosystem.io.common.SchemaConverter;
 import org.apache.pulsar.ecosystem.io.exception.CommitFailedException;
+import org.apache.pulsar.ecosystem.io.sink.delta.DeltaWriter;
 import org.apache.pulsar.ecosystem.io.sink.iceberg.IcebergWriter;
 import org.apache.pulsar.functions.api.Record;
 
@@ -148,7 +150,7 @@ public class SinkWriter implements Runnable {
             || recordsCnt > maxRecordsPerCommit;
     }
 
-    protected GenericRecord convertToAvroGenericData(Record<org.apache.pulsar.client.api.schema.GenericRecord> record)
+    public GenericRecord convertToAvroGenericData(Record<org.apache.pulsar.client.api.schema.GenericRecord> record)
         throws IOException {
         switch (record.getValue().getSchemaType()) {
             case AVRO:
@@ -186,6 +188,8 @@ public class SinkWriter implements Runnable {
         switch (config.getType()) {
             case ICEBERG_SINK:
                 return new IcebergWriter(config, schema);
+            case DELTA_SINK:
+                return new DeltaWriter(config, schema);
         }
 
         return null;
