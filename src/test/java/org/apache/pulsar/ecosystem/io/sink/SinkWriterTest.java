@@ -68,7 +68,7 @@ public class SinkWriterTest {
             SchemaType.AVRO, "MyRecord");
 
         try {
-            GenericRecord genericRecord = sinkWriter.convertToAvroGenericData(record);
+            GenericRecord genericRecord = sinkWriter.convertToAvroGenericData(new PulsarSinkRecord(record)).get();
             assertEquals(genericRecord.get("name"), "hang");
             assertEquals(genericRecord.get("age"), 18);
             assertEquals(genericRecord.get("phone"), "110");

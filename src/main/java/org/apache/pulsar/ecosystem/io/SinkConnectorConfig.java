@@ -32,6 +32,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.pulsar.common.util.ObjectMapperFactory;
 import org.apache.pulsar.ecosystem.io.common.Category;
 import org.apache.pulsar.ecosystem.io.common.FieldContext;
+import org.apache.pulsar.ecosystem.io.exception.IncorrectParameterException;
 import org.apache.pulsar.ecosystem.io.sink.delta.DeltaSinkConnectorConfig;
 import org.apache.pulsar.ecosystem.io.sink.iceberg.IcebergSinkConnectorConfig;
 
@@ -93,7 +94,7 @@ public abstract class SinkConnectorConfig implements Serializable {
     )
     List<String> partitionColumns = Collections.emptyList();
 
-    static SinkConnectorConfig load(Map<String, Object> map) throws IOException {
+    static SinkConnectorConfig load(Map<String, Object> map) throws IOException, IncorrectParameterException {
         String type = (String) map.get("type");
         if (StringUtils.isBlank(type)) {
             String error = "type must be set.";
@@ -108,8 +109,12 @@ public abstract class SinkConnectorConfig implements Serializable {
             case DELTA_SINK:
                 return jsonMapper().readValue(new ObjectMapper().writeValueAsString(map),
                     DeltaSinkConnectorConfig.class);
+            case HUDI_SINK:
+                return new DefaultSinkConnectorConfig();
+            default:
+                throw new IncorrectParameterException("Unexpected type. Only supports 'iceberg', 'delta', and 'hudi', "
+                    + "but got " + type);
         }
-        return null;
     }
 
     public static ObjectMapper jsonMapper() {
@@ -155,4 +160,5 @@ public abstract class SinkConnectorConfig implements Serializable {
         }
     }
 
+    public static class DefaultSinkConnectorConfig extends SinkConnectorConfig { }
 }

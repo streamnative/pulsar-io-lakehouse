@@ -41,6 +41,8 @@ import org.apache.iceberg.io.WriteResult;
 import org.apache.iceberg.types.Types;
 import org.apache.pulsar.ecosystem.io.SinkConnectorConfig;
 import org.apache.pulsar.ecosystem.io.exception.IncorrectParameterException;
+import org.apache.pulsar.ecosystem.io.exception.LakehouseConnectorException;
+import org.apache.pulsar.ecosystem.io.exception.LakehouseWriterException;
 import org.apache.pulsar.ecosystem.io.sink.LakehouseWriter;
 
 /**
@@ -106,7 +108,7 @@ public class IcebergWriter implements LakehouseWriter {
         tableLoader.createTable(icebergSchema, spec, identifier, props);
     }
 
-    public synchronized boolean updateSchema(Schema newSchema) throws IOException {
+    public synchronized boolean updateSchema(Schema newSchema) throws IOException, LakehouseConnectorException {
         if (newSchema == null) {
             log.error("schema shouldn't be null");
             throw new IncorrectParameterException("schema shouldn't be null");

@@ -24,16 +24,8 @@ import java.io.IOException;
 /**
  * Incorrect parameter exception.
  */
-public class CommitFailedException extends IOException {
+public class CommitFailedException extends LakehouseConnectorException {
     public CommitFailedException(String msg) {
         super(msg);
-    }
-
-    public CommitFailedException(Throwable e) {
-        super(e);
-    }
-
-    public CommitFailedException(String msg, Throwable e) {
-        super(msg, e);
     }
 }

@@ -16,17 +16,15 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-
 package org.apache.pulsar.ecosystem.io.exception;
 
-import java.io.IOException;
+public class LakehouseConnectorException extends Exception {
 
-/**
- * Incorrect parameter exception.
- */
-public class IncorrectParameterException extends LakehouseConnectorException {
-    public IncorrectParameterException(String msg) {
+    public LakehouseConnectorException(String msg) {
         super(msg);
     }
 
+    public LakehouseConnectorException(String msg, Throwable throwable) {
+        super(msg, throwable);
+    }
 }
