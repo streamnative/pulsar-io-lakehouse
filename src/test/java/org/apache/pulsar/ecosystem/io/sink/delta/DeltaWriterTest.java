@@ -39,7 +39,7 @@ import java.util.Map;
 import java.util.UUID;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.avro.Schema;
-import org.apache.pulsar.client.api.schema.GenericRecord;
+import org.apache.pulsar.client.api.schema.GenericObject;
 import org.apache.pulsar.common.schema.SchemaType;
 import org.apache.pulsar.ecosystem.io.common.SchemaConverter;
 import org.apache.pulsar.ecosystem.io.parquet.DeltaParquetWriter;
@@ -86,7 +86,7 @@ public class DeltaWriterTest {
         recordMap.put("phone", "110");
         recordMap.put("address", "GuangZhou, China");
         recordMap.put("score", 59.9);
-        Record<GenericRecord> record = SinkConnectorUtils.generateRecord(schemaMap, recordMap,
+        Record<GenericObject> record = SinkConnectorUtils.generateRecord(schemaMap, recordMap,
                 SchemaType.AVRO, "MyRecord");
 
         schema = new Schema.Parser().parse(record.getSchema().getSchemaInfo().getSchemaDefinition());
@@ -199,7 +199,7 @@ public class DeltaWriterTest {
             recordMap.put("address", "GuangZhou, China");
             recordMap.put("score", 59.9);
             recordMap.put("grade", 1);
-            Record<GenericRecord> record = SinkConnectorUtils.generateRecord(schemaMap, recordMap,
+            Record<GenericObject> record = SinkConnectorUtils.generateRecord(schemaMap, recordMap,
                 SchemaType.AVRO, "MyRecord");
 
             Schema newSchema = new Schema.Parser().parse(record.getSchema().getSchemaInfo().getSchemaDefinition());
@@ -237,7 +237,7 @@ public class DeltaWriterTest {
             // test write record
             for (int i = 0; i < 100; ++i) {
                 recordMap.put("age", 18 + i % 10);
-                Record<GenericRecord> record = SinkConnectorUtils.generateRecord(schemaMap, recordMap,
+                Record<GenericObject> record = SinkConnectorUtils.generateRecord(schemaMap, recordMap,
                     SchemaType.AVRO, "MyRecord");
                 org.apache.avro.generic.GenericRecord r =
                     (org.apache.avro.generic.GenericRecord) record.getValue().getNativeObject();
@@ -283,7 +283,7 @@ public class DeltaWriterTest {
             recordMap.put("address", "GuangZhou, China");
             recordMap.put("score", 59.9);
             recordMap.put("grade", 1);
-            Record<GenericRecord> record = SinkConnectorUtils.generateRecord(schemaMap, recordMap,
+            Record<GenericObject> record = SinkConnectorUtils.generateRecord(schemaMap, recordMap,
                 SchemaType.AVRO, "MyRecord");
 
             Schema newSchema = new Schema.Parser().parse(record.getSchema().getSchemaInfo().getSchemaDefinition());

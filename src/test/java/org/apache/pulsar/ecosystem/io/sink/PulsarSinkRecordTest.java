@@ -26,6 +26,7 @@ import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.avro.Schema;
 import org.apache.pulsar.client.api.schema.Field;
+import org.apache.pulsar.client.api.schema.GenericObject;
 import org.apache.pulsar.client.api.schema.GenericRecord;
 import org.apache.pulsar.common.schema.SchemaInfo;
 import org.apache.pulsar.common.schema.SchemaType;
@@ -55,7 +56,7 @@ public class PulsarSinkRecordTest {
         recordMap.put("address", "GuangZhou, China");
         recordMap.put("score", 59.9);
 
-        Record<GenericRecord> record = SinkConnectorUtils.generateRecord(schemaMap, recordMap,
+        Record<GenericObject> record = SinkConnectorUtils.generateRecord(schemaMap, recordMap,
             SchemaType.AVRO, "MyRecord");
 
         PulsarSinkRecord sinkRecord = new PulsarSinkRecord(record);
@@ -63,7 +64,7 @@ public class PulsarSinkRecordTest {
         assertEquals(sinkRecord.getRecord().getPartitionIndex().get(), Integer.valueOf(1));
         assertEquals(sinkRecord.getRecord().getProperties().get("key-a"), "value-a");
 
-        Record<GenericRecord> r = sinkRecord.getRecord();
+        Record<GenericObject> r = sinkRecord.getRecord();
         // assert schema
         SchemaInfo schemaInfo = r.getSchema().getSchemaInfo();
         assertEquals(schemaInfo.getName(), "MyRecord");
@@ -79,8 +80,8 @@ public class PulsarSinkRecordTest {
         }
 
         // assert value
-        for (Field field: r.getValue().getFields()) {
-            assertEquals(r.getValue().getField(field), recordMap.get(field.getName()));
+        for (Field field: ((GenericRecord) r.getValue()).getFields()) {
+            assertEquals(((GenericRecord) r.getValue()).getField(field), recordMap.get(field.getName()));
         }
     }
 }

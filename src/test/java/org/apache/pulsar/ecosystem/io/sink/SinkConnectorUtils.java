@@ -23,6 +23,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import org.apache.pulsar.client.api.Schema;
+import org.apache.pulsar.client.api.schema.GenericObject;
 import org.apache.pulsar.client.api.schema.GenericRecord;
 import org.apache.pulsar.client.api.schema.GenericRecordBuilder;
 import org.apache.pulsar.client.api.schema.GenericSchema;
@@ -36,10 +37,10 @@ import org.apache.pulsar.functions.api.Record;
  *
  */
 public class SinkConnectorUtils {
-    public static Record<GenericRecord> generateRecord(Map<String, SchemaType> schemaMap,
-                                                      Map<String, Object> objectMap,
-                                                      SchemaType schemaType,
-                                                      String recordName) {
+    public static Record<GenericObject> generateRecord(Map<String, SchemaType> schemaMap,
+                                                       Map<String, Object> objectMap,
+                                                       SchemaType schemaType,
+                                                       String recordName) {
         RecordSchemaBuilder recordSchemaBuilder = SchemaBuilder.record(recordName);
         schemaMap.forEach((name, type) -> {
             recordSchemaBuilder.field(name).type(type);
@@ -54,9 +55,9 @@ public class SinkConnectorUtils {
 
         String topic = "test_delta_sink_v1";
 
-        return new Record<GenericRecord>() {
+        return new Record<GenericObject>() {
             @Override
-            public GenericRecord getValue() {
+            public GenericObject getValue() {
                 return genericRecord;
             }
 
@@ -66,8 +67,8 @@ public class SinkConnectorUtils {
             }
 
             @Override
-            public Schema<GenericRecord> getSchema() {
-                return schema;
+            public Schema<GenericObject> getSchema() {
+                return (Schema<GenericObject>) Schema.getSchema(recordSchemaBuilder.build(schemaType));
             }
 
             @Override

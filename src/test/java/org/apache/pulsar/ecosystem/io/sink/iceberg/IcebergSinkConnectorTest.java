@@ -48,10 +48,11 @@ import org.apache.iceberg.expressions.Expressions;
 import org.apache.iceberg.io.CloseableIterable;
 import org.apache.iceberg.types.Type;
 import org.apache.iceberg.types.Types;
-import org.apache.pulsar.client.api.schema.GenericRecord;
+import org.apache.pulsar.client.api.schema.GenericObject;
 import org.apache.pulsar.common.schema.SchemaType;
 import org.apache.pulsar.ecosystem.io.SinkConnector;
 import org.apache.pulsar.ecosystem.io.common.TestSinkContext;
+import org.apache.pulsar.ecosystem.io.sink.SinkConnectorUtils;
 import org.apache.pulsar.functions.api.Record;
 import org.awaitility.Awaitility;
 import org.junit.Test;
@@ -96,7 +97,7 @@ public class IcebergSinkConnectorTest {
         for (int i = 0; i < 1500; ++i) {
             recordMap.put("age", i);
             recordMap.put("score", 59.9 + i);
-            Record<GenericRecord> record = IcebergSinkConnectorUtils
+            Record<GenericObject> record = SinkConnectorUtils
                 .generateRecord(schemaTypeMap, recordMap, SchemaType.AVRO, "MyRecord");
             sinkConnector.write(record);
         }
@@ -194,7 +195,7 @@ public class IcebergSinkConnectorTest {
             recordMap.put("age", i % 10);
             recordMap.put("phone", String.valueOf(random.nextInt(5) + 30));
             recordMap.put("score", 59.9 + i);
-            Record<GenericRecord> record = IcebergSinkConnectorUtils.generateRecord(schemaTypeMap, recordMap,
+            Record<GenericObject> record = SinkConnectorUtils.generateRecord(schemaTypeMap, recordMap,
                 SchemaType.AVRO, "MyRecord");
             sinkConnector.write(record);
         }

@@ -38,6 +38,7 @@ import org.apache.parquet.example.data.Group;
 import org.apache.parquet.hadoop.ParquetReader;
 import org.apache.parquet.hadoop.ParquetWriter;
 import org.apache.parquet.hadoop.example.GroupReadSupport;
+import org.apache.pulsar.client.api.schema.GenericObject;
 import org.apache.pulsar.client.api.schema.GenericRecord;
 import org.apache.pulsar.common.schema.SchemaType;
 import org.apache.pulsar.ecosystem.io.sink.SinkConnectorUtils;
@@ -110,7 +111,7 @@ public class DeltaParquetFileWriterTest {
         recordMap.put("address", "GuangZhou, China");
         recordMap.put("score", 59.9);
 
-        Record<GenericRecord> record = SinkConnectorUtils.generateRecord(schemaMap, recordMap,
+        Record<GenericObject> record = SinkConnectorUtils.generateRecord(schemaMap, recordMap,
             SchemaType.AVRO, "MyRecord");
         Schema schema = new Schema.Parser().parse(record.getSchema().getSchemaInfo().getSchemaDefinition());
 
@@ -151,9 +152,9 @@ public class DeltaParquetFileWriterTest {
         recordMap.put("address", "GuangZhou, China");
         recordMap.put("score", 59.9);
 
-        List<Record<GenericRecord>> recordList = new ArrayList<>();
+        List<Record<GenericObject>> recordList = new ArrayList<>();
         try {
-            Record<GenericRecord> record = SinkConnectorUtils.generateRecord(schemaMap, recordMap,
+            Record<GenericObject> record = SinkConnectorUtils.generateRecord(schemaMap, recordMap,
                 SchemaType.AVRO, "MyRecord");
             Schema schema = new Schema.Parser().parse(record.getSchema().getSchemaInfo().getSchemaDefinition());
 
@@ -176,12 +177,12 @@ public class DeltaParquetFileWriterTest {
             Group line;
             int cnt = 0;
             while ((line = reader.read()) != null) {
-                Record<GenericRecord> record1 = recordList.get(cnt);
-                assertEquals(line.getDouble(0, 0), record1.getValue().getField("score"));
-                assertEquals(line.getString(1, 0), record1.getValue().getField("address"));
-                assertEquals(line.getString(2, 0), record1.getValue().getField("phone"));
-                assertEquals(line.getString(3, 0), record1.getValue().getField("name"));
-                assertEquals(line.getInteger(4, 0), record1.getValue().getField("age"));
+                Record<GenericObject> record1 = recordList.get(cnt);
+                assertEquals(line.getDouble(0, 0), ((GenericRecord) record1.getValue()).getField("score"));
+                assertEquals(line.getString(1, 0), ((GenericRecord) record1.getValue()).getField("address"));
+                assertEquals(line.getString(2, 0), ((GenericRecord) record1.getValue()).getField("phone"));
+                assertEquals(line.getString(3, 0), ((GenericRecord) record1.getValue()).getField("name"));
+                assertEquals(line.getInteger(4, 0), ((GenericRecord) record1.getValue()).getField("age"));
                 cnt++;
             }
         } catch (IOException e) {
