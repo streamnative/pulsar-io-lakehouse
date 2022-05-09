@@ -48,7 +48,6 @@ public class SinkConnector implements Sink<GenericRecord> {
     private LinkedBlockingQueue<PulsarSinkRecord> messages;
     private ExecutorService executor;
     private SinkWriter writer;
-    private final AtomicBoolean shouldFail = new AtomicBoolean(false);
 
     @Override
     public void open(Map<String, Object> config, SinkContext sinkContext) throws Exception {
