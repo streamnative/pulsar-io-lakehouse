@@ -83,8 +83,8 @@ public class SinkWriter implements Runnable {
                     log.error("Failed to get schema from record, skip the record");
                     continue;
                 }
-                Schema schema = parser.parse(schemaStr);
-                if (currentPulsarSchema == null || !currentPulsarSchema.equals(schema)) {
+                if (currentPulsarSchema == null || !currentPulsarSchema.toString().equals(schemaStr)) {
+                    Schema schema = parser.parse(schemaStr);
                     currentPulsarSchema = schema;
                     avroSchema = SchemaConverter.convertPulsarAvroSchemaToNonNullSchema(currentPulsarSchema);
                     if (log.isDebugEnabled()) {
