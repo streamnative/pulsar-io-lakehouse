@@ -48,10 +48,11 @@ import org.apache.iceberg.expressions.Expressions;
 import org.apache.iceberg.io.CloseableIterable;
 import org.apache.iceberg.types.Type;
 import org.apache.iceberg.types.Types;
-import org.apache.pulsar.client.api.schema.GenericRecord;
+import org.apache.pulsar.client.api.schema.GenericObject;
 import org.apache.pulsar.common.schema.SchemaType;
 import org.apache.pulsar.ecosystem.io.SinkConnector;
 import org.apache.pulsar.ecosystem.io.common.TestSinkContext;
+import org.apache.pulsar.ecosystem.io.sink.SinkConnectorUtils;
 import org.apache.pulsar.functions.api.Record;
 import org.awaitility.Awaitility;
 import org.junit.Test;
@@ -78,7 +79,8 @@ public class IcebergSinkConnectorTest {
         SinkConnector sinkConnector = new SinkConnector();
         sinkConnector.open(config, new TestSinkContext());
 
-        IcebergSinkConnectorConfig sinkConnectorConfig = (IcebergSinkConnectorConfig) sinkConnector.getConfig();
+        IcebergSinkConnectorConfig sinkConnectorConfig =
+            (IcebergSinkConnectorConfig) sinkConnector.getSinkConnectorConfig();
 
         Map<String, SchemaType> schemaTypeMap = new HashMap<>();
         schemaTypeMap.put("name", SchemaType.STRING);
@@ -96,12 +98,12 @@ public class IcebergSinkConnectorTest {
         for (int i = 0; i < 1500; ++i) {
             recordMap.put("age", i);
             recordMap.put("score", 59.9 + i);
-            Record<GenericRecord> record = IcebergSinkConnectorUtils
+            Record<GenericObject> record = SinkConnectorUtils
                 .generateRecord(schemaTypeMap, recordMap, SchemaType.AVRO, "MyRecord");
             sinkConnector.write(record);
         }
 
-        Awaitility.await().until(() -> sinkConnector.getQueue().isEmpty());
+        Awaitility.await().until(() -> sinkConnector.getMessages().isEmpty());
         sinkConnector.close();
 
         // read message from iceberg table using java api to check the data correctness.
@@ -173,7 +175,8 @@ public class IcebergSinkConnectorTest {
         SinkConnector sinkConnector = new SinkConnector();
         sinkConnector.open(config, new TestSinkContext());
 
-        IcebergSinkConnectorConfig sinkConnectorConfig = (IcebergSinkConnectorConfig) sinkConnector.getConfig();
+        IcebergSinkConnectorConfig sinkConnectorConfig =
+            (IcebergSinkConnectorConfig) sinkConnector.getSinkConnectorConfig();
 
         Map<String, SchemaType> schemaTypeMap = new HashMap<>();
         schemaTypeMap.put("name", SchemaType.STRING);
@@ -194,12 +197,12 @@ public class IcebergSinkConnectorTest {
             recordMap.put("age", i % 10);
             recordMap.put("phone", String.valueOf(random.nextInt(5) + 30));
             recordMap.put("score", 59.9 + i);
-            Record<GenericRecord> record = IcebergSinkConnectorUtils.generateRecord(schemaTypeMap, recordMap,
+            Record<GenericObject> record = SinkConnectorUtils.generateRecord(schemaTypeMap, recordMap,
                 SchemaType.AVRO, "MyRecord");
             sinkConnector.write(record);
         }
 
-        Awaitility.await().until(() -> sinkConnector.getQueue().isEmpty());
+        Awaitility.await().until(() -> sinkConnector.getMessages().isEmpty());
         sinkConnector.close();
 
         // read message from iceberg table uisng java api to check the data correctness.

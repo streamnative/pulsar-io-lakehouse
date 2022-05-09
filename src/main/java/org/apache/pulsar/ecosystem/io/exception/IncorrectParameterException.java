@@ -19,8 +19,6 @@
 
 package org.apache.pulsar.ecosystem.io.exception;
 
-import java.io.IOException;
-
 /**
  * Incorrect parameter exception.
  */

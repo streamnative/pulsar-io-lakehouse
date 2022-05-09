@@ -24,5 +24,6 @@ import java.io.Serializable;
  * Abstract class of source connector config, providing common configuration fields for all lakehouse products.
  *
  */
-public interface SourceConnectorConfig extends Serializable {
+public abstract class SourceConnectorConfig implements Serializable {
+    private static final long serialVersionUID = 1L;
 }

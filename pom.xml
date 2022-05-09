@@ -161,6 +161,12 @@
       </dependency>
 
       <dependency>
+        <groupId>io.delta</groupId>
+        <artifactId>delta-standalone_2.12</artifactId>
+        <version>${delta.version}</version>
+      </dependency>
+
+      <dependency>
         <groupId>org.apache.parquet</groupId>
         <artifactId>parquet-column</artifactId>
         <version>${parquet.version}</version>
@@ -213,7 +219,6 @@
         <version>${mockito.version}</version>
         <scope>test</scope>
       </dependency>
-
 
     </dependencies>
   </dependencyManagement>
@@ -347,7 +352,6 @@
       <artifactId>mockito-core</artifactId>
       <scope>test</scope>
     </dependency>
-
 
   </dependencies>
 

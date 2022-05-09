@@ -16,14 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-
-package org.apache.pulsar.ecosystem.io.exception;
-
 /**
- * Incorrect parameter exception.
+ * Classes for implementing a pulsar IO connector that generates randomized messages.
  */
-public class CommitFailedException extends LakehouseConnectorException {
-    public CommitFailedException(String msg) {
-        super(msg);
-    }
-}
+package org.apache.pulsar.ecosystem.io.source.delta;

@@ -42,7 +42,6 @@ import org.apache.iceberg.types.Types;
 import org.apache.pulsar.ecosystem.io.SinkConnectorConfig;
 import org.apache.pulsar.ecosystem.io.exception.IncorrectParameterException;
 import org.apache.pulsar.ecosystem.io.exception.LakehouseConnectorException;
-import org.apache.pulsar.ecosystem.io.exception.LakehouseWriterException;
 import org.apache.pulsar.ecosystem.io.sink.LakehouseWriter;
 
 /**

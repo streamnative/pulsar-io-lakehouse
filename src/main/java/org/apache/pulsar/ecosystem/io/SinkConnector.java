@@ -19,17 +19,15 @@
 package org.apache.pulsar.ecosystem.io;
 
 import io.netty.util.concurrent.DefaultThreadFactory;
-import java.io.IOException;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.pulsar.client.api.SubscriptionType;
-import org.apache.pulsar.client.api.schema.GenericRecord;
+import org.apache.pulsar.client.api.schema.GenericObject;
 import org.apache.pulsar.ecosystem.io.exception.LakehouseConnectorException;
 import org.apache.pulsar.ecosystem.io.sink.PulsarSinkRecord;
 import org.apache.pulsar.ecosystem.io.sink.SinkWriter;
@@ -42,9 +40,8 @@ import org.apache.pulsar.io.core.SinkContext;
  */
 @Slf4j
 @Data
-public class SinkConnector implements Sink<GenericRecord> {
+public class SinkConnector implements Sink<GenericObject> {
     private SinkConnectorConfig sinkConnectorConfig;
-    private SinkContext context;
     private LinkedBlockingQueue<PulsarSinkRecord> messages;
     private ExecutorService executor;
     private SinkWriter writer;
@@ -73,7 +70,7 @@ public class SinkConnector implements Sink<GenericRecord> {
     }
 
     @Override
-    public void write(Record<GenericRecord> record) throws Exception {
+    public void write(Record<GenericObject> record) throws Exception {
         while (!messages.offer(new PulsarSinkRecord(record), 1, TimeUnit.SECONDS)) {
             if (!writer.isRunning()) {
                 String err = "Exit caused by lakehouse writer stop working";
