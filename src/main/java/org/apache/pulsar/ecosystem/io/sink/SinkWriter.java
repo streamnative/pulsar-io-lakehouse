@@ -19,130 +19,125 @@
 
 package org.apache.pulsar.ecosystem.io.sink;
 
-import static org.apache.pulsar.ecosystem.io.SinkConnectorConfig.DELTA_SINK;
-import static org.apache.pulsar.ecosystem.io.SinkConnectorConfig.ICEBERG_SINK;
+import com.google.common.base.Strings;
 import java.io.IOException;
+import java.util.Optional;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.avro.Schema;
 import org.apache.avro.generic.GenericDatumReader;
 import org.apache.avro.generic.GenericRecord;
-import org.apache.avro.io.DatumReader;
 import org.apache.avro.io.Decoder;
 import org.apache.avro.io.DecoderFactory;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.pulsar.ecosystem.io.SinkConnector;
 import org.apache.pulsar.ecosystem.io.SinkConnectorConfig;
 import org.apache.pulsar.ecosystem.io.common.SchemaConverter;
 import org.apache.pulsar.ecosystem.io.exception.CommitFailedException;
-import org.apache.pulsar.ecosystem.io.sink.delta.DeltaWriter;
-import org.apache.pulsar.ecosystem.io.sink.iceberg.IcebergWriter;
-import org.apache.pulsar.functions.api.Record;
+import org.apache.pulsar.ecosystem.io.exception.LakehouseWriterException;
 
 /**
  * Writer thread. Fetch records from queue, and write them into lakehouse table.
  */
 @Slf4j
 public class SinkWriter implements Runnable {
-    private final SinkConnector sink;
-    private volatile boolean running;
+    private final SinkConnectorConfig sinkConnectorConfig;
     private LakehouseWriter writer;
     private final Schema.Parser parser;
-    private String currentSchemaDefinition;
-    private Schema currentSchema;
-    private boolean schemaUpdated;
+    private Schema currentPulsarSchema;
     private Schema avroSchema;
     private PulsarSinkRecord lastRecord;
-    private DatumReader<GenericRecord> datumReader;
+    private final GenericDatumReader<GenericRecord> datumReader;
     private final long timeIntervalPerCommit;
     private long lastCommitTime;
     private long recordsCnt;
     private final long maxRecordsPerCommit;
     private final int maxCommitFailedTimes;
-    private final AtomicBoolean shouldFail;
+    private volatile boolean running;
+    private final LinkedBlockingQueue<PulsarSinkRecord> messages;
 
 
-    public SinkWriter(SinkConnector sink) {
-        this.sink = sink;
-        this.running = true;
+    public SinkWriter(SinkConnectorConfig sinkConnectorConfig, LinkedBlockingQueue<PulsarSinkRecord> messages) {
+        this.messages = messages;
+        this.sinkConnectorConfig = sinkConnectorConfig;
         this.parser = new Schema.Parser();
-        this.currentSchemaDefinition = null;
-        this.writer = null;
-        this.currentSchema = null;
-        this.lastRecord = null;
-        this.schemaUpdated = false;
-        this.timeIntervalPerCommit = TimeUnit.SECONDS.toMillis(sink.getConfig().getMaxCommitInterval());
-        this.maxRecordsPerCommit = sink.getConfig().getMaxRecordsPerCommit();
-        this.maxCommitFailedTimes = sink.getConfig().getMaxCommitFailedTimes();
+        this.datumReader = new GenericDatumReader<>();
+        this.timeIntervalPerCommit = TimeUnit.SECONDS.toMillis(sinkConnectorConfig.getMaxCommitInterval());
+        this.maxRecordsPerCommit = sinkConnectorConfig.getMaxRecordsPerCommit();
+        this.maxCommitFailedTimes = sinkConnectorConfig.getMaxCommitFailedTimes();
         this.lastCommitTime = System.currentTimeMillis();
         this.recordsCnt = 0;
-        this.shouldFail = sink.getShouldFail();
+        this.running = true;
     }
 
     public void run() {
         int commitFailedCnt = 0;
         while (running) {
             try {
-                PulsarSinkRecord record = sink.getQueue().poll(100, TimeUnit.MILLISECONDS);
-                if (record == null) {
+                PulsarSinkRecord pulsarSinkRecord = messages.poll(100, TimeUnit.MILLISECONDS);
+                if (pulsarSinkRecord == null) {
                     continue;
                 }
 
-                String schemaStr = record.getSchema();
-                if (currentSchemaDefinition == null
-                    || (!StringUtils.isBlank(schemaStr) && !schemaStr.equals(currentSchemaDefinition))) {
-                    // update current schema;
-                    currentSchemaDefinition = schemaStr;
-                    currentSchema = parser.parse(currentSchemaDefinition);
-                    schemaUpdated = true;
-                }
-                GenericRecord genericRecord = convertToAvroGenericData(record.getRecord());
-
-                if (genericRecord == null) {
+                String schemaStr = pulsarSinkRecord.getSchema();
+                if (Strings.isNullOrEmpty(schemaStr.trim())) {
+                    log.error("Failed to get schema from record, skip the record");
                     continue;
                 }
-
-                if (writer == null) {
-                    writer = createWriter(sink.getConfig(), currentSchema);
-                }
-
-                if (schemaUpdated) {
-                    if (writer.updateSchema(currentSchema)) {
-                        lastRecord.ack();
-                        lastCommitTime = System.currentTimeMillis();
-                        recordsCnt = 0;
+                if (currentPulsarSchema == null || !currentPulsarSchema.toString().equals(schemaStr)) {
+                    Schema schema = parser.parse(schemaStr);
+                    currentPulsarSchema = schema;
+                    avroSchema = SchemaConverter.convertPulsarAvroSchemaToNonNullSchema(currentPulsarSchema);
+                    if (log.isDebugEnabled()) {
+                        log.debug("new schema after convert: {}", avroSchema);
+                    }
+                    datumReader.setSchema(schema);
+                    datumReader.setExpected(schema);
+                    if (getOrCreateWriter().updateSchema(schema)) {
+                        resetStatus();
                         commitFailedCnt = 0;
                     }
-                    schemaUpdated = false;
                 }
-
-                writer.writeAvroRecord(genericRecord);
-                lastRecord = record;
-
-                if (needCommit()) {
-                    if (writer.flush()) {
-                        lastRecord.ack();
-                        lastCommitTime = System.currentTimeMillis();
-                        recordsCnt = 0;
-                        commitFailedCnt = 0;
-                    } else {
-                        commitFailedCnt++;
-
-                        if (commitFailedCnt > maxCommitFailedTimes) {
-                            String errmsg = "Failed commit times: " + commitFailedCnt
-                                + " exceed maxCommitFailedTimes: " + maxCommitFailedTimes;
-                            log.error("{}", errmsg);
-                            throw new CommitFailedException(errmsg);
+                Optional<GenericRecord> avroRecord = convertToAvroGenericData(pulsarSinkRecord);
+                if (avroRecord.isPresent()) {
+                    getOrCreateWriter().writeAvroRecord(avroRecord.get());
+                    lastRecord = pulsarSinkRecord;
+                    if (needCommit()) {
+                        if (getOrCreateWriter().flush()) {
+                            resetStatus();
+                            commitFailedCnt = 0;
+                        } else {
+                            commitFailedCnt++;
+                            log.warn("Commit records failed {} times", commitFailedCnt);
+                            if (commitFailedCnt > maxCommitFailedTimes) {
+                                String errMsg = "Exceed the max commit failed times, the allowed max failure times is "
+                                    + maxCommitFailedTimes;
+                                log.error(errMsg);
+                                throw new CommitFailedException(errMsg);
+                            }
                         }
                     }
                 }
-            } catch (InterruptedException | IOException e) {
+            } catch (Exception e) {
                 log.error("process record failed. ", e);
                 // fail the sink connector.
-                shouldFail.set(true);
+                running = false;
             }
         }
+    }
+    private LakehouseWriter getOrCreateWriter() throws LakehouseWriterException {
+        if (writer != null) {
+            return writer;
+        }
+        writer = LakehouseWriter.getWriter(sinkConnectorConfig, currentPulsarSchema);
+        return writer;
+    }
+
+    private void resetStatus() throws IOException {
+        if (lastRecord != null) {
+            lastRecord.ack();
+        }
+        lastCommitTime = System.currentTimeMillis();
+        recordsCnt = 0;
     }
 
     private boolean needCommit() {
@@ -150,27 +145,21 @@ public class SinkWriter implements Runnable {
             || recordsCnt > maxRecordsPerCommit;
     }
 
-    public GenericRecord convertToAvroGenericData(Record<org.apache.pulsar.client.api.schema.GenericRecord> record)
-        throws IOException {
-        switch (record.getValue().getSchemaType()) {
+    public Optional<GenericRecord> convertToAvroGenericData(PulsarSinkRecord record) throws IOException {
+        switch (record.getSchemaType()) {
             case AVRO:
-                return (GenericRecord) record.getValue().getNativeObject();
+                return Optional.of((GenericRecord) record.getNativeObject());
             case JSON:
-                if (datumReader == null || schemaUpdated) {
-                    avroSchema = SchemaConverter.convertPulsarAvroSchemaToNonNullSchema(currentSchema);
-                    if (log.isDebugEnabled()) {
-                        log.debug("new schema after convert: {}", avroSchema);
-                    }
-                    datumReader = new GenericDatumReader<>(avroSchema, avroSchema);
-                }
-                Decoder decoder = new DecoderFactory().jsonDecoder(avroSchema,
-                    record.getValue().getNativeObject().toString());
-                return datumReader.read(null, decoder);
+                Decoder decoder = DecoderFactory.get().jsonDecoder(avroSchema, record.getNativeObject().toString());
+                return Optional.of(datumReader.read(null, decoder));
             default:
-                log.error("not support this kind of schema: {}", record.getValue().getSchemaType());
+                log.error("not support this kind of schema: {}", record.getSchemaType());
+                return Optional.empty();
         }
+    }
 
-        return null;
+    public boolean isRunning() {
+        return running;
     }
 
     public void close() throws IOException {
@@ -178,20 +167,8 @@ public class SinkWriter implements Runnable {
         if (writer != null) {
             writer.close();
         }
-
         if (lastRecord != null) {
             lastRecord.ack();
         }
-    }
-
-    protected LakehouseWriter createWriter(SinkConnectorConfig config, Schema schema) {
-        switch (config.getType()) {
-            case ICEBERG_SINK:
-                return new IcebergWriter(config, schema);
-            case DELTA_SINK:
-                return new DeltaWriter(config, schema);
-        }
-
-        return null;
     }
 }

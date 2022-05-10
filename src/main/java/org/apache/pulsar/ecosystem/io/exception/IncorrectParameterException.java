@@ -19,21 +19,12 @@
 
 package org.apache.pulsar.ecosystem.io.exception;
 
-import java.io.IOException;
-
 /**
  * Incorrect parameter exception.
  */
-public class IncorrectParameterException extends IOException {
+public class IncorrectParameterException extends LakehouseConnectorException {
     public IncorrectParameterException(String msg) {
         super(msg);
     }
 
-    public IncorrectParameterException(Throwable e) {
-        super(e);
-    }
-
-    public IncorrectParameterException(String msg, Throwable e) {
-        super(msg, e);
-    }
 }

@@ -19,7 +19,8 @@
 package org.apache.pulsar.ecosystem.io.sink;
 
 import lombok.Data;
-import org.apache.pulsar.client.api.schema.GenericRecord;
+import org.apache.pulsar.client.api.schema.GenericObject;
+import org.apache.pulsar.common.schema.SchemaType;
 import org.apache.pulsar.functions.api.Record;
 
 /**
@@ -27,10 +28,14 @@ import org.apache.pulsar.functions.api.Record;
  */
 @Data
 public class PulsarSinkRecord {
-    private final Record<GenericRecord> record;
+    private final Record<GenericObject> record;
 
-    public PulsarSinkRecord(Record<GenericRecord> record) {
+    public PulsarSinkRecord(Record<GenericObject> record) {
         this.record = record;
+    }
+
+    public SchemaType getSchemaType() {
+        return record.getValue().getSchemaType();
     }
 
     public String getSchema() {

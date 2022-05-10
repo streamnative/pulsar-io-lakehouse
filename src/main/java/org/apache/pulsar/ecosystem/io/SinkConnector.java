@@ -19,17 +19,16 @@
 package org.apache.pulsar.ecosystem.io;
 
 import io.netty.util.concurrent.DefaultThreadFactory;
-import java.io.IOException;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.pulsar.client.api.SubscriptionType;
-import org.apache.pulsar.client.api.schema.GenericRecord;
+import org.apache.pulsar.client.api.schema.GenericObject;
+import org.apache.pulsar.ecosystem.io.exception.LakehouseConnectorException;
 import org.apache.pulsar.ecosystem.io.sink.PulsarSinkRecord;
 import org.apache.pulsar.ecosystem.io.sink.SinkWriter;
 import org.apache.pulsar.functions.api.Record;
@@ -41,13 +40,11 @@ import org.apache.pulsar.io.core.SinkContext;
  */
 @Slf4j
 @Data
-public class SinkConnector implements Sink<GenericRecord> {
-    private SinkConnectorConfig config;
-    private SinkContext context;
-    private LinkedBlockingQueue<PulsarSinkRecord> queue;
+public class SinkConnector implements Sink<GenericObject> {
+    private SinkConnectorConfig sinkConnectorConfig;
+    private LinkedBlockingQueue<PulsarSinkRecord> messages;
     private ExecutorService executor;
     private SinkWriter writer;
-    private final AtomicBoolean shouldFail = new AtomicBoolean(false);
 
     @Override
     public void open(Map<String, Object> config, SinkContext sinkContext) throws Exception {
@@ -62,26 +59,24 @@ public class SinkConnector implements Sink<GenericRecord> {
             throw new IllegalArgumentException(msg);
         }
 
-        this.context = sinkContext;
-        this.config = SinkConnectorConfig.load(config);
-        this.config.validate();
-        log.info("{} sink connector config: {}", this.config.getType(), this.config);
+        this.sinkConnectorConfig = SinkConnectorConfig.load(config);
+        this.sinkConnectorConfig.validate();
+        log.info("{} sink connector config: {}", this.sinkConnectorConfig.getType(), this.sinkConnectorConfig);
 
-        queue = new LinkedBlockingQueue<>(this.config.getSinkConnectorQueueSize());
-        writer = new SinkWriter(this);
+        messages = new LinkedBlockingQueue<>(this.sinkConnectorConfig.getSinkConnectorQueueSize());
+        writer = new SinkWriter(sinkConnectorConfig, messages);
         executor = Executors.newSingleThreadExecutor(new DefaultThreadFactory("lakehouse-io"));
         executor.execute(writer);
     }
 
     @Override
-    public void write(Record<GenericRecord> record) throws Exception {
-        while (!queue.offer(new PulsarSinkRecord(record), 1, TimeUnit.SECONDS)) {
-            if (shouldFail.get()) {
-                String errmsg = "processing encounter exception will stop reading record and connector will exit";
-                log.error("{}", errmsg);
-                throw new IOException(errmsg);
+    public void write(Record<GenericObject> record) throws Exception {
+        while (!messages.offer(new PulsarSinkRecord(record), 1, TimeUnit.SECONDS)) {
+            if (!writer.isRunning()) {
+                String err = "Exit caused by lakehouse writer stop working";
+                log.error("{}", err);
+                throw new LakehouseConnectorException(err);
             }
-
             if (log.isDebugEnabled()) {
                 log.debug("pending on adding into the blocking queue.");
             }
@@ -92,6 +87,6 @@ public class SinkConnector implements Sink<GenericRecord> {
     public void close() throws Exception {
         writer.close();
         executor.shutdown();
-        log.info("{} sink connector closed.", config.getType());
+        log.info("{} sink connector closed.", sinkConnectorConfig.getType());
     }
 }

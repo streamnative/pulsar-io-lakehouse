@@ -21,18 +21,36 @@ package org.apache.pulsar.ecosystem.io.sink;
 import java.io.IOException;
 import org.apache.avro.Schema;
 import org.apache.avro.generic.GenericRecord;
+import org.apache.pulsar.ecosystem.io.SinkConnectorConfig;
+import org.apache.pulsar.ecosystem.io.exception.LakehouseConnectorException;
+import org.apache.pulsar.ecosystem.io.exception.LakehouseWriterException;
+import org.apache.pulsar.ecosystem.io.sink.delta.DeltaWriter;
+import org.apache.pulsar.ecosystem.io.sink.iceberg.IcebergWriter;
 
 /**
  * Lakehouse writer interface.
  */
 public interface LakehouseWriter {
 
+    static LakehouseWriter getWriter(SinkConnectorConfig config, Schema schema) throws LakehouseWriterException {
+        switch (config.getType()) {
+            case SinkConnectorConfig.DELTA_SINK:
+                return new DeltaWriter(config, schema);
+            case SinkConnectorConfig.ICEBERG_SINK:
+                return new IcebergWriter(config, schema);
+            case SinkConnectorConfig.HUDI_SINK:
+            default:
+                throw new LakehouseWriterException("Unknown type of the Lakehouse writer. Expected 'delta', 'iceberg',"
+                    + " or 'hudi', but got " + config.getType());
+        }
+    }
+
     /**
      * Update lakehouse table's schema.
      * @param schema
      * @return
      */
-    boolean updateSchema(Schema schema) throws IOException;
+    boolean updateSchema(Schema schema) throws IOException, LakehouseConnectorException;
 
     /**
      * Write avro record into lakehouse.
