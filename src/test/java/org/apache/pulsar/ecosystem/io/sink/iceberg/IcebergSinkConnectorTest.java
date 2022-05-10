@@ -79,7 +79,8 @@ public class IcebergSinkConnectorTest {
         SinkConnector sinkConnector = new SinkConnector();
         sinkConnector.open(config, new TestSinkContext());
 
-        IcebergSinkConnectorConfig sinkConnectorConfig = (IcebergSinkConnectorConfig) sinkConnector.getConfig();
+        IcebergSinkConnectorConfig sinkConnectorConfig =
+            (IcebergSinkConnectorConfig) sinkConnector.getSinkConnectorConfig();
 
         Map<String, SchemaType> schemaTypeMap = new HashMap<>();
         schemaTypeMap.put("name", SchemaType.STRING);
@@ -102,7 +103,7 @@ public class IcebergSinkConnectorTest {
             sinkConnector.write(record);
         }
 
-        Awaitility.await().until(() -> sinkConnector.getQueue().isEmpty());
+        Awaitility.await().until(() -> sinkConnector.getMessages().isEmpty());
         sinkConnector.close();
 
         // read message from iceberg table using java api to check the data correctness.
@@ -174,7 +175,8 @@ public class IcebergSinkConnectorTest {
         SinkConnector sinkConnector = new SinkConnector();
         sinkConnector.open(config, new TestSinkContext());
 
-        IcebergSinkConnectorConfig sinkConnectorConfig = (IcebergSinkConnectorConfig) sinkConnector.getConfig();
+        IcebergSinkConnectorConfig sinkConnectorConfig =
+            (IcebergSinkConnectorConfig) sinkConnector.getSinkConnectorConfig();
 
         Map<String, SchemaType> schemaTypeMap = new HashMap<>();
         schemaTypeMap.put("name", SchemaType.STRING);
@@ -200,7 +202,7 @@ public class IcebergSinkConnectorTest {
             sinkConnector.write(record);
         }
 
-        Awaitility.await().until(() -> sinkConnector.getQueue().isEmpty());
+        Awaitility.await().until(() -> sinkConnector.getMessages().isEmpty());
         sinkConnector.close();
 
         // read message from iceberg table uisng java api to check the data correctness.

@@ -23,17 +23,15 @@ import static org.testng.Assert.fail;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.LinkedBlockingQueue;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.avro.generic.GenericRecord;
 import org.apache.pulsar.client.api.schema.GenericObject;
 import org.apache.pulsar.common.schema.SchemaType;
-import org.apache.pulsar.ecosystem.io.SinkConnector;
 import org.apache.pulsar.ecosystem.io.SinkConnectorConfig;
 import org.apache.pulsar.ecosystem.io.sink.delta.DeltaSinkConnectorConfig;
 import org.apache.pulsar.functions.api.Record;
 import org.testng.annotations.Test;
-
-
 
 /**
  * Delta writer thread test.
@@ -44,11 +42,8 @@ public class SinkWriterTest {
 
     @Test
     public void testAvroGenericDataConverter() {
-        SinkConnector sinkConnector = new SinkConnector();
         SinkConnectorConfig sinkConnectorConfig = new DeltaSinkConnectorConfig();
-        sinkConnector.setConfig(sinkConnectorConfig);
-        log.info("{}", sinkConnector.getConfig());
-        SinkWriter sinkWriter = new SinkWriter(sinkConnector);
+        SinkWriter sinkWriter = new SinkWriter(sinkConnectorConfig, new LinkedBlockingQueue<>());
 
         Map<String, SchemaType> schemaMap = new HashMap<>();
         schemaMap.put("name", SchemaType.STRING);
@@ -69,7 +64,7 @@ public class SinkWriterTest {
             SchemaType.AVRO, "MyRecord");
 
         try {
-            GenericRecord genericRecord = sinkWriter.convertToAvroGenericData(record);
+            GenericRecord genericRecord = sinkWriter.convertToAvroGenericData(new PulsarSinkRecord(record)).get();
             assertEquals(genericRecord.get("name"), "hang");
             assertEquals(genericRecord.get("age"), 18);
             assertEquals(genericRecord.get("phone"), "110");

@@ -107,7 +107,7 @@ public class DeltaLakeSinkConnectorTest {
             sinkConnector.write(record);
         }
 
-        while (!sinkConnector.getQueue().isEmpty()) {
+        while (!sinkConnector.getMessages().isEmpty()) {
             Thread.sleep(1000);
         }
         sinkConnector.close();
@@ -200,7 +200,7 @@ public class DeltaLakeSinkConnectorTest {
             sinkConnector.write(record);
         }
 
-        while (!sinkConnector.getQueue().isEmpty()) {
+        while (!sinkConnector.getMessages().isEmpty()) {
             Thread.sleep(1000);
         }
 
