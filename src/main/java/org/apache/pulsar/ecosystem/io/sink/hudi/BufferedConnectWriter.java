@@ -34,7 +34,7 @@ import org.apache.hudi.common.util.collection.ExternalSpillableMap;
 import org.apache.hudi.config.HoodieWriteConfig;
 import org.apache.hudi.exception.HoodieIOException;
 import org.apache.hudi.io.IOUtils;
-import org.apache.pulsar.ecosystem.io.sink.hudi.exceptions.HoodieConnectorException;
+import org.apache.pulsar.ecosystem.io.exception.HoodieConnectorException;
 
 @Slf4j
 public class BufferedConnectWriter {

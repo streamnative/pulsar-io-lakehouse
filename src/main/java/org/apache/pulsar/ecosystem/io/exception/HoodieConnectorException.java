@@ -16,4 +16,10 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.apache.pulsar.ecosystem.io.sink.hudi.exceptions;
+package org.apache.pulsar.ecosystem.io.exception;
+
+public class HoodieConnectorException extends LakehouseWriterException {
+    public HoodieConnectorException(String msg) {
+        super(msg);
+    }
+}

@@ -28,8 +28,8 @@ import org.apache.hudi.common.util.Option;
 import org.apache.hudi.keygen.KeyGenerator;
 import org.apache.hudi.keygen.factory.HoodieAvroKeyGeneratorFactory;
 import org.apache.pulsar.ecosystem.io.SinkConnectorConfig;
+import org.apache.pulsar.ecosystem.io.exception.HoodieConnectorException;
 import org.apache.pulsar.ecosystem.io.sink.LakehouseWriter;
-import org.apache.pulsar.ecosystem.io.sink.hudi.exceptions.HoodieConnectorException;
 
 @Slf4j
 public class HoodieWriter implements LakehouseWriter {

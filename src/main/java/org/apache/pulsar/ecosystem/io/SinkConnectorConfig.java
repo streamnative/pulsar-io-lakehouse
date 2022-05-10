@@ -95,8 +95,7 @@ public abstract class SinkConnectorConfig implements Serializable {
         doc = "Partition columns for delta lake table"
     )
     List<String> partitionColumns = Collections.emptyList();
-  
-  
+
     static SinkConnectorConfig load(Map<String, Object> map) throws IOException, IncorrectParameterException {
         properties = map;
         String type = (String) map.get("type");
