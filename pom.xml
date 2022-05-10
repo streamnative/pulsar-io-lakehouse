@@ -55,6 +55,7 @@
     <hadoop.version>3.2.1</hadoop.version>
     <iceberg.version>0.13.1</iceberg.version>
     <parquet.version>1.12.0</parquet.version>
+    <hudi.version>0.10.1</hudi.version>
     <delta.version>0.3.0</delta.version>
     <parquet.avro.version>1.12.2</parquet.avro.version>
 
@@ -192,6 +193,42 @@
         <artifactId>slf4j-log4j12</artifactId>
         <version>${slf4j.version}</version>
       </dependency>
+
+      <!--  Hoodie dependencies begin   -->
+      <dependency>
+        <groupId>org.apache.hudi</groupId>
+        <artifactId>hudi-java-client</artifactId>
+        <version>${hudi.version}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>org.apache.hudi</groupId>
+        <artifactId>hudi-utilities_2.11</artifactId>
+        <version>${hudi.version}</version>
+        <exclusions>
+          <exclusion>
+            <artifactId>slf4j-log4j12</artifactId>
+            <groupId>org.slf4j</groupId>
+          </exclusion>
+        </exclusions>
+      </dependency>
+
+      <dependency>
+        <groupId>org.apache.hudi</groupId>
+        <artifactId>hudi-common</artifactId>
+        <version>${hudi.version}</version>
+        <exclusions>
+          <exclusion>
+            <artifactId>slf4j-log4j12</artifactId>
+            <groupId>org.slf4j</groupId>
+          </exclusion>
+          <exclusion>
+            <artifactId>netty-all</artifactId>
+            <groupId>io.netty</groupId>
+          </exclusion>
+        </exclusions>
+      </dependency>
+      <!--  Hoodie dependencies end    -->
 
 
       <!-- test dependencies -->
@@ -333,6 +370,21 @@
           <groupId>log4j</groupId>
         </exclusion>
       </exclusions>
+    </dependency>
+
+    <dependency>
+      <groupId>org.apache.hudi</groupId>
+      <artifactId>hudi-java-client</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.apache.hudi</groupId>
+      <artifactId>hudi-utilities_2.11</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.apache.hudi</groupId>
+      <artifactId>hudi-common</artifactId>
     </dependency>
 
 
