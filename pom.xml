@@ -228,7 +228,22 @@
         <version>${mockito.version}</version>
         <scope>test</scope>
       </dependency>
-
+      <dependency>
+        <groupId>org.apache.pulsar</groupId>
+        <artifactId>pulsar-functions-instance</artifactId>
+        <version>${pulsar.version}</version>
+        <exclusions>
+          <exclusion>
+            <groupId>org.apache.pulsar</groupId>
+            <artifactId>pulsar-client-admin-original</artifactId>
+          </exclusion>
+          <exclusion>
+            <artifactId>pulsar-client-original</artifactId>
+            <groupId>org.apache.pulsar</groupId>
+          </exclusion>
+        </exclusions>
+        <scope>test</scope>
+      </dependency>
     </dependencies>
   </dependencyManagement>
 
@@ -401,6 +416,12 @@
     <dependency>
       <groupId>org.mockito</groupId>
       <artifactId>mockito-core</artifactId>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.apache.pulsar</groupId>
+      <artifactId>pulsar-functions-instance</artifactId>
       <scope>test</scope>
     </dependency>
 

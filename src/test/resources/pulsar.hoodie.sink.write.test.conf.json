@@ -1,0 +1,9 @@
+{
+  "hoodie.table.name": "hudi-writer-test",
+  "hoodie.table.type": "COPY_ON_WRITE",
+  "hoodie.base.path": "file:///tmp/data/sink-integration",
+  "connector.pulsar.serviceUrl": "http://localhost:8080",
+
+  "hoodie.datasource.write.recordkey.field": "uuid",
+  "hoodie.datasource.write.partitionpath.field": "driver"
+}
