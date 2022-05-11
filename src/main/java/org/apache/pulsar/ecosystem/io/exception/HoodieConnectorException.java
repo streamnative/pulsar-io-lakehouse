@@ -22,4 +22,8 @@ public class HoodieConnectorException extends LakehouseWriterException {
     public HoodieConnectorException(String msg) {
         super(msg);
     }
+
+    public HoodieConnectorException(String msg, Exception e) {
+        super(msg, e);
+    }
 }

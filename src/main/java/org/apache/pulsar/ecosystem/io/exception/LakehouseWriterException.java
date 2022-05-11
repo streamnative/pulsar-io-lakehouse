@@ -23,4 +23,8 @@ public class LakehouseWriterException extends LakehouseConnectorException {
     public LakehouseWriterException(String msg) {
         super(msg);
     }
+
+    public LakehouseWriterException(String msg, Exception e) {
+        super(msg, e);
+    }
 }
