@@ -25,6 +25,7 @@ import org.apache.pulsar.ecosystem.io.SinkConnectorConfig;
 import org.apache.pulsar.ecosystem.io.exception.LakehouseConnectorException;
 import org.apache.pulsar.ecosystem.io.exception.LakehouseWriterException;
 import org.apache.pulsar.ecosystem.io.sink.delta.DeltaWriter;
+import org.apache.pulsar.ecosystem.io.sink.hudi.HoodieWriter;
 import org.apache.pulsar.ecosystem.io.sink.iceberg.IcebergWriter;
 
 /**
@@ -39,6 +40,7 @@ public interface LakehouseWriter {
             case SinkConnectorConfig.ICEBERG_SINK:
                 return new IcebergWriter(config, schema);
             case SinkConnectorConfig.HUDI_SINK:
+                return new HoodieWriter(config, schema);
             default:
                 throw new LakehouseWriterException("Unknown type of the Lakehouse writer. Expected 'delta', 'iceberg',"
                     + " or 'hudi', but got " + config.getType());

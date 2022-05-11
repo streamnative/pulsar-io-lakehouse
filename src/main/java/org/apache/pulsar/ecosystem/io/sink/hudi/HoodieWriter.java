@@ -39,12 +39,16 @@ public class HoodieWriter implements LakehouseWriter {
     HoodieSinkConfigs hoodieSinkConfigs;
     private KeyGenerator keyGenerator;
 
-    public HoodieWriter(SinkConnectorConfig sinkConnectorConfig, Schema schema) throws IOException {
+    public HoodieWriter(SinkConnectorConfig sinkConnectorConfig, Schema schema) throws HoodieConnectorException {
         this.hoodieSinkConfigs = HoodieSinkConfigs.newBuilder()
             .withProperties(sinkConnectorConfig.getProperties())
             .build();
-        this.writerProvider = new HoodieWriterProvider(hoodieSinkConfigs);
-        this.keyGenerator = HoodieAvroKeyGeneratorFactory.createKeyGenerator(hoodieSinkConfigs.getProps());
+        try {
+            this.writerProvider = new HoodieWriterProvider(hoodieSinkConfigs);
+            this.keyGenerator = HoodieAvroKeyGeneratorFactory.createKeyGenerator(hoodieSinkConfigs.getProps());
+        } catch (IOException e) {
+            throw new HoodieConnectorException("Failed to initialize hoodie writer", e);
+        }
         this.writer = writerProvider.open(schema.toString());
     }
 
