@@ -425,6 +425,13 @@
       <scope>test</scope>
     </dependency>
 
+
+    <dependency>
+      <groupId>org.apache.pulsar</groupId>
+      <artifactId>pulsar-io-common</artifactId>
+      <version>${pulsar.version}</version>
+    </dependency>
+
   </dependencies>
 
   <build>
