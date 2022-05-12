@@ -21,6 +21,7 @@ package org.apache.pulsar.ecosystem.io.common;
 
 import com.twitter.bijection.Injection;
 import com.twitter.bijection.avro.GenericAvroCodecs;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.Serializable;
 import org.apache.avro.Schema;
 import org.apache.avro.generic.GenericRecord;
@@ -36,6 +37,7 @@ public class AvroConvertor implements Serializable {
   /**
    * To be lazily inited on executors.
    */
+  @SuppressFBWarnings(value = "SE_TRANSIENT_FIELD_NOT_RESTORED")
   private transient Schema schema;
 
   private final String schemaStr;
