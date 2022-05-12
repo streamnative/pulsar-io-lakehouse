@@ -26,7 +26,7 @@ import org.apache.hudi.common.model.HoodieAvroPayload;
 import org.apache.hudi.common.model.HoodieRecord;
 import org.apache.hudi.common.util.Option;
 import org.apache.hudi.keygen.KeyGenerator;
-import org.apache.hudi.utilities.sources.helpers.AvroConvertor;
+import org.apache.pulsar.ecosystem.io.common.AvroConvertor;
 import org.apache.pulsar.ecosystem.io.sink.PulsarSinkRecord;
 @Slf4j
 public class Utils {

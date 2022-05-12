@@ -58,6 +58,7 @@
     <hudi.version>0.10.1</hudi.version>
     <delta.version>0.3.0</delta.version>
     <parquet.avro.version>1.12.2</parquet.avro.version>
+    <bijection-avro.version>0.9.7</bijection-avro.version>
 
     <!-- test dependencies -->
     <testng.version>7.3.0</testng.version>
@@ -202,31 +203,9 @@
       </dependency>
 
       <dependency>
-        <groupId>org.apache.hudi</groupId>
-        <artifactId>hudi-utilities_2.11</artifactId>
-        <version>${hudi.version}</version>
-        <exclusions>
-          <exclusion>
-            <artifactId>slf4j-log4j12</artifactId>
-            <groupId>org.slf4j</groupId>
-          </exclusion>
-        </exclusions>
-      </dependency>
-
-      <dependency>
-        <groupId>org.apache.hudi</groupId>
-        <artifactId>hudi-common</artifactId>
-        <version>${hudi.version}</version>
-        <exclusions>
-          <exclusion>
-            <artifactId>slf4j-log4j12</artifactId>
-            <groupId>org.slf4j</groupId>
-          </exclusion>
-          <exclusion>
-            <artifactId>netty-all</artifactId>
-            <groupId>io.netty</groupId>
-          </exclusion>
-        </exclusions>
+        <groupId>com.twitter</groupId>
+        <artifactId>bijection-avro_2.11</artifactId>
+        <version>${bijection-avro.version}</version>
       </dependency>
       <!--  Hoodie dependencies end    -->
 
@@ -302,6 +281,18 @@
           <artifactId>log4j</artifactId>
           <groupId>log4j</groupId>
         </exclusion>
+        <exclusion>
+          <groupId>org.apache.hadoop</groupId>
+          <artifactId>hadoop-yarn-*</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.apache.hadoop</groupId>
+          <artifactId>hadoop-mapreduce-*</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>com.sun.jersey</groupId>
+          <artifactId>*</artifactId>
+        </exclusion>
       </exclusions>
     </dependency>
 
@@ -375,18 +366,38 @@
     <dependency>
       <groupId>org.apache.hudi</groupId>
       <artifactId>hudi-java-client</artifactId>
+      <exclusions>
+        <exclusion>
+          <groupId>org.apache.hbase</groupId>
+          <artifactId>*</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.eclipse.jetty.websocket</groupId>
+          <artifactId>*</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>io.prometheus</groupId>
+          <artifactId>*</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.apache.curator</groupId>
+          <artifactId>*</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>io.dropwizard.metrics</groupId>
+          <artifactId>*</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.eclipse.jetty</groupId>
+          <artifactId>*</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
 
     <dependency>
-      <groupId>org.apache.hudi</groupId>
-      <artifactId>hudi-utilities_2.11</artifactId>
+      <groupId>com.twitter</groupId>
+      <artifactId>bijection-avro_2.11</artifactId>
     </dependency>
-
-    <dependency>
-      <groupId>org.apache.hudi</groupId>
-      <artifactId>hudi-common</artifactId>
-    </dependency>
-
 
     <!-- test dependencies -->
     <dependency>
