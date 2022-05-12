@@ -105,7 +105,6 @@ public class SinkWriter implements Runnable {
                     datumReader.setExpected(schema);
                     if (getOrCreateWriter().updateSchema(schema)) {
                         resetStatus();
-                        commitFailedCnt = 0;
                     }
                 }
                 Optional<GenericRecord> avroRecord = convertToAvroGenericData(pulsarSinkRecord);
@@ -130,7 +129,6 @@ public class SinkWriter implements Runnable {
             }
             if (getOrCreateWriter().flush()) {
                 resetStatus();
-                commitFailedCnt = 0;
             } else {
                 commitFailedCnt++;
                 log.warn("Commit records failed {} times", commitFailedCnt);
@@ -143,6 +141,7 @@ public class SinkWriter implements Runnable {
             }
         }
     }
+
     private LakehouseWriter getOrCreateWriter() throws LakehouseWriterException {
         if (writer != null) {
             return writer;
@@ -157,6 +156,7 @@ public class SinkWriter implements Runnable {
         }
         lastCommitTime = System.currentTimeMillis();
         recordsCnt = 0;
+        commitFailedCnt = 0;
     }
 
     private boolean needCommit() {
