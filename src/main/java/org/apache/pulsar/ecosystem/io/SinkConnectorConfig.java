@@ -31,7 +31,7 @@ import java.util.Locale;
 import java.util.Map;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.pulsar.ecosystem.io.common.Category;
 import org.apache.pulsar.ecosystem.io.common.FieldContext;
 import org.apache.pulsar.ecosystem.io.exception.IncorrectParameterException;
