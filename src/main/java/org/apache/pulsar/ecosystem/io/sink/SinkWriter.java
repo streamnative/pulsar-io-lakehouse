@@ -160,8 +160,8 @@ public class SinkWriter implements Runnable {
     }
 
     private boolean needCommit() {
-        return lastCommitTime - System.currentTimeMillis() > timeIntervalPerCommit
-            || recordsCnt > maxRecordsPerCommit;
+        return System.currentTimeMillis() - lastCommitTime > timeIntervalPerCommit
+            || recordsCnt >= maxRecordsPerCommit;
     }
 
     public Optional<GenericRecord> convertToAvroGenericData(PulsarSinkRecord record) throws IOException {
