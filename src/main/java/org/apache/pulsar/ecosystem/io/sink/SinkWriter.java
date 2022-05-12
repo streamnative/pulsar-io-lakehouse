@@ -33,6 +33,7 @@ import org.apache.avro.io.DecoderFactory;
 import org.apache.pulsar.ecosystem.io.SinkConnectorConfig;
 import org.apache.pulsar.ecosystem.io.common.SchemaConverter;
 import org.apache.pulsar.ecosystem.io.exception.CommitFailedException;
+import org.apache.pulsar.ecosystem.io.exception.LakehouseConnectorException;
 import org.apache.pulsar.ecosystem.io.exception.LakehouseWriterException;
 
 /**
@@ -54,6 +55,7 @@ public class SinkWriter implements Runnable {
     private final int maxCommitFailedTimes;
     private volatile boolean running;
     private final LinkedBlockingQueue<PulsarSinkRecord> messages;
+    private int commitFailedCnt;
 
 
     public SinkWriter(SinkConnectorConfig sinkConnectorConfig, LinkedBlockingQueue<PulsarSinkRecord> messages) {
@@ -66,15 +68,18 @@ public class SinkWriter implements Runnable {
         this.maxCommitFailedTimes = sinkConnectorConfig.getMaxCommitFailedTimes();
         this.lastCommitTime = System.currentTimeMillis();
         this.recordsCnt = 0;
+        this.commitFailedCnt = 0;
         this.running = true;
     }
 
     public void run() {
-        int commitFailedCnt = 0;
         while (running) {
             try {
                 PulsarSinkRecord pulsarSinkRecord = messages.poll(100, TimeUnit.MILLISECONDS);
                 if (pulsarSinkRecord == null) {
+                    if (recordsCnt > 0) {
+                        commitIfNeed();
+                    }
                     continue;
                 }
 
@@ -100,7 +105,6 @@ public class SinkWriter implements Runnable {
                     datumReader.setExpected(schema);
                     if (getOrCreateWriter().updateSchema(schema)) {
                         resetStatus();
-                        commitFailedCnt = 0;
                     }
                 }
                 Optional<GenericRecord> avroRecord = convertToAvroGenericData(pulsarSinkRecord);
@@ -108,24 +112,7 @@ public class SinkWriter implements Runnable {
                     getOrCreateWriter().writeAvroRecord(avroRecord.get());
                     lastRecord = pulsarSinkRecord;
                     recordsCnt++;
-                    if (needCommit()) {
-                        if (log.isDebugEnabled()) {
-                            log.debug("Commit ");
-                        }
-                        if (getOrCreateWriter().flush()) {
-                            resetStatus();
-                            commitFailedCnt = 0;
-                        } else {
-                            commitFailedCnt++;
-                            log.warn("Commit records failed {} times", commitFailedCnt);
-                            if (commitFailedCnt > maxCommitFailedTimes) {
-                                String errMsg = "Exceed the max commit failed times, the allowed max failure times is "
-                                    + maxCommitFailedTimes;
-                                log.error(errMsg);
-                                throw new CommitFailedException(errMsg);
-                            }
-                        }
-                    }
+                    commitIfNeed();
                 }
             } catch (Exception e) {
                 log.error("process record failed. ", e);
@@ -134,6 +121,27 @@ public class SinkWriter implements Runnable {
             }
         }
     }
+
+    private void commitIfNeed() throws LakehouseConnectorException {
+        if (needCommit()) {
+            if (log.isDebugEnabled()) {
+                log.debug("Commit ");
+            }
+            if (getOrCreateWriter().flush()) {
+                resetStatus();
+            } else {
+                commitFailedCnt++;
+                log.warn("Commit records failed {} times", commitFailedCnt);
+                if (commitFailedCnt > maxCommitFailedTimes) {
+                    String errMsg = "Exceed the max commit failed times, the allowed max failure times is "
+                        + maxCommitFailedTimes;
+                    log.error(errMsg);
+                    throw new CommitFailedException(errMsg);
+                }
+            }
+        }
+    }
+
     private LakehouseWriter getOrCreateWriter() throws LakehouseWriterException {
         if (writer != null) {
             return writer;
@@ -142,17 +150,18 @@ public class SinkWriter implements Runnable {
         return writer;
     }
 
-    private void resetStatus() throws IOException {
+    private void resetStatus() {
         if (lastRecord != null) {
             lastRecord.ack();
         }
         lastCommitTime = System.currentTimeMillis();
         recordsCnt = 0;
+        commitFailedCnt = 0;
     }
 
     private boolean needCommit() {
-        return lastCommitTime - System.currentTimeMillis() > timeIntervalPerCommit
-            || recordsCnt > maxRecordsPerCommit;
+        return System.currentTimeMillis() - lastCommitTime >= timeIntervalPerCommit
+            || recordsCnt >= maxRecordsPerCommit;
     }
 
     public Optional<GenericRecord> convertToAvroGenericData(PulsarSinkRecord record) throws IOException {
