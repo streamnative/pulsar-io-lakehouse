@@ -56,7 +56,7 @@ public abstract class SinkConnectorConfig implements Serializable {
         }
     };
 
-    private static Map properties;
+    private static Map<String, Object> properties;
 
     public static final int MB = 1024 * 1024;
     public static final int DEFAULT_SINK_CONNECTOR_QUEUE_SIZE = 10_000;
@@ -166,7 +166,7 @@ public abstract class SinkConnectorConfig implements Serializable {
         }
     }
 
-    public Map getProperties() {
+    public Map<String, Object> getProperties() {
         return properties;
     }
 

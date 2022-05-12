@@ -55,6 +55,7 @@ public class IcebergWriter implements LakehouseWriter {
     private final TableLoader tableLoader;
     private volatile TaskWriter<GenericRecord> taskWriter;
     private volatile PulsarFileCommitter fileCommitter = null;
+    private MessageTaskWriterFactory taskWriterFactory;
 
     public IcebergWriter(SinkConnectorConfig sinkConfig, Schema schema) {
         this.config = (IcebergSinkConnectorConfig) sinkConfig;
@@ -85,7 +86,7 @@ public class IcebergWriter implements LakehouseWriter {
         }
         tableLoader.open();
 
-        MessageTaskWriterFactory taskWriterFactory = new MessageTaskWriterFactory(
+        taskWriterFactory = new MessageTaskWriterFactory(
             tableLoader.loadTable(), schema, config.parquetBatchSizeInBytes, config.fileFormat, null, false);
         // TODO specify partitionId and attemptId
         taskWriterFactory.initialize(0, 1);
@@ -126,9 +127,6 @@ public class IcebergWriter implements LakehouseWriter {
                 // commit files
                 WriteResult writeResult = taskWriter.complete();
                 getFileCommitter().commit(writeResult);
-
-                // close task writer
-                taskWriter.close();
             } catch (IOException e) {
                 log.error("Failed to close iceberg writer. ", e);
                 throw e;
@@ -139,7 +137,7 @@ public class IcebergWriter implements LakehouseWriter {
             schema = newSchema;
         }
 
-        MessageTaskWriterFactory taskWriterFactory = new MessageTaskWriterFactory(tableLoader.loadTable(),
+        taskWriterFactory = new MessageTaskWriterFactory(tableLoader.loadTable(),
             schema, config.parquetBatchSizeInBytes, config.fileFormat, null, false);
         taskWriterFactory.initialize(0, 1);
         taskWriter = taskWriterFactory.create();
@@ -151,10 +149,11 @@ public class IcebergWriter implements LakehouseWriter {
         taskWriter.write(record);
     }
 
-    public boolean flush() {
+    public synchronized boolean flush() {
         try {
             WriteResult writeResult = taskWriter.complete();
             getFileCommitter().commit(writeResult);
+            taskWriter = taskWriterFactory.create();
         } catch (IOException e) {
             log.error("Failed to commit. ", e);
             return false;

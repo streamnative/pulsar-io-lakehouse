@@ -22,7 +22,7 @@ import java.util.Locale;
 import java.util.Map;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.iceberg.CatalogProperties;
 import org.apache.iceberg.FileFormat;
 import org.apache.iceberg.TableProperties;
@@ -38,6 +38,7 @@ public class IcebergSinkConnectorConfig extends SinkConnectorConfig {
 
     protected static final String HIVE_CATALOG = "hiveCatalog";
     protected static final String HADOOP_CATALOG = "hadoopCatalog";
+    protected static final String DEFAULT_CATALOG_NAME = "icebergSinkConnector";
 
     @FieldContext(
         category = CATEGORY_SINK,
@@ -47,6 +48,7 @@ public class IcebergSinkConnectorConfig extends SinkConnectorConfig {
 
     @FieldContext(
         category = CATEGORY_SINK,
+        required = true,
         doc = "Iceberg catalog properties"
     )
     Map<String, String> catalogProperties;
@@ -55,16 +57,18 @@ public class IcebergSinkConnectorConfig extends SinkConnectorConfig {
         category = CATEGORY_SINK,
         doc = "Iceberg catalog name"
     )
-    String catalogName;
+    String catalogName = DEFAULT_CATALOG_NAME;
 
     @FieldContext(
         category = CATEGORY_SINK,
+        required = true,
         doc = "Iceberg table namespace"
     )
     String tableNamespace;
 
     @FieldContext(
         category = CATEGORY_SINK,
+        required = true,
         doc = "Iceberg table name"
     )
     String tableName;
@@ -77,6 +81,14 @@ public class IcebergSinkConnectorConfig extends SinkConnectorConfig {
     @Override
     public void validate() throws IllegalArgumentException {
         super.validate();
+
+        if (catalogProperties == null
+            || StringUtils.isBlank(tableNamespace)
+            || StringUtils.isBlank(tableName)) {
+            String msg = "catalogProperties, tableNamespace and tableName are required.";
+            log.error("{}", msg);
+            throw new IllegalArgumentException(msg);
+        }
 
         catalogImpl = String.valueOf(catalogProperties.getOrDefault(CatalogProperties.CATALOG_IMPL,
             HADOOP_CATALOG));
