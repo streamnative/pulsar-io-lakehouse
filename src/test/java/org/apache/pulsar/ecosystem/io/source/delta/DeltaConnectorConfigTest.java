@@ -68,7 +68,7 @@ public class DeltaConnectorConfigTest {
             config.validate();
             fail();
         } catch (Exception e) {
-            assertEquals("tablePath: null should be set.", e.getMessage());
+            assertEquals("tablePath should be set.", e.getMessage());
         }
     }
 
@@ -117,10 +117,12 @@ public class DeltaConnectorConfigTest {
         Map<String, Object> map = new HashMap<>();
         map.put("tablePath", "/tmp/test.conf");
         map.put("fileSystemType", "filesystem");
-        map.put("parquetParseParallelism", 1024);
+        map.put("parquetParseThreads", DeltaSourceConfig.DEFAULT_PARQUET_PARSE_THREADS * 3);
 
         try {
             DeltaSourceConfig config = DeltaSourceConfig.load(map);
+            assertEquals(DeltaSourceConfig.DEFAULT_PARQUET_PARSE_THREADS * 3,
+                    config.getParquetParseThreads());
             config.validate();
             assertEquals(DeltaSourceConfig.DEFAULT_PARQUET_PARSE_THREADS,
                 config.getParquetParseThreads());
@@ -138,6 +140,7 @@ public class DeltaConnectorConfigTest {
 
         try {
             DeltaSourceConfig config = DeltaSourceConfig.load(map);
+            assertEquals(-1, config.getMaxReadBytesSizeOneRound());
             config.validate();
             assertEquals(DeltaSourceConfig.DEFAULT_MAX_READ_BYTES_SIZE_ONE_ROUND,
                 config.getMaxReadBytesSizeOneRound());
@@ -151,10 +154,11 @@ public class DeltaConnectorConfigTest {
         Map<String, Object> map = new HashMap<>();
         map.put("tablePath", "/tmp/test.conf");
         map.put("fileSystemType", "filesystem");
-        map.put("sourceConnectorQueueSize", -1);
+        map.put("queueSize", -1);
 
         try {
             DeltaSourceConfig config = DeltaSourceConfig.load(map);
+            assertEquals(-1, config.getQueueSize());
             config.validate();
             assertEquals(DeltaSourceConfig.DEFAULT_QUEUE_SIZE,
                 config.getQueueSize());
