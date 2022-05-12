@@ -54,6 +54,11 @@ public class HoodieWriter implements LakehouseWriter {
 
     @Override
     public boolean updateSchema(Schema schema) throws IOException {
+        if (writer.getConfig().getSchema().equals(schema.toString())) {
+            log.info("The schema is not changed, continue to write records into current writer");
+            return true;
+        }
+        log.info("Schema updated, trigger flush and switch new writer with new schema to writer");
         flush();
         writer = writerProvider.open(schema.toString());
         return true;
@@ -61,6 +66,9 @@ public class HoodieWriter implements LakehouseWriter {
 
     @Override
     public void writeAvroRecord(GenericRecord record) throws IOException {
+        if (log.isDebugEnabled()) {
+            log.debug("Writing generic records to the hudi: {}", record);
+        }
         HoodieRecord hoodieRecord = new HoodieRecord(
             keyGenerator.getKey(record), new HoodieAvroPayload(Option.of(record)));
         writer.writeHoodieRecord(hoodieRecord);
@@ -68,6 +76,9 @@ public class HoodieWriter implements LakehouseWriter {
 
     @Override
     public boolean flush() {
+        if (log.isDebugEnabled()) {
+            log.debug("Flush current records");
+        }
         try {
             writer.flushRecords();
             return true;

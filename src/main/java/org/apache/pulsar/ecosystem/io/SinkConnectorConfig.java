@@ -113,7 +113,8 @@ public abstract class SinkConnectorConfig implements Serializable {
                 return jsonMapper().readValue(new ObjectMapper().writeValueAsString(map),
                     DeltaSinkConnectorConfig.class);
             case HUDI_SINK:
-                return new DefaultSinkConnectorConfig();
+                return jsonMapper().readValue(new ObjectMapper().writeValueAsString(map),
+                    DefaultSinkConnectorConfig.class);
             default:
                 throw new IncorrectParameterException("Unexpected type. Only supports 'iceberg', 'delta', and 'hudi', "
                     + "but got " + type);

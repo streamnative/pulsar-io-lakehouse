@@ -78,6 +78,12 @@ public class SinkWriter implements Runnable {
                     continue;
                 }
 
+                if (log.isDebugEnabled()) {
+                    pulsarSinkRecord.getRecord().getMessage().ifPresent(m -> {
+                        log.debug("Handling message: {}", m.getMessageId());
+                    });
+                }
+
                 String schemaStr = pulsarSinkRecord.getSchema();
                 if (Strings.isNullOrEmpty(schemaStr.trim())) {
                     log.error("Failed to get schema from record, skip the record");
@@ -101,7 +107,11 @@ public class SinkWriter implements Runnable {
                 if (avroRecord.isPresent()) {
                     getOrCreateWriter().writeAvroRecord(avroRecord.get());
                     lastRecord = pulsarSinkRecord;
+                    recordsCnt++;
                     if (needCommit()) {
+                        if (log.isDebugEnabled()) {
+                            log.debug("Commit ");
+                        }
                         if (getOrCreateWriter().flush()) {
                             resetStatus();
                             commitFailedCnt = 0;

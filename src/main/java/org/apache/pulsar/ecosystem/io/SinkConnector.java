@@ -71,6 +71,11 @@ public class SinkConnector implements Sink<GenericObject> {
 
     @Override
     public void write(Record<GenericObject> record) throws Exception {
+        if (log.isDebugEnabled()) {
+            record.getMessage().ifPresent(m -> {
+                log.debug("Received message: {}", m.getMessageId());
+            });
+        }
         while (!messages.offer(new PulsarSinkRecord(record), 1, TimeUnit.SECONDS)) {
             if (!writer.isRunning()) {
                 String err = "Exit caused by lakehouse writer stop working";

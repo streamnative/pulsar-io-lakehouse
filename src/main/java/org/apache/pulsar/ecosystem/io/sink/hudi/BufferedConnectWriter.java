@@ -100,6 +100,10 @@ public class BufferedConnectWriter {
         }
     }
 
+    public HoodieWriteConfig getConfig() {
+        return config;
+    }
+
     public void close() throws HoodieConnectorException {
         flushRecords();
         writeClient.close();
