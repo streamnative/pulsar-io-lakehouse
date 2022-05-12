@@ -113,7 +113,7 @@ public class DeltaConnectorConfigTest {
     }
 
     @Test
-    public void testInvalidParquetParseParallelism() {
+    public void testInvalidParquetParseThreads() {
         Map<String, Object> map = new HashMap<>();
         map.put("tablePath", "/tmp/test.conf");
         map.put("fileSystemType", "filesystem");
@@ -150,7 +150,7 @@ public class DeltaConnectorConfigTest {
     }
 
     @Test
-    public void testInvalidSourceConnectorQueueSize() {
+    public void testInvalidQueueSize() {
         Map<String, Object> map = new HashMap<>();
         map.put("tablePath", "/tmp/test.conf");
         map.put("fileSystemType", "filesystem");

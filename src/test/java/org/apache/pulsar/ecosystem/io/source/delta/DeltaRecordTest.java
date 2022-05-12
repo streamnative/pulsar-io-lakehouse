@@ -72,7 +72,7 @@ public class DeltaRecordTest {
         map.put("fetchHistoryData", true);
         map.put("tablePath", path);
         map.put("fileSystemType", "filesystem");
-        map.put("parquetParseParallelism", 3);
+        map.put("parquetParseThreads", 3);
         map.put("maxReadBytesSizeOneRound", 1024 * 1024);
         map.put("maxReadRowCountOneRound", 1000);
         map.put("checkpointInterval", 30);
@@ -90,14 +90,12 @@ public class DeltaRecordTest {
     public void testConvertToPulsarSchema() {
         try {
             GenericSchema<GenericRecord> pulsarSchema = DeltaRecord.convertToPulsarSchema(deltaSchema);
-            Set<String> fieldsInPulsarSchema = new HashSet<>();
-            for (Field field : pulsarSchema.getFields()) {
-                assertNotNull(deltaSchema.get(field.getName()));
-                fieldsInPulsarSchema.add(field.getName());
-            }
 
-            for (StructField field : deltaSchema.getFields()) {
-                assertTrue(fieldsInPulsarSchema.contains(field.getName()));
+            //check fields size and order
+            assertEquals(pulsarSchema.getFields().size(), deltaSchema.getFields().length);
+
+            for (int i = 0; i < pulsarSchema.getFields().size(); i++) {
+                assertEquals(pulsarSchema.getFields().get(i).getName(), deltaSchema.getFields()[i].getName());
             }
         } catch (IOException e) {
             fail();
