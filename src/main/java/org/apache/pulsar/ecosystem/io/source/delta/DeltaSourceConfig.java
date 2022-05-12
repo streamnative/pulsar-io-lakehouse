@@ -123,13 +123,13 @@ public class DeltaSourceConfig extends SourceConnectorConfig {
         }
 
         if (StringUtils.isBlank(tablePath)) {
-            log.error("tablePath: {} should be set.", tablePath);
-            throw new IllegalArgumentException("tablePath: " + tablePath + " should be set.");
+            log.error("tablePath should be set.");
+            throw new IllegalArgumentException("tablePath should be set.");
         }
 
         if (parquetParseThreads > 2 * DEFAULT_PARQUET_PARSE_THREADS
             || parquetParseThreads <= 0) {
-            log.warn("parquetParseParallelism: {} is out of limit, using default cpus: {}",
+            log.warn("parquetParseThreads: {} is out of limit, using default cpus: {}",
                 parquetParseThreads, DEFAULT_PARQUET_PARSE_THREADS);
             parquetParseThreads = DEFAULT_PARQUET_PARSE_THREADS;
         }
@@ -147,7 +147,7 @@ public class DeltaSourceConfig extends SourceConnectorConfig {
         }
 
         if (queueSize <= 0) {
-            log.warn("sourceConnectorQueueSize: {} should be >0, using default: {}",
+            log.warn("queueSize: {} should be > 0, using default: {}",
                 queueSize, DEFAULT_QUEUE_SIZE);
             queueSize = DEFAULT_QUEUE_SIZE;
         }
