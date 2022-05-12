@@ -19,30 +19,13 @@
 package org.apache.pulsar.ecosystem.io.sink.hudi;
 
 import lombok.extern.slf4j.Slf4j;
-import org.apache.avro.generic.GenericData;
-import org.apache.avro.generic.GenericRecord;
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hudi.common.model.HoodieAvroPayload;
-import org.apache.hudi.common.model.HoodieRecord;
-import org.apache.hudi.common.util.Option;
-import org.apache.hudi.keygen.KeyGenerator;
-import org.apache.hudi.utilities.sources.helpers.AvroConvertor;
-import org.apache.pulsar.ecosystem.io.sink.PulsarSinkRecord;
 @Slf4j
 public class Utils {
 
     private static final String HOODIE_CONF_PREFIX = "hoodie.";
     private static final String PULSAR_CONF_PREFIX = "pulsar.";
     private static final String HADOOP_CONF_PREFIX = "hadoop.";
-
-    public static HoodieRecord<?> convert(KeyGenerator keyGenerator, PulsarSinkRecord sinkGenericRecord,
-                                          String schema) {
-        log.info("Convert schema {}", schema);
-        AvroConvertor convertor = new AvroConvertor(schema);
-        GenericData.Record record = (GenericData.Record) sinkGenericRecord.getNativeObject();
-        Option<GenericRecord> avroRecord = Option.of(convertor.fromJson(record.toString()));
-        return new HoodieRecord<>(keyGenerator.getKey(avroRecord.get()), new HoodieAvroPayload(avroRecord));
-    }
 
     public static Configuration getDefaultHadoopConf(HoodieSinkConfigs configs) {
         Configuration hadoopConf = new Configuration();
