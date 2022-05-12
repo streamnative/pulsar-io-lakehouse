@@ -160,7 +160,7 @@ public class SinkWriter implements Runnable {
     }
 
     private boolean needCommit() {
-        return System.currentTimeMillis() - lastCommitTime > timeIntervalPerCommit
+        return System.currentTimeMillis() - lastCommitTime >= timeIntervalPerCommit
             || recordsCnt >= maxRecordsPerCommit;
     }
 
