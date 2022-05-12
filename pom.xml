@@ -58,6 +58,7 @@
     <hudi.version>0.10.1</hudi.version>
     <delta.version>0.3.0</delta.version>
     <parquet.avro.version>1.12.2</parquet.avro.version>
+    <netty.version>4.1.77.Final</netty.version>
 
     <!-- test dependencies -->
     <testng.version>7.3.0</testng.version>
@@ -115,6 +116,11 @@
         <groupId>org.apache.hadoop</groupId>
         <artifactId>hadoop-client</artifactId>
         <version>${hadoop.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.netty</groupId>
+        <artifactId>netty-common</artifactId>
+        <version>${netty.version}</version>
       </dependency>
 
       <!-- iceberg dependency -->
@@ -354,6 +360,10 @@
           <groupId>log4j</groupId>
         </exclusion>
       </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>io.netty</groupId>
+      <artifactId>netty-common</artifactId>
     </dependency>
 
     <dependency>
