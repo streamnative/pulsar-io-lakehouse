@@ -58,7 +58,6 @@
     <hudi.version>0.10.1</hudi.version>
     <delta.version>0.3.0</delta.version>
     <parquet.avro.version>1.12.2</parquet.avro.version>
-    <bijection-avro.version>0.9.7</bijection-avro.version>
 
     <!-- test dependencies -->
     <testng.version>7.3.0</testng.version>
@@ -200,12 +199,6 @@
         <groupId>org.apache.hudi</groupId>
         <artifactId>hudi-java-client</artifactId>
         <version>${hudi.version}</version>
-      </dependency>
-
-      <dependency>
-        <groupId>com.twitter</groupId>
-        <artifactId>bijection-avro_2.11</artifactId>
-        <version>${bijection-avro.version}</version>
       </dependency>
       <!--  Hoodie dependencies end    -->
 
@@ -392,11 +385,6 @@
           <artifactId>*</artifactId>
         </exclusion>
       </exclusions>
-    </dependency>
-
-    <dependency>
-      <groupId>com.twitter</groupId>
-      <artifactId>bijection-avro_2.11</artifactId>
     </dependency>
 
     <!-- test dependencies -->
