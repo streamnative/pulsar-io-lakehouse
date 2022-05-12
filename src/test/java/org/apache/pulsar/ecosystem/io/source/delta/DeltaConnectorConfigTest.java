@@ -116,7 +116,6 @@ public class DeltaConnectorConfigTest {
     public void testInvalidParquetParseThreads() {
         Map<String, Object> map = new HashMap<>();
         map.put("tablePath", "/tmp/test.conf");
-        map.put("fileSystemType", "filesystem");
         map.put("parquetParseThreads", DeltaSourceConfig.DEFAULT_PARQUET_PARSE_THREADS * 3);
 
         try {
@@ -135,7 +134,6 @@ public class DeltaConnectorConfigTest {
     public void testInvalidMaxReadBytesSizeOneRound() {
         Map<String, Object> map = new HashMap<>();
         map.put("tablePath", "/tmp/test.conf");
-        map.put("fileSystemType", "filesystem");
         map.put("maxReadBytesSizeOneRound", -1);
 
         try {
@@ -153,7 +151,6 @@ public class DeltaConnectorConfigTest {
     public void testInvalidQueueSize() {
         Map<String, Object> map = new HashMap<>();
         map.put("tablePath", "/tmp/test.conf");
-        map.put("fileSystemType", "filesystem");
         map.put("queueSize", -1);
 
         try {

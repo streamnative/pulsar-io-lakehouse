@@ -66,7 +66,6 @@ public class DeltaRecordTest {
         map.put("startSnapshotVersion", 1);
         map.put("fetchHistoryData", true);
         map.put("tablePath", path);
-        map.put("fileSystemType", "filesystem");
         map.put("parquetParseThreads", 3);
         map.put("maxReadBytesSizeOneRound", 1024 * 1024);
         map.put("maxReadRowCountOneRound", 1000);
