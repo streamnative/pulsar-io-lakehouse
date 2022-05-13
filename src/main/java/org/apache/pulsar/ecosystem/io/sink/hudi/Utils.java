@@ -29,12 +29,17 @@ public class Utils {
 
     public static Configuration getDefaultHadoopConf(HoodieSinkConfigs configs) {
         Configuration hadoopConf = new Configuration();
-        configs.getProps().keySet().stream().filter(prop -> {
+        configs.getProps(true).keySet().stream().filter(prop -> {
             return prop.toString().startsWith(HADOOP_CONF_PREFIX);
         }).forEach(prop -> {
             hadoopConf.set(prop.toString().replaceFirst(HADOOP_CONF_PREFIX, ""),
                 configs.getProps().get(prop.toString()).toString());
         });
+        hadoopConf.set("fs.s3a.multipart.size", "104857600");
+        hadoopConf.set("fs.s3a.threads.max", "15");
+        hadoopConf.set("fs.s3a.threads.core", "10");
+        hadoopConf.set("fs.s3a.aws.credentials.provider",
+            "com.amazonaws.auth.DefaultAWSCredentialsProviderChain");
         return hadoopConf;
     }
 }

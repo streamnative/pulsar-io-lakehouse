@@ -23,6 +23,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.avro.Schema;
 import org.apache.avro.generic.GenericRecord;
 import org.apache.hudi.common.model.HoodieAvroPayload;
+import org.apache.hudi.common.model.HoodieAvroRecord;
 import org.apache.hudi.common.model.HoodieRecord;
 import org.apache.hudi.common.util.Option;
 import org.apache.hudi.keygen.KeyGenerator;
@@ -43,6 +44,7 @@ public class HoodieWriter implements LakehouseWriter {
         this.hoodieSinkConfigs = HoodieSinkConfigs.newBuilder()
             .withProperties(sinkConnectorConfig.getProperties())
             .build();
+        log.info("Initialize hudi with configurations: {}", hoodieSinkConfigs.getProps().toString());
         try {
             this.writerProvider = new HoodieWriterProvider(hoodieSinkConfigs);
             this.keyGenerator = HoodieAvroKeyGeneratorFactory.createKeyGenerator(hoodieSinkConfigs.getProps());
@@ -69,7 +71,7 @@ public class HoodieWriter implements LakehouseWriter {
         if (log.isDebugEnabled()) {
             log.debug("Writing generic records to the hudi: {}", record);
         }
-        HoodieRecord hoodieRecord = new HoodieRecord(
+        HoodieRecord hoodieRecord = new HoodieAvroRecord(
             keyGenerator.getKey(record), new HoodieAvroPayload(Option.of(record)));
         writer.writeHoodieRecord(hoodieRecord);
     }

@@ -52,10 +52,10 @@
     <pulsar.version>2.9.2</pulsar.version>
     <log4j2.version>2.16.0</log4j2.version>
     <slf4j.version>1.7.25</slf4j.version>
-    <hadoop.version>3.2.1</hadoop.version>
+    <hadoop.version>3.2.2</hadoop.version>
     <iceberg.version>0.13.1</iceberg.version>
     <parquet.version>1.12.0</parquet.version>
-    <hudi.version>0.10.1</hudi.version>
+    <hudi.version>0.11.0</hudi.version>
     <delta.version>0.3.0</delta.version>
     <parquet.avro.version>1.12.2</parquet.avro.version>
 
@@ -374,34 +374,44 @@
     <dependency>
       <groupId>org.apache.hudi</groupId>
       <artifactId>hudi-java-client</artifactId>
-      <exclusions>
-        <exclusion>
-          <groupId>org.apache.hbase</groupId>
-          <artifactId>*</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>org.eclipse.jetty.websocket</groupId>
-          <artifactId>*</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>io.prometheus</groupId>
-          <artifactId>*</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>org.apache.curator</groupId>
-          <artifactId>*</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>io.dropwizard.metrics</groupId>
-          <artifactId>*</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>org.eclipse.jetty</groupId>
-          <artifactId>*</artifactId>
-        </exclusion>
-      </exclusions>
+<!--      <exclusions>-->
+<!--        <exclusion>-->
+<!--          <groupId>org.apache.hbase</groupId>-->
+<!--          <artifactId>*</artifactId>-->
+<!--        </exclusion>-->
+<!--        <exclusion>-->
+<!--          <groupId>org.eclipse.jetty.websocket</groupId>-->
+<!--          <artifactId>*</artifactId>-->
+<!--        </exclusion>-->
+<!--        <exclusion>-->
+<!--          <groupId>io.prometheus</groupId>-->
+<!--          <artifactId>*</artifactId>-->
+<!--        </exclusion>-->
+<!--        <exclusion>-->
+<!--          <groupId>org.apache.curator</groupId>-->
+<!--          <artifactId>*</artifactId>-->
+<!--        </exclusion>-->
+<!--        <exclusion>-->
+<!--          <groupId>io.dropwizard.metrics</groupId>-->
+<!--          <artifactId>*</artifactId>-->
+<!--        </exclusion>-->
+<!--&lt;!&ndash;        <exclusion>&ndash;&gt;-->
+<!--&lt;!&ndash;          <groupId>org.eclipse.jetty</groupId>&ndash;&gt;-->
+<!--&lt;!&ndash;          <artifactId>*</artifactId>&ndash;&gt;-->
+<!--&lt;!&ndash;        </exclusion>&ndash;&gt;-->
+<!--      </exclusions>-->
     </dependency>
 
+    <dependency>
+      <groupId>io.netty</groupId>
+      <artifactId>netty-common</artifactId>
+      <version>4.1.74.Final</version>
+    </dependency>
+    <dependency>
+      <groupId>commons-lang</groupId>
+      <artifactId>commons-lang</artifactId>
+      <version>2.6</version>
+    </dependency>
     <!-- test dependencies -->
     <dependency>
       <groupId>org.testng</groupId>
@@ -425,13 +435,26 @@
       <scope>test</scope>
     </dependency>
 
-
     <dependency>
-      <groupId>org.apache.pulsar</groupId>
-      <artifactId>pulsar-io-common</artifactId>
-      <version>${pulsar.version}</version>
+      <groupId>org.apache.hadoop</groupId>
+      <artifactId>hadoop-aws</artifactId>
+      <exclusions>
+        <exclusion>
+          <groupId>com.amazonaws</groupId>
+          <artifactId>aws-java-sdk-bundle</artifactId>
+        </exclusion>
+      </exclusions>
+      <version>3.2.2</version>
     </dependency>
-
+    <dependency>
+      <groupId>com.amazonaws</groupId>
+      <artifactId>aws-java-sdk-bundle</artifactId>
+      <version>1.12.147</version>
+    </dependency>
+<!--    <dependency>-->
+<!--      <groupId></groupId>-->
+<!--      <artifactId></artifactId>-->
+<!--    </dependency>-->
   </dependencies>
 
   <build>
