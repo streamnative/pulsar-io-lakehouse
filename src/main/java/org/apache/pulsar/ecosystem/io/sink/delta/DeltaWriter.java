@@ -34,6 +34,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.Random;
 import java.util.UUID;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -62,6 +63,7 @@ public class DeltaWriter implements LakehouseWriter {
     private DeltaLog deltaLog;
     private final Schema schema;
     private DeltaParquetWriter writer;
+    private Random random;
 
     public DeltaWriter(SinkConnectorConfig cfg, Schema schema) {
         this.config = (DeltaSinkConnectorConfig) cfg;
@@ -70,6 +72,7 @@ public class DeltaWriter implements LakehouseWriter {
 
         Configuration configuration = new Configuration();
         deltaLog = DeltaLog.forTable(configuration, config.tablePath);
+        random = new Random(42);
 
         if (!deltaLog.tableExists()) {
             createTable(schema, config.getPartitionColumns());
@@ -136,16 +139,34 @@ public class DeltaWriter implements LakehouseWriter {
         commitFiles(writer.closeAndFlush());
 
         // update delta table schema
-        OptimisticTransaction optimisticTransaction = deltaLog.startTransaction();
-        StructType structType = SchemaConverter.convertAvroSchemaToDeltaSchema(schema);
-        Metadata metadata =  optimisticTransaction.metadata().copyBuilder().schema(structType).build();
-        optimisticTransaction.updateMetadata(metadata);
-        List<Action> filesToCommit = new ArrayList<>();
-        optimisticTransaction.commit(filesToCommit, new Operation(Operation.Name.UPGRADE_SCHEMA), COMMIT_INFO);
+        int cnt = 0;
+        while (true) {
+            try {
+                cnt++;
+                OptimisticTransaction optimisticTransaction = deltaLog.startTransaction();
+                StructType structType = SchemaConverter.convertAvroSchemaToDeltaSchema(schema);
+                Metadata metadata = optimisticTransaction.metadata().copyBuilder().schema(structType).build();
+                optimisticTransaction.updateMetadata(metadata);
+                List<Action> filesToCommit = new ArrayList<>();
+                optimisticTransaction.commit(filesToCommit, new Operation(Operation.Name.UPGRADE_SCHEMA), COMMIT_INFO);
+                log.info("update delta schema succeed. {}",
+                    metadata.getSchema() != null ? metadata.getSchema().getTreeString() : null);
+                break;
+            } catch (Exception e) {
+                if (cnt >= 5) {
+                    log.error("Failed to update delta schema. ", e);
+                    throw e;
+                }
+
+                try {
+                    Thread.sleep(random.nextInt(1000));
+                } catch (InterruptedException ex) {
+                    //
+                }
+            }
+        }
 
         writer.updateSchema(schema);
-        log.info("update delta schema succeed. {}",
-            metadata.getSchema() != null ? metadata.getSchema().getTreeString() : null);
         return true;
     }
 
