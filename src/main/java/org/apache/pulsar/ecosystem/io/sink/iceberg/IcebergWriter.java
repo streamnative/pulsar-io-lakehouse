@@ -23,6 +23,7 @@ import static org.apache.pulsar.ecosystem.io.sink.iceberg.IcebergSinkConnectorCo
 import static org.apache.pulsar.ecosystem.io.sink.iceberg.IcebergSinkConnectorConfig.HIVE_CATALOG;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -86,6 +87,9 @@ public class IcebergWriter implements LakehouseWriter {
         }
         tableLoader.open();
 
+        // check whether given schema consist with table schema
+        checkAndUpdateIcebergTableSchema(schema);
+
         taskWriterFactory = new MessageTaskWriterFactory(
             tableLoader.loadTable(), schema, config.parquetBatchSizeInBytes, config.fileFormat, null, false);
         // TODO specify partitionId and attemptId
@@ -134,8 +138,9 @@ public class IcebergWriter implements LakehouseWriter {
 
             // step2: update table schema
             checkAndUpdateIcebergTableSchema(newSchema);
-            schema = newSchema;
+
         }
+        schema = newSchema;
 
         taskWriterFactory = new MessageTaskWriterFactory(tableLoader.loadTable(),
             schema, config.parquetBatchSizeInBytes, config.fileFormat, null, false);
@@ -179,17 +184,19 @@ public class IcebergWriter implements LakehouseWriter {
         List<Types.NestedField> pulsarSchemaFields =
             AvroSchemaUtil.convert(schema).asNestedType().asNestedType().fields();
 
-        List<Types.NestedField> fieldsToAdd = new ArrayList<>();
+        Map<Types.NestedField, String> fieldsToAdd = new HashMap<>();
         List<Types.NestedField> fieldsToRemove = new ArrayList<>();
         Set<String> pulsarSchemaFieldsNames = new HashSet<>();
 
         // check fields to add
+        String prevFiledName = null;
         for (Types.NestedField pulsarSchemaField : pulsarSchemaFields) {
             String fieldName = pulsarSchemaField.name();
             if (originalIcebergSchema.findField(fieldName) == null) {
-                fieldsToAdd.add(pulsarSchemaField);
+                fieldsToAdd.put(pulsarSchemaField, prevFiledName);
                 log.info("Fields to add: {}", pulsarSchemaField);
             }
+            prevFiledName = fieldName;
             pulsarSchemaFieldsNames.add(fieldName);
         }
 
@@ -212,7 +219,13 @@ public class IcebergWriter implements LakehouseWriter {
 
         // update schema
         UpdateSchema updateSchema = table.updateSchema();
-        fieldsToAdd.forEach(field -> updateSchema.addColumn(field.name(), field.type()));
+        fieldsToAdd.forEach((field, t) -> {
+            if (t == null) {
+                updateSchema.addColumn(field.name(), field.type()).moveFirst(field.name());
+            } else {
+                updateSchema.addColumn(field.name(), field.type()).moveAfter(field.name(), t);
+            }
+        });
         fieldsToRemove.forEach(field -> updateSchema.deleteColumn(field.name()));
         updateSchema.commit();
 
