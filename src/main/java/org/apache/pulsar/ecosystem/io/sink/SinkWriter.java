@@ -43,7 +43,6 @@ import org.apache.pulsar.ecosystem.io.exception.LakehouseWriterException;
 public class SinkWriter implements Runnable {
     private final SinkConnectorConfig sinkConnectorConfig;
     private LakehouseWriter writer;
-    private final Schema.Parser parser;
     private Schema currentPulsarSchema;
     private Schema avroSchema;
     private PulsarSinkRecord lastRecord;
@@ -61,7 +60,6 @@ public class SinkWriter implements Runnable {
     public SinkWriter(SinkConnectorConfig sinkConnectorConfig, LinkedBlockingQueue<PulsarSinkRecord> messages) {
         this.messages = messages;
         this.sinkConnectorConfig = sinkConnectorConfig;
-        this.parser = new Schema.Parser();
         this.datumReader = new GenericDatumReader<>();
         this.timeIntervalPerCommit = TimeUnit.SECONDS.toMillis(sinkConnectorConfig.getMaxCommitInterval());
         this.maxRecordsPerCommit = sinkConnectorConfig.getMaxRecordsPerCommit();
@@ -95,7 +93,7 @@ public class SinkWriter implements Runnable {
                     continue;
                 }
                 if (currentPulsarSchema == null || !currentPulsarSchema.toString().equals(schemaStr)) {
-                    Schema schema = parser.parse(schemaStr);
+                    Schema schema = new Schema.Parser().parse(schemaStr);
                     currentPulsarSchema = schema;
                     avroSchema = SchemaConverter.convertPulsarAvroSchemaToNonNullSchema(currentPulsarSchema);
                     if (log.isDebugEnabled()) {
