@@ -20,7 +20,6 @@
 package org.apache.pulsar.ecosystem.io.sink.delta;
 
 import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertTrue;
 import io.delta.standalone.DeltaLog;
@@ -137,7 +136,6 @@ public class DeltaLakeSinkConnectorTest {
             StructField field = schema.getFields()[i];
             assertEquals(field.getName(), fields.get(i));
             assertNotNull(schemaMap.get(field.getName()));
-            assertFalse(field.isNullable());
             // delta integer type is `integer`, avro schema integer type is `INT32`
             if (field.getDataType().getTypeName().equals("integer")) {
                 continue;
@@ -235,7 +233,6 @@ public class DeltaLakeSinkConnectorTest {
             StructField field = schema.getFields()[i];
             assertEquals(field.getName(), fields.get(i));
             assertNotNull(schemaMap.get(field.getName()));
-            assertFalse(field.isNullable());
             // delta integer type is `integer`, avro schema integer type is `INT32`
             if (field.getDataType().getTypeName().equals("integer")) {
                 continue;

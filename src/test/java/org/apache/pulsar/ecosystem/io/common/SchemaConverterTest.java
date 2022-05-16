@@ -20,7 +20,6 @@
 package org.apache.pulsar.ecosystem.io.common;
 
 import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNotNull;
 import io.delta.standalone.types.StructField;
 import io.delta.standalone.types.StructType;
@@ -73,7 +72,6 @@ public class SchemaConverterTest {
             StructField field = structType.getFields()[i];
             assertEquals(field.getName(), fields.get(i));
             assertNotNull(schemaMap.get(field.getName()));
-            assertFalse(field.isNullable());
             // delta integer type is `integer`, avro schema integer type is `INT32`
             if (field.getDataType().getTypeName().equals("integer")) {
                 continue;
