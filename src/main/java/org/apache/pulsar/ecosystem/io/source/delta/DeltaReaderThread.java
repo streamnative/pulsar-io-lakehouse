@@ -204,12 +204,22 @@ public class DeltaReaderThread implements Runnable {
                         }
                         sourceContext.recordMetric(FETCH_ADN_PARSE_FILE_LATENCY,
                             System.currentTimeMillis() - startFetchAndParse);
+                        base += concurrency;
                     } else {
                         AtomicInteger readStatus = new AtomicInteger(0);
-                        if (actionList.get(base).act instanceof CommitInfo) {
-                            base = base + concurrency;
+                        DeltaReader.ReadCursor readCursor = actionList.get(base);
+                        if (readCursor.act instanceof CommitInfo) {
+                            base += 1;
                             continue;
                         }
+
+                        if (readCursor.act instanceof Metadata) {
+                            deltaSchema = ((Metadata) readCursor.act).getSchema();
+                            base += 1;
+                            continue;
+                        }
+
+
                         List<DeltaReader.RowRecordData> recordData =
                             reader.readParquetFileAsync(actionList.get(base),
                                 parquetParseExecutor, readStatus).get();
@@ -222,8 +232,8 @@ public class DeltaReaderThread implements Runnable {
                         }
                         sourceContext.recordMetric(FETCH_ADN_PARSE_FILE_LATENCY,
                             System.currentTimeMillis() - startFetchAndParse);
+                        base += 1;
                     }
-                    base = base + concurrency;
                 }
 
             } catch (Exception e) { // TODO format exceptions

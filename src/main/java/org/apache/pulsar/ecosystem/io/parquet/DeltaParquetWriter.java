@@ -29,7 +29,7 @@ import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.avro.Schema;
 import org.apache.avro.generic.GenericRecord;
-import org.apache.pulsar.common.util.ObjectMapperFactory;
+import org.apache.pulsar.ecosystem.io.common.SourceConnectorUtils;
 
 /**
  * Parquet writer interface.
@@ -51,7 +51,7 @@ public interface DeltaParquetWriter {
         @Override
         public String toString() {
             try {
-                return ObjectMapperFactory.getThreadLocal().writeValueAsString(this);
+                return SourceConnectorUtils.JSON_MAPPER.get().writeValueAsString(this);
             } catch (JsonProcessingException e) {
                 log.error("Failed to write DeltaLakeConnectorConfig ", e);
                 return "";

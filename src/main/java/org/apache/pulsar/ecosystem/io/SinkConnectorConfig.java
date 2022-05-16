@@ -18,11 +18,8 @@
  */
 package org.apache.pulsar.ecosystem.io;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.netty.util.concurrent.FastThreadLocal;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.Collections;
@@ -35,6 +32,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.pulsar.ecosystem.io.common.Category;
 import org.apache.pulsar.ecosystem.io.common.FieldContext;
+import org.apache.pulsar.ecosystem.io.common.SourceConnectorUtils;
 import org.apache.pulsar.ecosystem.io.exception.IncorrectParameterException;
 import org.apache.pulsar.ecosystem.io.sink.delta.DeltaSinkConnectorConfig;
 import org.apache.pulsar.ecosystem.io.sink.iceberg.IcebergSinkConnectorConfig;
@@ -46,16 +44,6 @@ import org.apache.pulsar.ecosystem.io.sink.iceberg.IcebergSinkConnectorConfig;
 @Data
 public abstract class SinkConnectorConfig implements Serializable {
     private static final long serialVersionUID = 1L;
-
-    private static final FastThreadLocal<ObjectMapper> JSON_MAPPER = new FastThreadLocal<ObjectMapper>() {
-        protected ObjectMapper initialValue() throws Exception {
-            ObjectMapper mapper = new ObjectMapper();
-            mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-            mapper.configure(DeserializationFeature.READ_UNKNOWN_ENUM_VALUES_AS_NULL, true);
-            mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
-            return mapper;
-        }
-    };
 
     private static Properties properties = new Properties();
 
@@ -135,7 +123,7 @@ public abstract class SinkConnectorConfig implements Serializable {
     }
 
     public static ObjectMapper jsonMapper() {
-        return JSON_MAPPER.get();
+        return SourceConnectorUtils.JSON_MAPPER.get();
     }
 
     public void validate() throws IllegalArgumentException {

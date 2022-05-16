@@ -23,7 +23,6 @@ import static org.apache.pulsar.ecosystem.io.DeltaLakeConnectorStats.FILTERED_FI
 import static org.apache.pulsar.ecosystem.io.DeltaLakeConnectorStats.PREPARE_READ_FILES_BYTES_SIZE;
 import static org.apache.pulsar.ecosystem.io.DeltaLakeConnectorStats.PREPARE_READ_FILES_COUNT;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.delta.standalone.DeltaLog;
 import io.delta.standalone.Snapshot;
 import io.delta.standalone.VersionLog;
@@ -51,8 +50,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.parquet.example.data.simple.SimpleGroup;
 import org.apache.parquet.schema.Type;
-import org.apache.pulsar.common.util.ObjectMapperFactory;
 import org.apache.pulsar.ecosystem.io.common.Murmur32Hash;
+import org.apache.pulsar.ecosystem.io.common.SourceConnectorUtils;
 import org.apache.pulsar.ecosystem.io.parquet.DeltaParquetReader;
 import org.apache.pulsar.io.core.SourceContext;
 
@@ -126,14 +125,10 @@ public class DeltaReader {
             return super.clone();
         }
 
-        public static ObjectMapper jsonMapper() {
-            return ObjectMapperFactory.getThreadLocal();
-        }
-
         @Override
         public String toString() {
             try {
-                return jsonMapper().writeValueAsString(this);
+                return SourceConnectorUtils.JSON_MAPPER.get().writeValueAsString(this);
             } catch (JsonProcessingException e) {
                 log.error("Failed to write DeltaLakeConnectorConfig ", e);
                 return "";

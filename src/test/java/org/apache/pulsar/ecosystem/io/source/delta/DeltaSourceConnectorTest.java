@@ -48,17 +48,23 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Triple;
 import org.apache.pulsar.client.api.PulsarClient;
+import org.apache.pulsar.client.api.schema.GenericObject;
 import org.apache.pulsar.client.api.schema.GenericRecord;
 import org.apache.pulsar.client.api.schema.GenericSchema;
 import org.apache.pulsar.client.impl.PulsarClientImpl;
-import org.apache.pulsar.common.util.ObjectMapperFactory;
+import org.apache.pulsar.common.schema.SchemaType;
+import org.apache.pulsar.ecosystem.io.SinkConnector;
 import org.apache.pulsar.ecosystem.io.SourceConnector;
+import org.apache.pulsar.ecosystem.io.common.SourceConnectorUtils;
+import org.apache.pulsar.ecosystem.io.common.TestSinkContext;
+import org.apache.pulsar.ecosystem.io.sink.SinkConnectorUtils;
 import org.apache.pulsar.functions.api.Record;
 import org.mockito.Mockito;
 import org.testng.annotations.Test;
@@ -184,7 +190,7 @@ public class DeltaSourceConnectorTest {
         checkpoint1.setSeqCount(10L);
         checkpoint.put(0, checkpoint0);
         checkpoint.put(1, checkpoint1);
-        ObjectMapper mapper = ObjectMapperFactory.getThreadLocal();
+        ObjectMapper mapper = SourceConnectorUtils.JSON_MAPPER.get();
         checkpoint.forEach((k, v) -> {
             try {
                 sourceContextForTest.putState(DeltaCheckpoint.getStatekey(k),
@@ -360,5 +366,72 @@ public class DeltaSourceConnectorTest {
         } catch (Exception e) {
             fail();
         }
+    }
+
+    @Test
+    public void testDeltaSinkAndSource() throws Exception {
+        String tablePath = "/tmp/delta-test-data-" + UUID.randomUUID();
+        Map<String, Object> config = new HashMap<>();
+        config.put("tablePath", tablePath);
+        config.put("type", "delta");
+
+        SinkConnector sinkConnector = new SinkConnector();
+        sinkConnector.open(config, new TestSinkContext());
+
+        Map<String, SchemaType> schemaMap = new HashMap<>();
+        schemaMap.put("name", SchemaType.STRING);
+        schemaMap.put("age", SchemaType.INT32);
+        schemaMap.put("phone", SchemaType.STRING);
+        schemaMap.put("address", SchemaType.STRING);
+        schemaMap.put("score", SchemaType.DOUBLE);
+
+        Map<String, Object> recordMap = new HashMap<>();
+        recordMap.put("name", "hang");
+        recordMap.put("age", 18);
+        recordMap.put("phone", "110");
+        recordMap.put("address", "GuangZhou, China");
+        recordMap.put("score", 59.9);
+        for (int i = 0; i < 1500; ++i) {
+            recordMap.put("age", i);
+            recordMap.put("score", 59.9 + i);
+            Record<GenericObject> record = SinkConnectorUtils.generateRecord(schemaMap, recordMap,
+                SchemaType.AVRO, "MyRecord");
+            sinkConnector.write(record);
+        }
+
+        while (!sinkConnector.getMessages().isEmpty()) {
+            Thread.sleep(1000);
+        }
+        sinkConnector.close();
+
+        Map<String, Object> sourceConfigMap = new HashMap<>();
+        sourceConfigMap.put("fetchHistoryData", true);
+        sourceConfigMap.put("tablePath", tablePath);
+        sourceConfigMap.put("fileSystemType", "filesystem");
+        sourceConfigMap.put("parquetParseParallelism", 3);
+        sourceConfigMap.put("maxReadBytesSizeOneRound", 1024 * 1024);
+        sourceConfigMap.put("maxReadRowCountOneRound", 1000);
+        sourceConfigMap.put("checkpointInterval", 0);
+
+
+        String outputTopic = "persistent://public/default/delta_test_v1";
+        CompletableFuture<List<String>> future = new CompletableFuture<>();
+        List<String> topics = new ArrayList<>();
+        topics.add(outputTopic);
+        future.complete(topics);
+
+        SourceContextForTest sourceContextForTest = spy(new SourceContextForTest());
+        sourceContextForTest.setTopic(outputTopic);
+        sourceContextForTest.setInstanceId(0);
+        sourceContextForTest.setNumInstances(1);
+
+        Mockito.doReturn(mock(PulsarClientImpl.class)).when(sourceContextForTest).getPulsarClient();
+        SourceConnector deltaLakeSourceConnector = new SourceConnector();
+        PulsarClient pulsarClient = sourceContextForTest.getPulsarClient();
+        Mockito.doReturn(future).when(pulsarClient).getPartitionsForTopic(any());
+        deltaLakeSourceConnector.open(sourceConfigMap, sourceContextForTest);
+
+        Record<GenericRecord> record = deltaLakeSourceConnector.read();
+        GenericRecord genericRecord = record.getValue();
     }
 }

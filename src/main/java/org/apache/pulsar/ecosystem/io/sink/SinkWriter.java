@@ -31,7 +31,6 @@ import org.apache.avro.generic.GenericRecord;
 import org.apache.avro.io.Decoder;
 import org.apache.avro.io.DecoderFactory;
 import org.apache.pulsar.ecosystem.io.SinkConnectorConfig;
-import org.apache.pulsar.ecosystem.io.common.SchemaConverter;
 import org.apache.pulsar.ecosystem.io.exception.CommitFailedException;
 import org.apache.pulsar.ecosystem.io.exception.LakehouseConnectorException;
 import org.apache.pulsar.ecosystem.io.exception.LakehouseWriterException;
@@ -95,9 +94,8 @@ public class SinkWriter implements Runnable {
                 if (currentPulsarSchema == null || !currentPulsarSchema.toString().equals(schemaStr)) {
                     Schema schema = new Schema.Parser().parse(schemaStr);
                     currentPulsarSchema = schema;
-                    avroSchema = SchemaConverter.convertPulsarAvroSchemaToNonNullSchema(currentPulsarSchema);
                     if (log.isDebugEnabled()) {
-                        log.debug("new schema after convert: {}", avroSchema);
+                        log.debug("new schema: {}", currentPulsarSchema);
                     }
                     datumReader.setSchema(schema);
                     datumReader.setExpected(schema);
@@ -167,7 +165,8 @@ public class SinkWriter implements Runnable {
             case AVRO:
                 return Optional.of((GenericRecord) record.getNativeObject());
             case JSON:
-                Decoder decoder = DecoderFactory.get().jsonDecoder(avroSchema, record.getNativeObject().toString());
+                Decoder decoder = DecoderFactory.get()
+                    .jsonDecoder(currentPulsarSchema, record.getNativeObject().toString());
                 return Optional.of(datumReader.read(null, decoder));
             default:
                 log.error("not support this kind of schema: {}", record.getSchemaType());
