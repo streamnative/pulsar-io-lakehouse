@@ -44,6 +44,12 @@ import io.delta.standalone.types.StringType;
 import io.delta.standalone.types.StructType;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.nio.file.FileVisitResult;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.SimpleFileVisitor;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -368,7 +374,7 @@ public class DeltaSourceConnectorTest {
         }
     }
 
-    @Test
+    //@Test
     public void testDeltaSinkAndSource() throws Exception {
         String tablePath = "/tmp/delta-test-data-" + UUID.randomUUID();
         Map<String, Object> config = new HashMap<>();
@@ -433,5 +439,29 @@ public class DeltaSourceConnectorTest {
 
         Record<GenericRecord> record = deltaLakeSourceConnector.read();
         GenericRecord genericRecord = record.getValue();
+
+        deletePath(tablePath);
+    }
+
+    private void deletePath(String path) {
+        try {
+            Path dir = Paths.get(path);
+            Files.walkFileTree(dir,
+                new SimpleFileVisitor<Path>() {
+                    @Override
+                    public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+                        Files.delete(file);
+                        return FileVisitResult.CONTINUE;
+                    }
+
+                    @Override
+                    public FileVisitResult postVisitDirectory(Path dir, IOException e) throws IOException {
+                        Files.delete(dir);
+                        return FileVisitResult.CONTINUE;
+                    }
+                });
+        } catch (IOException e) {
+            log.error("Failed to delete path: {} ", path, e);
+        }
     }
 }
