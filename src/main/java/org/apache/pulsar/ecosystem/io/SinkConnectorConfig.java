@@ -26,9 +26,11 @@ import io.netty.util.concurrent.FastThreadLocal;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Properties;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -56,7 +58,7 @@ public abstract class SinkConnectorConfig implements Serializable {
         }
     };
 
-    private static Map<String, Object> properties;
+    private static Map<String, Object> properties = new HashMap<>();
 
     public static final int MB = 1024 * 1024;
     public static final int DEFAULT_SINK_CONNECTOR_QUEUE_SIZE = 10_000;
@@ -109,7 +111,7 @@ public abstract class SinkConnectorConfig implements Serializable {
     List<String> partitionColumns = Collections.emptyList();
 
     static SinkConnectorConfig load(Map<String, Object> map) throws IOException, IncorrectParameterException {
-        properties = map;
+        properties.putAll(map);
         String type = (String) map.get("type");
         if (StringUtils.isBlank(type)) {
             String error = "type must be set.";
@@ -168,6 +170,12 @@ public abstract class SinkConnectorConfig implements Serializable {
 
     public Map<String, Object> getProperties() {
         return properties;
+    }
+
+    public void setProperties(Properties extraProperties) {
+        for (Map.Entry<Object, Object> objectObjectEntry : extraProperties.entrySet()) {
+            properties.put((String) objectObjectEntry.getKey(), objectObjectEntry.getValue());
+        }
     }
 
     @Override
