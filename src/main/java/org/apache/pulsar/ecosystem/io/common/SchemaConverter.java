@@ -84,19 +84,19 @@ public class SchemaConverter {
             case FIXED:
                 throw new UnsupportedOperationException("not support fixed in delta schema");
             case STRING:
-                newField = new StructField(name, new StringType(), true);
+                newField = new StructField(name, new StringType(), avroSchema.isNullable());
                 break;
             case BYTES:
-                newField = new StructField(name, new StringType(), true);
+                newField = new StructField(name, new StringType(), avroSchema.isNullable());
                 break;
             case INT:
-                newField = new StructField(name, new IntegerType(), true);
+                newField = new StructField(name, new IntegerType(), avroSchema.isNullable());
                 break;
             case LONG:
-                newField = new StructField(name, new LongType(), true);
+                newField = new StructField(name, new LongType(), avroSchema.isNullable());
                 break;
             case FLOAT:
-                newField = new StructField(name, new FloatType(), true);
+                newField = new StructField(name, new FloatType(), avroSchema.isNullable());
                 break;
             case DOUBLE:
                 newField = new StructField(name, new DoubleType(), avroSchema.isNullable());
