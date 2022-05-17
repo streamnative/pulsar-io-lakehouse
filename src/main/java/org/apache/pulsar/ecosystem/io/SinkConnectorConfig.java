@@ -136,7 +136,7 @@ public abstract class SinkConnectorConfig implements Serializable {
             throw new IllegalArgumentException(error);
         }
 
-        type = type.toUpperCase(Locale.ROOT);
+        type = type.toLowerCase(Locale.ROOT);
 
         if (maxCommitInterval <= 0) {
             log.warn("maxFlushInterval: {} should be > 0, using default: {}",
