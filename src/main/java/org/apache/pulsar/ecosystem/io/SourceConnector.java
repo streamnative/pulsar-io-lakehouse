@@ -47,9 +47,9 @@ import org.apache.pulsar.client.api.schema.GenericSchema;
 import org.apache.pulsar.ecosystem.io.common.Utils;
 import org.apache.pulsar.ecosystem.io.source.delta.DeltaCheckpoint;
 import org.apache.pulsar.ecosystem.io.source.delta.DeltaReader;
-import org.apache.pulsar.ecosystem.io.source.delta.DeltaReaderThread;
 import org.apache.pulsar.ecosystem.io.source.delta.DeltaRecord;
 import org.apache.pulsar.ecosystem.io.source.delta.DeltaSourceConfig;
+import org.apache.pulsar.ecosystem.io.source.delta.SourceReader;
 import org.apache.pulsar.functions.api.Record;
 import org.apache.pulsar.io.core.Source;
 import org.apache.pulsar.io.core.SourceContext;
@@ -61,13 +61,11 @@ import org.apache.pulsar.io.core.SourceContext;
 public class SourceConnector implements Source<GenericRecord> {
     public static final Integer MIN_CHECKPOINT_KEY = -1;
 
-    private DeltaSourceConfig config;
+    private SourceConnectorConfig config;
     private SourceContext sourceContext;
     private String outputTopic;
-    private int topicPartitionNum;
 
     private ExecutorService fetchRecordExecutor;
-    private ExecutorService parquetParseExecutor;
     private ScheduledExecutorService snapshotExecutor;
 
     private DeltaReader reader;
@@ -76,6 +74,7 @@ public class SourceConnector implements Source<GenericRecord> {
     private GenericSchema<GenericRecord> pulsarSchema;
     private DeltaCheckpoint minCheckpoint;
     private LinkedBlockingQueue<DeltaRecord> queue;
+    private SourceReader sourceReader;
 
     // metrics
     private final AtomicInteger processingException = new AtomicInteger(0);
@@ -92,11 +91,10 @@ public class SourceConnector implements Source<GenericRecord> {
 
         this.sourceContext = sourceContext;
         outputTopic = sourceContext.getOutputTopic();
-        topicPartitionNum =
-            sourceContext.getPulsarClient().getPartitionsForTopic(outputTopic).get().size();
+        int topicPartitionNum = sourceContext.getPulsarClient().getPartitionsForTopic(outputTopic).get().size();
 
         // load the configuration and validate it
-        config = DeltaSourceConfig.load(configMap);
+        config = SourceConnectorConfig.load(configMap);
         config.validate();
         log.info("Delta Lake connector config: {}", config);
 
@@ -125,12 +123,13 @@ public class SourceConnector implements Source<GenericRecord> {
         reader.setFilter(initDeltaReadFilter(checkpointMap, topicPartitionNum));
         reader.setStartCheckpoint(minCheckpoint);
 
+        sourceReader = new SourceReader(reader, config, queue, deltaSchema,
+            pulsarSchema, outputTopic, processingException, minCheckpoint, sourceContext);
         // init executors
         snapshotExecutor =
             Executors.newSingleThreadScheduledExecutor(
                 new DefaultThreadFactory("snapshot-io"));
-        parquetParseExecutor = Executors.newFixedThreadPool(config.getParquetParseThreads(),
-            new DefaultThreadFactory("parquet-parse-io"));
+
         fetchRecordExecutor = Executors.newSingleThreadExecutor(
             new DefaultThreadFactory("fetch-record-io"));
 
@@ -139,9 +138,7 @@ public class SourceConnector implements Source<GenericRecord> {
     }
 
     private void process() {
-        fetchRecordExecutor.execute(new DeltaReaderThread(reader, parquetParseExecutor,
-            config, queue, deltaSchema, pulsarSchema, outputTopic,
-            processingException, minCheckpoint, sourceContext));
+        fetchRecordExecutor.execute(sourceReader);
 
         if (config.getCheckpointInterval() <= 0) {
             log.info("Due to checkpointInterval: {}, disable checkpoint.",
@@ -178,6 +175,7 @@ public class SourceConnector implements Source<GenericRecord> {
         if (this.processingException.get() > 0) {
             log.error("processing encounter exception will stop reading record "
                 + "and connector will exit");
+            sourceReader.close();
             throw new Exception("processing exception in processing delta record");
         }
         return  queue.take();
@@ -187,12 +185,10 @@ public class SourceConnector implements Source<GenericRecord> {
     public void close() {
         log.info("Closing source connector");
 
+        sourceReader.close();
+
         if (fetchRecordExecutor != null) {
             fetchRecordExecutor.shutdown();
-        }
-
-        if (parquetParseExecutor != null) {
-            parquetParseExecutor.shutdown();
         }
 
         if (snapshotExecutor != null) {
@@ -219,7 +215,7 @@ public class SourceConnector implements Source<GenericRecord> {
      */
     public static Triple<Map<Integer, DeltaCheckpoint>, StructType, GenericSchema<GenericRecord>>
     restoreCheckpoint(SourceContext sourceContext,
-                      DeltaSourceConfig config,
+                      SourceConnectorConfig config,
                       int topicPartitionNum,
                       DeltaReader reader)
         throws Exception {
