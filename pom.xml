@@ -375,10 +375,6 @@
           <artifactId>*</artifactId>
         </exclusion>
         <exclusion>
-          <groupId>org.eclipse.jetty.websocket</groupId>
-          <artifactId>*</artifactId>
-        </exclusion>
-        <exclusion>
           <groupId>io.prometheus</groupId>
           <artifactId>*</artifactId>
         </exclusion>
@@ -388,10 +384,6 @@
         </exclusion>
         <exclusion>
           <groupId>io.dropwizard.metrics</groupId>
-          <artifactId>*</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>org.eclipse.jetty</groupId>
           <artifactId>*</artifactId>
         </exclusion>
       </exclusions>
@@ -479,6 +471,7 @@
               <exclude>.github/CODEOWNERS</exclude>
               <exclude>{project.basedir}/src/test/java/resources/external/*</exclude>
               <exclude>.github/workflows/*.yml</exclude>
+              <exclude>data/**</exclude>
             </excludes>
             <mapping>
               <proto>JAVADOC_STYLE</proto>
