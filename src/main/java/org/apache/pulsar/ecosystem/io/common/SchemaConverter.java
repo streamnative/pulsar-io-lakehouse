@@ -20,6 +20,7 @@ package org.apache.pulsar.ecosystem.io.common;
 
 import io.delta.standalone.types.ArrayType;
 import io.delta.standalone.types.BooleanType;
+import io.delta.standalone.types.DataType;
 import io.delta.standalone.types.DoubleType;
 import io.delta.standalone.types.FloatType;
 import io.delta.standalone.types.IntegerType;
@@ -71,7 +72,15 @@ public class SchemaConverter {
                 newField = new StructField(name, arrayType1, true);
                 break;
             case UNION:
-                throw new UnsupportedOperationException("not support union in delta schema");
+                List<Schema> types = avroSchema.getTypes();
+                boolean isNullable = types.stream().anyMatch(Schema::isNullable);
+                for (Schema schema : types) {
+                    if (!schema.isNullable()) {
+                        newField = new StructField(name, convertSchemaTypeToDeltaType(schema), isNullable);
+                        break;
+                    }
+                }
+                break;
             case FIXED:
                 throw new UnsupportedOperationException("not support fixed in delta schema");
             case STRING:
@@ -106,10 +115,8 @@ public class SchemaConverter {
     }
 
     public static StructType convertAvroSchemaToDeltaSchema(Schema pulsarAvroSchema) {
-        log.info("pulsar schema: {}", pulsarAvroSchema);
-        Schema avroSchema = convertPulsarAvroSchemaToNonNullSchema(pulsarAvroSchema);
-        log.info("after convert: {}", avroSchema);
-        StructField field = convertOneAvroFieldToDeltaField(pulsarAvroSchema.getName(), avroSchema);
+        log.info("pulsar schema: {}, {}", pulsarAvroSchema, pulsarAvroSchema.isNullable());
+        StructField field = convertOneAvroFieldToDeltaField(pulsarAvroSchema.getName(), pulsarAvroSchema);
         return (StructType) field.getDataType();
     }
 
@@ -177,5 +184,34 @@ public class SchemaConverter {
                 newField = f;
         }
         return newField;
+    }
+
+    public static DataType convertSchemaTypeToDeltaType(Schema schema) {
+        DataType type;
+        switch (schema.getType()) {
+            case STRING:
+            case BYTES:
+                type = new StringType();
+                break;
+            case INT:
+                type = new IntegerType();
+                break;
+            case LONG:
+                type = new LongType();
+                break;
+            case DOUBLE:
+                type = new DoubleType();
+                break;
+            case BOOLEAN:
+                type = new BooleanType();
+                break;
+            case NULL:
+                type = new NullType();
+                break;
+            default:
+                log.error("not support schema type {} in convert", schema.getType());
+                throw new UnsupportedOperationException("Not support schema type in union");
+        }
+        return type;
     }
 }

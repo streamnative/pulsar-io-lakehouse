@@ -20,6 +20,7 @@
 package org.apache.pulsar.ecosystem.io.sink;
 
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertTrue;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
@@ -72,11 +73,13 @@ public class PulsarSinkRecordTest {
 
         Schema schema = new Schema.Parser().parse(schemaInfo.getSchemaDefinition());
         for (Schema.Field field : schema.getFields()) {
-            if (field.schema().getType().name().toUpperCase(Locale.ROOT).equals("INT")) {
+            if (field.schema().getTypes().stream()
+                .anyMatch(t -> t.getType().name().toUpperCase(Locale.ROOT).equals("INT"))) {
                 continue;
             }
-            assertEquals(schemaMap.get(field.name()).toString().toUpperCase(Locale.ROOT),
-                field.schema().getType().getName().toUpperCase(Locale.ROOT));
+            String expected = schemaMap.get(field.name()).toString().toUpperCase(Locale.ROOT);
+            assertTrue(field.schema().getTypes().stream()
+                .anyMatch(t -> t.getType().getName().toUpperCase(Locale.ROOT).equals(expected)));
         }
 
         // assert value

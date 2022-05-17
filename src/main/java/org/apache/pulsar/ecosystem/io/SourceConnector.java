@@ -44,7 +44,7 @@ import org.apache.pulsar.client.admin.PulsarAdmin;
 import org.apache.pulsar.client.api.Schema;
 import org.apache.pulsar.client.api.schema.GenericRecord;
 import org.apache.pulsar.client.api.schema.GenericSchema;
-import org.apache.pulsar.common.util.ObjectMapperFactory;
+import org.apache.pulsar.ecosystem.io.common.Utils;
 import org.apache.pulsar.ecosystem.io.source.delta.DeltaCheckpoint;
 import org.apache.pulsar.ecosystem.io.source.delta.DeltaReader;
 import org.apache.pulsar.ecosystem.io.source.delta.DeltaReaderThread;
@@ -97,8 +97,8 @@ public class SourceConnector implements Source<GenericRecord> {
 
         // load the configuration and validate it
         config = DeltaSourceConfig.load(configMap);
-        log.info("Delta Lake connector config: {}", config);
         config.validate();
+        log.info("Delta Lake connector config: {}", config);
 
         queue = new LinkedBlockingQueue<>(config.getQueueSize());
         reader = new DeltaReader(config, topicPartitionNum);
@@ -153,12 +153,11 @@ public class SourceConnector implements Source<GenericRecord> {
         snapshotExecutor.scheduleAtFixedRate(() -> {
             Map<Integer, DeltaCheckpoint> currentCheckpoint = DeltaRecord.currentSnapshot();
             Long startCheckpoint = System.currentTimeMillis();
-            ObjectMapper mapper = ObjectMapperFactory.getThreadLocal();
             currentCheckpoint.forEach((key, value) -> {
                 try {
                     Long start = System.currentTimeMillis();
                     sourceContext.putState(DeltaCheckpoint.getStatekey(key),
-                        ByteBuffer.wrap(mapper.writeValueAsBytes(value)));
+                        ByteBuffer.wrap(Utils.JSON_MAPPER.get().writeValueAsBytes(value)));
                     Long current = System.currentTimeMillis();
                     log.info("Do checkpoint complete @ {}, cost:{} ms for partition: {}, "
                         + "checkpoint: {}", current, current - start, key, value);
@@ -250,7 +249,7 @@ public class SourceConnector implements Source<GenericRecord> {
 
             String jsonString = StandardCharsets.UTF_8.decode(byteBuffer).toString();
             byteBuffer.rewind();
-            ObjectMapper mapper = ObjectMapperFactory.getThreadLocal();
+            ObjectMapper mapper = Utils.JSON_MAPPER.get();
             DeltaCheckpoint checkpoint;
             try {
                 mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);

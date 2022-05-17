@@ -38,16 +38,20 @@ import io.delta.standalone.types.StructType;
 import io.delta.standalone.types.TimestampType;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 import lombok.Data;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.parquet.schema.Type;
 import org.apache.pulsar.client.api.Message;
 import org.apache.pulsar.client.api.Schema;
 import org.apache.pulsar.client.api.schema.FieldSchemaBuilder;
@@ -217,7 +221,7 @@ public class DeltaRecord implements Record<GenericRecord> {
 
         GenericSchema<GenericRecord> pulsarSchema = Schema.generic(builder.build(SchemaType.AVRO));
         log.info("Converted delta Schema: {} to pulsar schema: {}",
-            deltaSchema, pulsarSchema.getSchemaInfo().getSchemaDefinition());
+            deltaSchema.getTreeString(), pulsarSchema.getSchemaInfo().getSchemaDefinition());
         return pulsarSchema;
     }
 
@@ -227,10 +231,16 @@ public class DeltaRecord implements Record<GenericRecord> {
         GenericRecordBuilder builder;
         if (deltaSchema != null) {
             builder = pulsarSchema.newRecordBuilder();
-            for (int i = 0;
-                 i < deltaSchema.getFields().length && i < rowRecordData.parquetSchema.size();
-                 i++) {
-                StructField field = deltaSchema.getFields()[i];
+            for (int i = 0; i < rowRecordData.getParquetSchema().size(); ++i) {
+                Type type = rowRecordData.getParquetSchema().get(i);
+                List<StructField> fields = Arrays.stream(deltaSchema.getFields())
+                    .filter(t -> t.getName().equals(type.getName())).collect(Collectors.toList());
+                if (fields.isEmpty()) {
+                    continue;
+                }
+
+                StructField field = fields.get(0);
+
                 Object value;
                 try {
                     if (field.getDataType() instanceof StringType) {
@@ -263,7 +273,8 @@ public class DeltaRecord implements Record<GenericRecord> {
                         value = rowRecordData.simpleGroup.getValueToString(i, 0);
                     }
                 } catch (RuntimeException e) {
-                    log.warn("Failed to get value, using null instead. ", e);
+                    log.warn("Failed to get value, using null instead, schema: {}, exception ",
+                        DeltaRecord.deltaSchema.getTreeString(), e);
                     value = null;
                 }
                 builder.set(field.getName(), value);

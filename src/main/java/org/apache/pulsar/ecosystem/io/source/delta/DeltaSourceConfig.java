@@ -26,10 +26,10 @@ import java.util.Map;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.pulsar.common.util.ObjectMapperFactory;
 import org.apache.pulsar.ecosystem.io.SourceConnectorConfig;
 import org.apache.pulsar.ecosystem.io.common.Category;
 import org.apache.pulsar.ecosystem.io.common.FieldContext;
+import org.apache.pulsar.ecosystem.io.common.Utils;
 
 /**
  * The configuration class for {@link org.apache.pulsar.ecosystem.io.SourceConnector}.
@@ -161,19 +161,14 @@ public class DeltaSourceConfig extends SourceConnectorConfig {
      * @throws IOException
      */
     public static DeltaSourceConfig load(Map<String, Object> map) throws IOException {
-        ObjectMapper mapper = ObjectMapperFactory.getThreadLocal();
-        return mapper.readValue(new ObjectMapper().writeValueAsString(map),
+        return Utils.JSON_MAPPER.get().readValue(new ObjectMapper().writeValueAsString(map),
             DeltaSourceConfig.class);
-    }
-
-    public static ObjectMapper jsonMapper() {
-        return ObjectMapperFactory.getThreadLocal();
     }
 
     @Override
     public String toString() {
         try {
-            return jsonMapper().writeValueAsString(this);
+            return Utils.JSON_MAPPER.get().writeValueAsString(this);
         } catch (JsonProcessingException e) {
             log.error("Failed to write DeltaLakeConnectorConfig ", e);
             return "";

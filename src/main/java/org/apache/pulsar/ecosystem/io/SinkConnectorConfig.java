@@ -18,11 +18,8 @@
  */
 package org.apache.pulsar.ecosystem.io;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.netty.util.concurrent.FastThreadLocal;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.Collections;
@@ -35,6 +32,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.pulsar.ecosystem.io.common.Category;
 import org.apache.pulsar.ecosystem.io.common.FieldContext;
+import org.apache.pulsar.ecosystem.io.common.Utils;
 import org.apache.pulsar.ecosystem.io.exception.IncorrectParameterException;
 import org.apache.pulsar.ecosystem.io.sink.delta.DeltaSinkConnectorConfig;
 import org.apache.pulsar.ecosystem.io.sink.iceberg.IcebergSinkConnectorConfig;
@@ -47,16 +45,6 @@ import org.apache.pulsar.ecosystem.io.sink.iceberg.IcebergSinkConnectorConfig;
 public abstract class SinkConnectorConfig implements Serializable {
     private static final long serialVersionUID = 1L;
 
-    private static final FastThreadLocal<ObjectMapper> JSON_MAPPER = new FastThreadLocal<ObjectMapper>() {
-        protected ObjectMapper initialValue() throws Exception {
-            ObjectMapper mapper = new ObjectMapper();
-            mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-            mapper.configure(DeserializationFeature.READ_UNKNOWN_ENUM_VALUES_AS_NULL, true);
-            mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
-            return mapper;
-        }
-    };
-
     private static Properties properties = new Properties();
 
     public static final int MB = 1024 * 1024;
@@ -65,9 +53,9 @@ public abstract class SinkConnectorConfig implements Serializable {
     public static final int DEFAULT_MAX_RECORDS_PER_COMMIT = 10_0000;
     public static final int DEFAULT_MAX_COMMIT_FAILED_TIMES = 5;
 
-    public static final String HUDI_SINK = "hudi";
-    public static final String ICEBERG_SINK = "iceberg";
-    public static final String DELTA_SINK = "delta";
+    public static final String HUDI = "hudi";
+    public static final String ICEBERG = "iceberg";
+    public static final String DELTA = "delta";
 
     @Category
     protected static final String CATEGORY_SINK = "Sink";
@@ -118,14 +106,14 @@ public abstract class SinkConnectorConfig implements Serializable {
             throw new IllegalArgumentException(error);
         }
 
-        switch (type) {
-            case ICEBERG_SINK:
+        switch (type.toLowerCase(Locale.ROOT)) {
+            case ICEBERG:
                 return jsonMapper().readValue(new ObjectMapper().writeValueAsString(map),
                     IcebergSinkConnectorConfig.class);
-            case DELTA_SINK:
+            case DELTA:
                 return jsonMapper().readValue(new ObjectMapper().writeValueAsString(map),
                     DeltaSinkConnectorConfig.class);
-            case HUDI_SINK:
+            case HUDI:
                 return jsonMapper().readValue(new ObjectMapper().writeValueAsString(map),
                     DefaultSinkConnectorConfig.class);
             default:
@@ -135,14 +123,14 @@ public abstract class SinkConnectorConfig implements Serializable {
     }
 
     public static ObjectMapper jsonMapper() {
-        return JSON_MAPPER.get();
+        return Utils.JSON_MAPPER.get();
     }
 
     public void validate() throws IllegalArgumentException {
         if (StringUtils.isBlank(type)
-            || (!HUDI_SINK.equals(type.toLowerCase(Locale.ROOT))
-                && !ICEBERG_SINK.equals(type.toLowerCase(Locale.ROOT))
-                && !DELTA_SINK.equals(type.toLowerCase(Locale.ROOT)))) {
+            || (!HUDI.equals(type.toLowerCase(Locale.ROOT))
+                && !ICEBERG.equals(type.toLowerCase(Locale.ROOT))
+                && !DELTA.equals(type.toLowerCase(Locale.ROOT)))) {
             String error = "type must be set and must be one of hudi, iceberg or delta";
             log.error("{}", error);
             throw new IllegalArgumentException(error);
