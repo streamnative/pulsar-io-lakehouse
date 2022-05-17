@@ -29,6 +29,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Properties;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -56,7 +57,7 @@ public abstract class SinkConnectorConfig implements Serializable {
         }
     };
 
-    private static Map<String, Object> properties;
+    private static Properties properties = new Properties();
 
     public static final int MB = 1024 * 1024;
     public static final int DEFAULT_SINK_CONNECTOR_QUEUE_SIZE = 10_000;
@@ -109,7 +110,7 @@ public abstract class SinkConnectorConfig implements Serializable {
     List<String> partitionColumns = Collections.emptyList();
 
     static SinkConnectorConfig load(Map<String, Object> map) throws IOException, IncorrectParameterException {
-        properties = map;
+        properties.putAll(map);
         String type = (String) map.get("type");
         if (StringUtils.isBlank(type)) {
             String error = "type must be set.";
@@ -166,8 +167,12 @@ public abstract class SinkConnectorConfig implements Serializable {
         }
     }
 
-    public Map<String, Object> getProperties() {
+    public Properties getProperties() {
         return properties;
+    }
+
+    public void setProperty(String key, Object value) {
+        properties.put(key, value);
     }
 
     @Override
