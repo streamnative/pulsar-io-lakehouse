@@ -59,6 +59,8 @@
     <delta.version>0.3.0</delta.version>
     <parquet.avro.version>1.12.2</parquet.avro.version>
     <netty.version>4.1.77.Final</netty.version>
+    <aws.sdk.version>1.12.220</aws.sdk.version>
+    <gcs.version>hadoop3-2.2.1</gcs.version>
 
     <!-- test dependencies -->
     <testng.version>7.3.0</testng.version>
@@ -207,6 +209,39 @@
         <version>${hudi.version}</version>
       </dependency>
       <!--  Hoodie dependencies end    -->
+
+      <!-- Cloud dependencies begin -->
+      <dependency>
+        <groupId>org.apache.hadoop</groupId>
+        <artifactId>hadoop-aws</artifactId>
+        <version>${hadoop.version}</version>
+        <exclusions>
+          <exclusion>
+            <groupId>com.amazonaws</groupId>
+            <artifactId>aws-java-sdk-bundle</artifactId>
+          </exclusion>
+        </exclusions>
+      </dependency>
+      <dependency>
+        <groupId>com.amazonaws</groupId>
+        <artifactId>aws-java-sdk-bundle</artifactId>
+        <version>${aws.sdk.version}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>com.google.cloud.bigdataoss</groupId>
+        <artifactId>gcs-connector</artifactId>
+        <version>${gcs.version}</version>
+        <classifier>shaded</classifier>
+      </dependency>
+
+      <dependency>
+        <groupId>org.apache.hadoop</groupId>
+        <artifactId>hadoop-azure</artifactId>
+        <version>${hadoop.version}</version>
+      </dependency>
+
+      <!-- Cloud dependencies end -->
 
 
       <!-- test dependencies -->
@@ -407,6 +442,41 @@
     </dependency>
 
   </dependencies>
+
+  <profiles>
+    <profile>
+      <id>cloud</id>
+      <dependencies>
+        <!-- Cloud dependencies begin -->
+        <dependency>
+          <groupId>org.apache.hadoop</groupId>
+          <artifactId>hadoop-aws</artifactId>
+          <version>${hadoop.version}</version>
+          <exclusions>
+            <exclusion>
+              <groupId>com.amazonaws</groupId>
+              <artifactId>aws-java-sdk-bundle</artifactId>
+            </exclusion>
+          </exclusions>
+        </dependency>
+        <dependency>
+          <groupId>com.amazonaws</groupId>
+          <artifactId>aws-java-sdk-bundle</artifactId>
+        </dependency>
+
+        <dependency>
+          <groupId>com.google.cloud.bigdataoss</groupId>
+          <artifactId>gcs-connector</artifactId>
+          <classifier>shaded</classifier>
+        </dependency>
+
+        <dependency>
+          <groupId>org.apache.hadoop</groupId>
+          <artifactId>hadoop-azure</artifactId>
+        </dependency>
+      </dependencies>
+    </profile>
+  </profiles>
 
   <build>
     <pluginManagement>
