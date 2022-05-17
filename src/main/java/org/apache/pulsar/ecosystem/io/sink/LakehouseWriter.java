@@ -35,11 +35,11 @@ public interface LakehouseWriter {
 
     static LakehouseWriter getWriter(SinkConnectorConfig config, Schema schema) throws LakehouseWriterException {
         switch (config.getType()) {
-            case SinkConnectorConfig.DELTA_SINK:
+            case SinkConnectorConfig.DELTA:
                 return new DeltaWriter(config, schema);
-            case SinkConnectorConfig.ICEBERG_SINK:
+            case SinkConnectorConfig.ICEBERG:
                 return new IcebergWriter(config, schema);
-            case SinkConnectorConfig.HUDI_SINK:
+            case SinkConnectorConfig.HUDI:
                 return new HoodieWriter(config, schema);
             default:
                 throw new LakehouseWriterException("Unknown type of the Lakehouse writer. Expected 'delta', 'iceberg',"

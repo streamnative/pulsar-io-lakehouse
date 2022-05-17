@@ -44,7 +44,7 @@ import org.apache.pulsar.client.admin.PulsarAdmin;
 import org.apache.pulsar.client.api.Schema;
 import org.apache.pulsar.client.api.schema.GenericRecord;
 import org.apache.pulsar.client.api.schema.GenericSchema;
-import org.apache.pulsar.ecosystem.io.common.SourceConnectorUtils;
+import org.apache.pulsar.ecosystem.io.common.Utils;
 import org.apache.pulsar.ecosystem.io.source.delta.DeltaCheckpoint;
 import org.apache.pulsar.ecosystem.io.source.delta.DeltaReader;
 import org.apache.pulsar.ecosystem.io.source.delta.DeltaReaderThread;
@@ -157,7 +157,7 @@ public class SourceConnector implements Source<GenericRecord> {
                 try {
                     Long start = System.currentTimeMillis();
                     sourceContext.putState(DeltaCheckpoint.getStatekey(key),
-                        ByteBuffer.wrap(SourceConnectorUtils.JSON_MAPPER.get().writeValueAsBytes(value)));
+                        ByteBuffer.wrap(Utils.JSON_MAPPER.get().writeValueAsBytes(value)));
                     Long current = System.currentTimeMillis();
                     log.info("Do checkpoint complete @ {}, cost:{} ms for partition: {}, "
                         + "checkpoint: {}", current, current - start, key, value);
@@ -249,7 +249,7 @@ public class SourceConnector implements Source<GenericRecord> {
 
             String jsonString = StandardCharsets.UTF_8.decode(byteBuffer).toString();
             byteBuffer.rewind();
-            ObjectMapper mapper = SourceConnectorUtils.JSON_MAPPER.get();
+            ObjectMapper mapper = Utils.JSON_MAPPER.get();
             DeltaCheckpoint checkpoint;
             try {
                 mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);

@@ -18,6 +18,10 @@
  */
 package org.apache.pulsar.ecosystem.io.common;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import io.netty.util.concurrent.FastThreadLocal;
 import java.util.Properties;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.hadoop.conf.Configuration;
@@ -42,4 +46,14 @@ public class Utils {
             });
         return hadoopConf;
     }
+
+    public static final FastThreadLocal<ObjectMapper> JSON_MAPPER = new FastThreadLocal<ObjectMapper>() {
+        protected ObjectMapper initialValue() throws Exception {
+            ObjectMapper mapper = new ObjectMapper();
+            mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+            mapper.configure(DeserializationFeature.READ_UNKNOWN_ENUM_VALUES_AS_NULL, true);
+            mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
+            return mapper;
+        }
+    };
 }

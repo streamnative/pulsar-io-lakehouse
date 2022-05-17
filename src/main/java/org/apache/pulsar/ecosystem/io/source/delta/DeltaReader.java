@@ -51,7 +51,7 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.parquet.example.data.simple.SimpleGroup;
 import org.apache.parquet.schema.Type;
 import org.apache.pulsar.ecosystem.io.common.Murmur32Hash;
-import org.apache.pulsar.ecosystem.io.common.SourceConnectorUtils;
+import org.apache.pulsar.ecosystem.io.common.Utils;
 import org.apache.pulsar.ecosystem.io.parquet.DeltaParquetReader;
 import org.apache.pulsar.io.core.SourceContext;
 
@@ -128,7 +128,7 @@ public class DeltaReader {
         @Override
         public String toString() {
             try {
-                return SourceConnectorUtils.JSON_MAPPER.get().writeValueAsString(this);
+                return Utils.JSON_MAPPER.get().writeValueAsString(this);
             } catch (JsonProcessingException e) {
                 log.error("Failed to write DeltaLakeConnectorConfig ", e);
                 return "";
@@ -162,7 +162,7 @@ public class DeltaReader {
         throws Exception {
         this.config = config;
         setTopicPartitionNum(topicPartitionNum);
-        open();
+        open(config);
     }
 
     /**
@@ -474,8 +474,8 @@ public class DeltaReader {
         return builder.toString();
     }
 
-    private void open() throws Exception {
-        conf = new Configuration();
+    private void open(DeltaSourceConfig config) throws Exception {
+        conf = Utils.getDefaultHadoopConf(config.getProperties());
         deltaLog = DeltaLog.forTable(conf, this.config.tablePath);
     }
 }

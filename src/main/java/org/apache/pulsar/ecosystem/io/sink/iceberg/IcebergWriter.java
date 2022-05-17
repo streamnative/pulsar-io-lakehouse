@@ -31,7 +31,6 @@ import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.avro.Schema;
 import org.apache.avro.generic.GenericRecord;
-import org.apache.hadoop.conf.Configuration;
 import org.apache.iceberg.PartitionSpec;
 import org.apache.iceberg.Table;
 import org.apache.iceberg.UpdateSchema;
@@ -41,6 +40,7 @@ import org.apache.iceberg.io.TaskWriter;
 import org.apache.iceberg.io.WriteResult;
 import org.apache.iceberg.types.Types;
 import org.apache.pulsar.ecosystem.io.SinkConnectorConfig;
+import org.apache.pulsar.ecosystem.io.common.Utils;
 import org.apache.pulsar.ecosystem.io.exception.IncorrectParameterException;
 import org.apache.pulsar.ecosystem.io.exception.LakehouseConnectorException;
 import org.apache.pulsar.ecosystem.io.sink.LakehouseWriter;
@@ -66,11 +66,11 @@ public class IcebergWriter implements LakehouseWriter {
         switch (config.catalogImpl) {
             case HADOOP_CATALOG:
                 catalogLoader = CatalogLoader.hadoop(config.getCatalogName(),
-                    new Configuration(), config.catalogProperties);
+                    Utils.getDefaultHadoopConf(sinkConfig), config.catalogProperties);
                 break;
             case HIVE_CATALOG:
                 catalogLoader = CatalogLoader.hive(config.getCatalogName(),
-                    new Configuration(), config.catalogProperties);
+                    Utils.getDefaultHadoopConf(sinkConfig), config.catalogProperties);
                 break;
             default:
                 String errmsg = "Not support catalog: " + config.catalogImpl

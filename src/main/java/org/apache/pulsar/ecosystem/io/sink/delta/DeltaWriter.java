@@ -43,6 +43,7 @@ import org.apache.avro.generic.GenericRecord;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.pulsar.ecosystem.io.SinkConnectorConfig;
 import org.apache.pulsar.ecosystem.io.common.SchemaConverter;
+import org.apache.pulsar.ecosystem.io.common.Utils;
 import org.apache.pulsar.ecosystem.io.parquet.DeltaParquetFileWriter;
 import org.apache.pulsar.ecosystem.io.parquet.DeltaParquetWriter;
 import org.apache.pulsar.ecosystem.io.parquet.PartitionedDeltaParquetFileWriter;
@@ -67,12 +68,10 @@ public class DeltaWriter implements LakehouseWriter {
 
     public DeltaWriter(SinkConnectorConfig cfg, Schema schema) {
         this.config = (DeltaSinkConnectorConfig) cfg;
-        this.appId = this.config.getAppId();
+        this.appId = config.getAppId();
         this.schema = schema;
 
-        Configuration configuration = new Configuration();
-        configuration.set("hadoop.fs.s3a.aws.credentials.provider",
-                "com.amazonaws.auth.DefaultAWSCredentialsProviderChain");
+        Configuration configuration = Utils.getDefaultHadoopConf(config);
         deltaLog = DeltaLog.forTable(configuration, config.tablePath);
         random = new Random(42);
 

@@ -22,7 +22,7 @@ package org.apache.pulsar.ecosystem.io.source.delta;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.pulsar.ecosystem.io.common.SourceConnectorUtils;
+import org.apache.pulsar.ecosystem.io.common.Utils;
 
 /**
  * The delta checkpoint position.
@@ -70,7 +70,7 @@ public class DeltaCheckpoint implements Comparable<DeltaCheckpoint> {
     @Override
     public String toString() {
         try {
-            return SourceConnectorUtils.JSON_MAPPER.get().writeValueAsString(this);
+            return Utils.JSON_MAPPER.get().writeValueAsString(this);
         } catch (JsonProcessingException e) {
             log.error("Failed to write DeltaLakeConnectorConfig ", e);
             return "";

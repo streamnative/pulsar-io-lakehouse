@@ -68,8 +68,8 @@ import org.apache.pulsar.client.impl.PulsarClientImpl;
 import org.apache.pulsar.common.schema.SchemaType;
 import org.apache.pulsar.ecosystem.io.SinkConnector;
 import org.apache.pulsar.ecosystem.io.SourceConnector;
-import org.apache.pulsar.ecosystem.io.common.SourceConnectorUtils;
 import org.apache.pulsar.ecosystem.io.common.TestSinkContext;
+import org.apache.pulsar.ecosystem.io.common.Utils;
 import org.apache.pulsar.ecosystem.io.sink.SinkConnectorUtils;
 import org.apache.pulsar.functions.api.Record;
 import org.mockito.Mockito;
@@ -196,7 +196,7 @@ public class DeltaSourceConnectorTest {
         checkpoint1.setSeqCount(10L);
         checkpoint.put(0, checkpoint0);
         checkpoint.put(1, checkpoint1);
-        ObjectMapper mapper = SourceConnectorUtils.JSON_MAPPER.get();
+        ObjectMapper mapper = Utils.JSON_MAPPER.get();
         checkpoint.forEach((k, v) -> {
             try {
                 sourceContextForTest.putState(DeltaCheckpoint.getStatekey(k),
