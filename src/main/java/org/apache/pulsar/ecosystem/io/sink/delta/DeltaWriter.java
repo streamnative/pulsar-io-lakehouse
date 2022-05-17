@@ -71,6 +71,8 @@ public class DeltaWriter implements LakehouseWriter {
         this.schema = schema;
 
         Configuration configuration = new Configuration();
+        configuration.set("hadoop.fs.s3a.aws.credentials.provider",
+                "com.amazonaws.auth.DefaultAWSCredentialsProviderChain");
         deltaLog = DeltaLog.forTable(configuration, config.tablePath);
         random = new Random(42);
 

@@ -112,7 +112,10 @@ public class DeltaLakeSinkConnectorTest {
         sinkConnector.close();
 
         // read data through delta lake api
-        DeltaLog deltaLog = DeltaLog.forTable(new Configuration(), tablePath);
+        Configuration configuration = new Configuration();
+        configuration.set("hadoop.fs.s3a.aws.credentials.provider",
+            "com.amazonaws.auth.DefaultAWSCredentialsProviderChain");
+        DeltaLog deltaLog = DeltaLog.forTable(configuration, tablePath);
         Snapshot currentSnapshot = deltaLog.snapshot();
         StructType schema = currentSnapshot.getMetadata().getSchema();
         assertEquals(currentSnapshot.getVersion(), 1);
