@@ -50,7 +50,7 @@ public abstract class SinkConnectorConfig implements Serializable {
     public static final int MB = 1024 * 1024;
     public static final int DEFAULT_SINK_CONNECTOR_QUEUE_SIZE = 10_000;
     public static final int DEFAULT_MAX_COMMIT_INTERVAL = 120;
-    public static final int DEFAULT_MAX_RECORDS_PER_COMMIT = 10_0000;
+    public static final int DEFAULT_MAX_RECORDS_PER_COMMIT = 10_000_000;
     public static final int DEFAULT_MAX_COMMIT_FAILED_TIMES = 5;
 
     public static final String HUDI = "hudi";
@@ -135,6 +135,8 @@ public abstract class SinkConnectorConfig implements Serializable {
             log.error("{}", error);
             throw new IllegalArgumentException(error);
         }
+
+        type = type.toUpperCase(Locale.ROOT);
 
         if (maxCommitInterval <= 0) {
             log.warn("maxFlushInterval: {} should be > 0, using default: {}",
