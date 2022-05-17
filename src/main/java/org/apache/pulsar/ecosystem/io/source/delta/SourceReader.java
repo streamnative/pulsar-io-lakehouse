@@ -30,6 +30,7 @@ import io.delta.standalone.actions.FileAction;
 import io.delta.standalone.actions.Metadata;
 import io.delta.standalone.actions.RemoveFile;
 import io.delta.standalone.types.StructType;
+import io.netty.util.concurrent.DefaultThreadFactory;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -39,6 +40,7 @@ import java.util.concurrent.CompletionService;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorCompletionService;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -46,6 +48,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.pulsar.client.api.schema.GenericRecord;
 import org.apache.pulsar.client.api.schema.GenericSchema;
+import org.apache.pulsar.ecosystem.io.SourceConnectorConfig;
 import org.apache.pulsar.ecosystem.io.parquet.DeltaParquetReader;
 import org.apache.pulsar.io.core.SourceContext;
 
@@ -55,7 +58,7 @@ import org.apache.pulsar.io.core.SourceContext;
  *
  */
 @Slf4j
-public class DeltaReaderThread implements Runnable {
+public class SourceReader implements Runnable {
     private volatile boolean running;
     private final ExecutorService parquetParseExecutor;
     private final AtomicInteger processingException;
@@ -69,27 +72,27 @@ public class DeltaReaderThread implements Runnable {
     // used for expose user defined metrics
     private final SourceContext sourceContext;
 
-    public DeltaReaderThread(DeltaReader reader,
-                             ExecutorService executor,
-                             DeltaSourceConfig config,
-                             LinkedBlockingQueue<DeltaRecord> queue,
-                             StructType deltaSchema,
-                             GenericSchema<GenericRecord> pulsarSchema,
-                             String topic,
-                             AtomicInteger processingException,
-                             DeltaCheckpoint checkpoint,
-                             SourceContext sourceContext) {
+    public SourceReader(DeltaReader reader,
+                        SourceConnectorConfig config,
+                        LinkedBlockingQueue<DeltaRecord> queue,
+                        StructType deltaSchema,
+                        GenericSchema<GenericRecord> pulsarSchema,
+                        String topic,
+                        AtomicInteger processingException,
+                        DeltaCheckpoint checkpoint,
+                        SourceContext sourceContext) {
         this.reader = reader;
-        this.config = config;
+        this.config = (DeltaSourceConfig) config;
         this.queue = queue;
         this.deltaSchema = deltaSchema;
         this.running = false;
-        this.parquetParseExecutor = executor;
         this.processingException = processingException;
         this.checkpoint = checkpoint;
         this.pulsarSchema = pulsarSchema;
         this.topic = topic;
         this.sourceContext = sourceContext;
+        this.parquetParseExecutor = Executors.newFixedThreadPool(this.config.getParquetParseThreads(),
+            new DefaultThreadFactory("parquet-parse-io"));
     }
 
     @Override
@@ -264,7 +267,7 @@ public class DeltaReaderThread implements Runnable {
             Action action = cursor.act;
             List<DeltaReader.RowRecordData> rowRecordDataList = new ArrayList<>();
             if (action instanceof AddFile || action instanceof RemoveFile) {
-                String path = config.tablePath + "/" + ((FileAction) action).getPath();
+                String path = config.getTablePath() + "/" + ((FileAction) action).getPath();
                 long start = System.currentTimeMillis();
                 DeltaParquetReader.Parquet parquet;
                 try {
@@ -327,5 +330,13 @@ public class DeltaReaderThread implements Runnable {
 
     public void close() {
         running = false;
+
+        if (parquetParseExecutor != null) {
+            parquetParseExecutor.shutdown();
+        }
+    }
+
+    public boolean isRunning() {
+        return running;
     }
 }

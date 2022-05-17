@@ -50,6 +50,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.parquet.example.data.simple.SimpleGroup;
 import org.apache.parquet.schema.Type;
+import org.apache.pulsar.ecosystem.io.SourceConnectorConfig;
 import org.apache.pulsar.ecosystem.io.common.Murmur32Hash;
 import org.apache.pulsar.ecosystem.io.common.Utils;
 import org.apache.pulsar.ecosystem.io.parquet.DeltaParquetReader;
@@ -58,7 +59,7 @@ import org.apache.pulsar.io.core.SourceContext;
 
 
 /**
- * The delta reader for {@link DeltaReaderThread}.
+ * The delta reader for {@link SourceReader}.
  */
 @Data
 @Slf4j
@@ -158,11 +159,11 @@ public class DeltaReader {
         }
     }
 
-    public DeltaReader(DeltaSourceConfig config, int topicPartitionNum)
+    public DeltaReader(SourceConnectorConfig config, int topicPartitionNum)
         throws Exception {
-        this.config = config;
+        this.config = (DeltaSourceConfig) config;
         setTopicPartitionNum(topicPartitionNum);
-        open(config);
+        open(this.config);
     }
 
     /**
@@ -370,7 +371,7 @@ public class DeltaReader {
             && currentReadBytesSize < config.maxReadBytesSizeOneRound; i++) {
             Action act = actionList.get(i).act;
             if (act instanceof AddFile || act instanceof RemoveFile) {
-                String filePath = config.tablePath + "/" + ((FileAction) act).getPath();
+                String filePath = config.getTablePath() + "/" + ((FileAction) act).getPath();
                 try {
                     // calculate records number
                     currentRecordsNum += DeltaParquetReader.getRowNum(filePath, conf);
@@ -407,7 +408,7 @@ public class DeltaReader {
             List<RowRecordData> recordData = new ArrayList<>();
             Action action = startCursor.act;
             if (action instanceof AddFile || action instanceof RemoveFile) {
-                String filePath = config.tablePath + "/" + ((FileAction) action).getPath();
+                String filePath = config.getTablePath() + "/" + ((FileAction) action).getPath();
                 DeltaParquetReader reader = new DeltaParquetReader();
                 try {
                     reader.open(filePath, conf);
@@ -476,6 +477,6 @@ public class DeltaReader {
 
     private void open(DeltaSourceConfig config) throws Exception {
         conf = Utils.getDefaultHadoopConf(config.getProperties());
-        deltaLog = DeltaLog.forTable(conf, this.config.tablePath);
+        deltaLog = DeltaLog.forTable(conf, this.config.getTablePath());
     }
 }

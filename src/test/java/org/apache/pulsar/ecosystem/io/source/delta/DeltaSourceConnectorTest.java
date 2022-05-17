@@ -68,6 +68,7 @@ import org.apache.pulsar.client.impl.PulsarClientImpl;
 import org.apache.pulsar.common.schema.SchemaType;
 import org.apache.pulsar.ecosystem.io.SinkConnector;
 import org.apache.pulsar.ecosystem.io.SourceConnector;
+import org.apache.pulsar.ecosystem.io.SourceConnectorConfig;
 import org.apache.pulsar.ecosystem.io.common.TestSinkContext;
 import org.apache.pulsar.ecosystem.io.common.Utils;
 import org.apache.pulsar.ecosystem.io.sink.SinkConnectorUtils;
@@ -211,7 +212,8 @@ public class DeltaSourceConnectorTest {
         Map<String, Object> map = new HashMap<>();
         map.put("tablePath", "/tmp/test.conf");
         map.put("startSnapshotVersion", 3);
-        DeltaSourceConfig config = DeltaSourceConfig.load(map);
+        map.put("type", "delta");
+        SourceConnectorConfig config = SourceConnectorConfig.load(map);
         config.validate();
 
         // set topicPartitionNum
@@ -332,6 +334,7 @@ public class DeltaSourceConnectorTest {
         configMap.put("maxReadBytesSizeOneRound", 1024 * 1024);
         configMap.put("maxReadRowCountOneRound", 1000);
         configMap.put("checkpointInterval", 0);
+        configMap.put("type", "delta");
 
         String outputTopic = "persistent://public/default/delta_test_v1";
         GenericSchema<GenericRecord> pulsarSchema = DeltaRecord.convertToPulsarSchema(deltaSchema);
@@ -370,6 +373,7 @@ public class DeltaSourceConnectorTest {
                 }
             }
         } catch (Exception e) {
+            log.error("Failed to read from delta lake ", e);
             fail();
         }
     }

@@ -46,6 +46,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.pulsar.client.api.schema.Field;
 import org.apache.pulsar.client.api.schema.GenericRecord;
 import org.apache.pulsar.client.api.schema.GenericSchema;
+import org.apache.pulsar.ecosystem.io.SourceConnectorConfig;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
@@ -78,8 +79,9 @@ public class DeltaRecordTest {
         map.put("maxReadBytesSizeOneRound", 1024 * 1024);
         map.put("maxReadRowCountOneRound", 1000);
         map.put("checkpointInterval", 30);
+        map.put("type", "delta");
 
-        DeltaSourceConfig config = DeltaSourceConfig.load(map);
+        SourceConnectorConfig config = SourceConnectorConfig.load(map);
         config.validate();
         deltaReader = new DeltaReader(config, 5);
         deltaReader.setFilter(readCursor -> true);
