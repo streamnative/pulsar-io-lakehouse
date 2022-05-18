@@ -60,7 +60,7 @@ public class DeltaWriter implements LakehouseWriter {
     private final DeltaSinkConnectorConfig config;
     private final String appId;
     private DeltaLog deltaLog;
-    private final Schema schema;
+    private Schema schema;
     private DeltaParquetWriter writer;
 
     public DeltaWriter(SinkConnectorConfig cfg, Schema schema) {
@@ -144,6 +144,7 @@ public class DeltaWriter implements LakehouseWriter {
         optimisticTransaction.commit(filesToCommit, new Operation(Operation.Name.UPGRADE_SCHEMA), COMMIT_INFO);
 
         writer.updateSchema(schema);
+        this.schema = schema;
         log.info("update delta schema succeed. {}",
             metadata.getSchema() != null ? metadata.getSchema().getTreeString() : null);
         return true;
