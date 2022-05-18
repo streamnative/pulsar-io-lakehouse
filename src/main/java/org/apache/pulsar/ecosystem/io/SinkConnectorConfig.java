@@ -63,37 +63,37 @@ public abstract class SinkConnectorConfig implements Serializable {
     @FieldContext(
         category = CATEGORY_SINK,
         required = true,
-        doc = "Sink connector type, iceberg, hudi or delta"
+        doc = "Sink connector type. Available values: iceberg, hudi or delta."
     )
     String type;
 
     @FieldContext(
         category = CATEGORY_SINK,
-        doc = "Max flush interval in seconds for each batch. Default is 120s "
+        doc = "Max flush interval in seconds for each batch. Default is 120s."
     )
     int maxCommitInterval = DEFAULT_MAX_COMMIT_INTERVAL;
 
     @FieldContext(
         category = CATEGORY_SINK,
-        doc = "Max records number for each batch to commit. Default is 100_000"
+        doc = "Max records number for each batch to commit. Default is 10_000_000."
     )
     int maxRecordsPerCommit = DEFAULT_MAX_RECORDS_PER_COMMIT;
 
     @FieldContext(
         category = CATEGORY_SINK,
-        doc = "Max commit fail times to fail the process. Default is 5"
+        doc = "Max commit fail times to fail the process. Default is 5."
     )
     int maxCommitFailedTimes = DEFAULT_MAX_COMMIT_FAILED_TIMES;
 
     @FieldContext(
         category = CATEGORY_SINK,
-        doc = "sink connector queue size"
+        doc = "The max queue size of sink connector to buffer records before writing into lakehouse table."
     )
     int sinkConnectorQueueSize = DEFAULT_SINK_CONNECTOR_QUEUE_SIZE;
 
     @FieldContext(
         category = CATEGORY_SINK,
-        doc = "Partition columns for delta lake table"
+        doc = "Partition columns for lakehouse table."
     )
     List<String> partitionColumns = Collections.emptyList();
 

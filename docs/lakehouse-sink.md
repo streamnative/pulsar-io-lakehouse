@@ -38,14 +38,34 @@ To build the Hudi sink connector from the source code, follow these steps.
 
 Before using the Lakehouse sink connector, you need to configure it. This table lists the properties and the descriptions.
 
+Common Configuration
+
+| Name                                 | Type     | Required | Default | Description                                                 
+|--------------------------------------|----------|----------|---------|-------------------------------------------------------------|
+| tenant | String | true | N/A | The tenant of the input topics in Pulsar cluster |
+| namespace | String | true | N/A | The namespace of the input topics in Pulsar cluster |
+| name | String | true | N/A | The name of this sink connector, which should be unique in Pulsar function cluster |
+| parallelism | Integer | true | N/A | The parallelism of the sink connector |
+| inputs | List<String> | true | N/A | The list of input topics |
+| sourceSubscriptionName | String | false | N/A |  Pulsar source subscription name if user wants a specific subscription-name for input-topic consumer |
+| processingGuarantees | String | false | N/A | The processing guarantees (aka delivery semantics) applied to the sink. Currently only support `EFFECTIVELY_ONCE` |
+| className | String | true | N/A | Sink connector className |
+| type | String | true | N/A | The type of lakehouse connector. Available values: `hudi`, `iceberg` and `delta` |
+| maxCommitInterval | Integer | false | 120 | Max flush interval in seconds for each batch. Default is 120s |
+| maxRecordsPerCommit | Integer | false | 10_000_000 | Max records number for each batch to commit. Default is 10_000_000 |
+| maxCommitFailedTimes | Integer | false | 5 | Max commit fail times until failing the process. Default is 5 |
+| sinkConnectorQueueSize | Integer | false | 10_000 | The max queue size of sink connector to buffer records before writing to lakehouse table |
+| partitionColumns | List<String> | false | Collections.empytList() | Partition columns for lakehouse table |
+
+
+Lakehouse specifi configuration
 ::: tabs
 
 @@@ Hudi configuration
 For the Hudi configurations, you can use all the configs list in [here](https://hudi.apache.org/docs/configurations#WRITE_CLIENT) to configure the Hudi write client.
 
-
-| Name                                 | Type     | Required | Default | Description    |
-|--------------------------------------|----------|----------|---------|-------------------------------------------------------------|
+| Name                                 | Type     | Required | Default | Description
+|--------------------------------------|----------|----------|---|-------------------------------------------------------------|
 | `hudi.table.name`                    | String   | true     | N/A | The table name that Pulsar topic sinks to.                  |
 | `hoodie.table.type`                  | String   | false    | COPY_ON_WRITE | The table type for the underlying data, for this write. This can’t change between writes. |
 | `hoodie.base.path`                   | String   | true     | N/A | Base path on lake storage, under which all the table data is stored. Always prefix it explicitly with the storage scheme (e.g hdfs://, s3:// etc). Hudi stores all the main meta-data about commits, savepoints, cleaning audit logs etc in .hoodie directory. |
@@ -57,7 +77,22 @@ For the Hudi configurations, you can use all the configs list in [here](https://
 
 @@@ Iceberg Configuration
 
+| Name                                 | Type     | Required | Default | Description                                                 
+|--------------------------------------|----------|----------|---|-------------------------------------------------------------|
+| catalogProperties | Map<String, String> | true | N/A |  Refer to [iceberg catalog-properties](https://iceberg.apache.org/docs/latest/configuration/#catalog-properties). `catalog-impl` and `warehouse` configuration is required. Only support `hadoopCatalog` and `hiveCatalog` |
+| tableProperties | Map<String, String> | false | N/A | Refer to [iceberg table-properties](https://iceberg.apache.org/docs/latest/configuration/#table-properties). |
+| catalogName | String | false | icebergSinkConnector | Iceberg catalog name |
+| tableNamespace | String | true | N/A | Iceberg table namespace |
+| tableName | String | true | N/A | Icberg table name |
+
 @@@ DeltaLake Configuration
+
+| Name                                 | Type     | Required | Default | Description                                                 
+|--------------------------------------|----------|----------|---|-------------------------------------------------------------|
+| tablePath | String | true | N/A | Delta lake table path |
+| compression | String | false | SNAPPY | Delta lake parquet file compression type. Default is `SNAPPY` |
+| deltaFileType | String | false | parquet | Delta lake file type. Default is `parquet` |
+| appId | String | false | pulsar-delta-sink-connector | Delta lake appId. Default is `pulsar-delta-sink-connector` |
 
 
 ## Configure with Function Worker
@@ -115,9 +150,126 @@ You can create a configuration file (JSON or YAML) to set the properties if you 
     ```
 
 @@@ Iceberg Example
+Iceberg table stored in file system
+```json
+{
+    "tenant":"public",
+    "namespace":"default",
+    "name":"iceberg_sink",
+    "parallelism":2,
+    "inputs": [
+      "test-iceberg-pulsar"
+    ],
+    "sourceSubscriptionName":"sandbox_iceberg_sink",
+    "processingGuarantees":"EFFECTIVELY_ONCE",
+    "className":"org.apache.pulsar.ecosystem.io.SinkConnector",
+    "configs":{
+        "type":"iceberg",
+        "maxCommitInterval":120,
+        "maxRecordsPerCommit":10000000,
+        "catalogName":"test_v1",
+        "tableNamespace":"iceberg_sink_test",
+        "tableName":"ice_sink_person",
+        "catalogProperties":{
+            "warehouse":"file:///tmp/data/iceberg-sink",
+            "catalog-impl":"hadoopCatalog"
+        }
+    }
+}
+```
+
+Iceberg table stored in cloud storage(s3, gcs or azure)
+```json
+{
+    "tenant":"public",
+    "namespace":"default",
+    "name":"iceberg_sink",
+    "parallelism":2,
+    "inputs": [
+      "test-iceberg-pulsar"
+    ],
+    "sourceSubscriptionName":"sandbox_iceberg_sink",
+    "processingGuarantees":"EFFECTIVELY_ONCE",
+    "className":"org.apache.pulsar.ecosystem.io.SinkConnector",
+    "configs":{
+        "type":"iceberg",
+        "maxCommitInterval":120,
+        "maxRecordsPerCommit":10000000,
+        "catalogName":"test_v1",
+        "tableNamespace":"iceberg_sink_test",
+        "tableName":"ice_sink_person",
+        "hadoop.fs.s3a.aws.credentials.provider": "com.amazonaws.auth.DefaultAWSCredentialsProviderChain",
+        "catalogProperties":{
+            "warehouse":"s3a://test-dev-us-west-2/lakehouse/iceberg_sink",
+            "catalog-impl":"hadoopCatalog"
+        }
+    }
+}
+```
 
 @@@ DeltaLake Example
+DeltaLake table stored in file system
+```json
+{
+    "tenant":"public",
+    "namespace":"default",
+    "name":"delta_sink",
+    "parallelism":1,
+    "inputs": [
+      "test-delta-pulsar"
+    ],
+    "sourceSubscriptionName":"sandbox_delta_sink",
+    "processingGuarantees":"EFFECTIVELY_ONCE",
+    "className":"org.apache.pulsar.ecosystem.io.SinkConnector",
+    "configs":{
+        "type":"delta",
+        "maxCommitInterval":120,
+        "maxRecordsPerCommit":10000000,
+        "tablePath": "file:///tmp/data/delta-sink"
+    }
+}
+```
 
+Iceberg table stored in cloud storage(s3, gcs or azure)
+```json
+{
+    "tenant":"public",
+    "namespace":"default",
+    "name":"delta_sink",
+    "parallelism":1,
+    "inputs": [
+      "test-delta-pulsar"
+    ],
+    "sourceSubscriptionName":"sandbox_delta_sink",
+    "processingGuarantees":"EFFECTIVELY_ONCE",
+    "className":"org.apache.pulsar.ecosystem.io.SinkConnector",
+    "configs":{
+        "type":"delta",
+        "maxCommitInterval":120,
+        "maxRecordsPerCommit":10000000,
+        "tablePath": "s3a://test-dev-us-west-2/lakehouse/delta_sink",
+        "hadoop.fs.s3a.aws.credentials.provider": "com.amazonaws.auth.DefaultAWSCredentialsProviderChain",
+    }
+}
+```
+
+### Data format types
+
+Lakehouse Sink Connector provides multiple output format options, including Avro and Parquet. The default format is Parquet.
+With current implementation, there are some limitations for different formats:
+
+This table lists the Pulsar Schema types supported by the writers.
+
+| Pulsar Schema  | Writer: Avro | Writer: Parquet |
+|----------------|--------------|-----------------|
+| Primitive      | ✗            | ✗               |
+| Avro           | ✔            | ✔               |
+| Json           | ✔            | ✔               |
+| Protobuf *     | ✗            | ✗               |
+| ProtobufNative * | ✗            | ✗               | 
+> *: The Protobuf schema is based on the Avro schema. It uses Avro as an intermediate format, so it may not provide the best effort conversion.
+>
+> *: The ProtobufNative record holds the Protobuf descriptor and the message. When writing to Avro format, the connector uses [avro-protobuf](https://github.com/apache/avro/tree/master/lang/java/protobuf) to do the conversion.
 
 ## Configure with Function Mesh
 
@@ -141,9 +293,7 @@ This example shows how to create a Lakehouse sink connector on a Pulsar cluster 
 
 ```
 $ PULSAR_HOME/bin/pulsar-admin sinks create \
---archive <pulsar-io-lakehouse-{{connector:version}}.nar>
 --sink-config-file <hudi-sink-config.yaml>
---inputs <topic>
 ```
 
 @@@
