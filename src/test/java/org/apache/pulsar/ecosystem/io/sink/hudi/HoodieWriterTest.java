@@ -19,6 +19,7 @@
 package org.apache.pulsar.ecosystem.io.sink.hudi;
 
 import java.io.IOException;
+import java.net.URI;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -27,8 +28,14 @@ import java.security.SecureRandom;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Optional;
 import java.util.Properties;
 import java.util.Random;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.CyclicBarrier;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.EqualsAndHashCode;
@@ -38,62 +45,110 @@ import org.apache.avro.generic.GenericData;
 import org.apache.avro.generic.GenericRecord;
 import org.apache.avro.reflect.AvroIgnore;
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.hudi.client.transaction.FileSystemBasedLockProviderTestClass;
+import org.apache.hudi.common.config.LockConfiguration;
 import org.apache.hudi.io.storage.HoodieFileReader;
 import org.apache.hudi.io.storage.HoodieFileReaderFactory;
 import org.apache.pulsar.ecosystem.io.SinkConnectorConfig;
+import org.apache.pulsar.ecosystem.io.common.Utils;
 import org.intellij.lang.annotations.Language;
 import org.testng.Assert;
 import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 @Slf4j
 public class HoodieWriterTest {
 
     private static final Path PROJECT_DATA = FileSystems.getDefault().getPath("data").toAbsolutePath();
+    private static final String STORAGE_LOCAL = "LOCAL";
+    private static final String STORAGE_S3 = "S3";
+    private static final String STORAGE_GCS = "GCS";
 
-    private Path testPath;
-    private SinkConnectorConfig sinkConnectorConfig;
+    private URI testPath;
+    private SinkConnectorConfig sinkConfig;
 
-    @BeforeMethod
+    @DataProvider(name = "storage")
+    public Object[][] storageType() {
+        return new Object[][]{
+            {STORAGE_LOCAL},
+            {STORAGE_S3}
+        };
+    }
+
+    @BeforeMethod()
     public void setup() {
-        testPath = Paths.get(PROJECT_DATA.toString(), "hudi", "writer-test-" + TestUtils.randomString(4));
+        testPath = Paths.get(PROJECT_DATA.toString(), "hudi", "writer-test-" + TestUtils.randomString(4)).toUri();
         // initialize the configuration
-        sinkConnectorConfig = new SinkConnectorConfig.DefaultSinkConnectorConfig();
+        sinkConfig = new SinkConnectorConfig.DefaultSinkConnectorConfig();
         Properties properties = new Properties();
         properties.put("hoodie.table.name", "hoodie-writer-test");
         properties.put("hoodie.table.type", "COPY_ON_WRITE");
-        properties.put("hoodie.base.path", "file://" + testPath.toString());
+        properties.put("hoodie.base.path", testPath.toString());
         properties.put("hoodie.datasource.write.recordkey.field", "id");
         properties.put("hoodie.datasource.write.partitionpath.field", "id");
-        sinkConnectorConfig.setProperties(properties);
+        sinkConfig.setProperties(properties);
     }
 
-    @Test
-    public void testHoodieWriteAndRead() throws Exception {
+    private void setCloudProperties(String storage) {
+        if (storage.equals("S3")) {
+            testPath = URI.create(getBucket() + "/writer-test-" + TestUtils.randomString(4));
+            sinkConfig.setProperty("hoodie.base.path", testPath.toString());
+            sinkConfig.setProperty("hadoop.fs.s3a.aws.credentials.provider",
+                "com.amazonaws.auth.DefaultAWSCredentialsProviderChain");
+        }
+    }
+
+    private String getBucket() {
+        String bucket = System.getenv("CLOUD_BUCKET_NAME");
+        if (bucket == null || bucket.trim().equals("")) {
+            throw new IllegalArgumentException("Failed to get the bucket name from environment variable");
+        }
+        return bucket + "/hudi";
+    }
+
+    private Optional<FileSystem> setupFileSystem(String storage, HoodieWriter hoodieWriter, Configuration hadoopConf)
+        throws IOException {
+        if (!storage.equals(STORAGE_LOCAL)) {
+            FileSystem fileSystem = FileSystem.get(
+                URI.create(hoodieWriter.writer.getConfig().getBasePath()), hadoopConf);
+            return Optional.of(fileSystem);
+        }
+        return Optional.empty();
+    }
+
+    @Test(dataProvider = "storage")
+    public void testHoodieWriteAndRead(String storage) throws Exception {
+        setCloudProperties(storage);
+        final SinkConnectorConfig sinkConnectorConfig = sinkConfig;
+
         // initialize the hoodie writer
         HoodieTestDataV1 testData = new HoodieTestDataV1();
         log.info("Using schema {} to initialize hoodie writer", testData.getSchema().toString());
-        HoodieWriter writer = new HoodieWriter(sinkConnectorConfig, testData.getSchema());
+        HoodieWriter hoodieWriter = new HoodieWriter(sinkConnectorConfig, testData.getSchema());
+        Configuration hadoopConf = hoodieWriter.writer.getContext().getHadoopConf().get();
+        Optional<FileSystem> hdfs = setupFileSystem(storage, hoodieWriter, hadoopConf);
 
         // write test data
         List<HoodieTestDataV1> writeSet = new LinkedList<>();
-        for (int i = 0; i < 10; i++) {
+        for (int i = 0; i < 3; i++) {
             HoodieTestDataV1 data = new HoodieTestDataV1(i, i + "-" + TestUtils.randomString(4));
-            writer.writeAvroRecord(data.genericRecord());
+            hoodieWriter.writeAvroRecord(data.genericRecord());
             writeSet.add(data);
         }
 
-        List<Path> committedFiles = getCommittedFiles(testPath).collect(Collectors.toList());
+        List<String> committedFiles = getCommittedFiles(testPath, storage, hdfs).collect(Collectors.toList());
         Assert.assertEquals(committedFiles.size(), 0);
 
         // flush the record and commit
-        writer.flush();
+        hoodieWriter.flush();
 
         // read test data
-        List<HoodieTestDataV1> readSet = getCommittedFiles(testPath)
+        List<HoodieTestDataV1> readSet = getCommittedFiles(testPath, storage, hdfs)
             .map(p -> {
                 try {
-                    return readRecordsFromFile(p);
+                    return readRecordsFromFile(p, hadoopConf);
                 } catch (IOException e) {
                     throw new RuntimeException(e);
                 }
@@ -105,38 +160,43 @@ public class HoodieWriterTest {
         Assert.assertEquals(readSet.size(), writeSet.size());
         Assert.assertTrue(writeSet.removeAll(readSet));
         Assert.assertEquals(writeSet.size(), 0);
-        writer.close();
+        hoodieWriter.close();
     }
 
-    @Test
-    public void testHoodieSchemaFieldAdd() throws Exception {
+    @Test(dataProvider = "storage")
+    public void testHoodieSchemaFieldAdd(String storage) throws Exception {
+        setCloudProperties(storage);
+        final SinkConnectorConfig sinkConnectorConfig = sinkConfig;
+
         // initialize the hoodie writer
         HoodieTestDataV1 v1Data = new HoodieTestDataV1();
         log.info("Using schema {} to initialize hoodie writer", v1Data.getSchema().toString());
-        HoodieWriter writer = new HoodieWriter(sinkConnectorConfig, v1Data.getSchema());
+        HoodieWriter hoodieWriter = new HoodieWriter(sinkConnectorConfig, v1Data.getSchema());
+        Configuration hadoopConf = hoodieWriter.writer.getContext().getHadoopConf().get();
+        Optional<FileSystem> hdfs = setupFileSystem(storage, hoodieWriter, hadoopConf);
 
         // write v1 test data
         List<HoodieTestDataV1> writeSetV1 = new LinkedList<>();
         for (int i = 0; i < 10; i++) {
             HoodieTestDataV1 data = new HoodieTestDataV1(i, i + "-" + TestUtils.randomString(4));
-            writer.writeAvroRecord(data.genericRecord());
+            hoodieWriter.writeAvroRecord(data.genericRecord());
             writeSetV1.add(data);
         }
         Assert.assertEquals(writeSetV1.size(), 10);
 
-        List<Path> committedFiles = getCommittedFiles(testPath).collect(Collectors.toList());
+        List<String> committedFiles = getCommittedFiles(testPath, storage, hdfs).collect(Collectors.toList());
         Assert.assertEquals(committedFiles.size(), 0);
 
         // update the record schema
         HoodieTestDataV2 v2Data = new HoodieTestDataV2();
-        writer.updateSchema(v2Data.getSchema());
+        hoodieWriter.updateSchema(v2Data.getSchema());
 
         // verify the current committed files contains the records
         List<HoodieTestDataV1> w1 = new LinkedList<>(writeSetV1);
-        List<HoodieTestDataV1> readSetV1 = getCommittedFiles(testPath)
+        List<HoodieTestDataV1> readSetV1 = getCommittedFiles(testPath, storage, hdfs)
             .map(p -> {
                 try {
-                    return readRecordsFromFile(p);
+                    return readRecordsFromFile(p, hadoopConf);
                 } catch (IOException e) {
                     throw new RuntimeException(e);
                 }
@@ -154,19 +214,19 @@ public class HoodieWriterTest {
         List<HoodieTestDataV2> writeSetV2 = new LinkedList<>();
         for (int i = 10; i < 20; i++) {
             HoodieTestDataV2 data = new HoodieTestDataV2(i, i + "-" + TestUtils.randomString(4), random.nextDouble());
-            writer.writeAvroRecord(data.genericRecord());
+            hoodieWriter.writeAvroRecord(data.genericRecord());
             writeSetV2.add(data);
         }
         Assert.assertEquals(writeSetV2.size(), 10);
 
         // flush the record and commit
-        writer.flush();
+        hoodieWriter.flush();
 
         // read test data
-        List<GenericRecord> readSet = getCommittedFiles(testPath)
+        List<GenericRecord> readSet = getCommittedFiles(testPath, storage, hdfs)
             .map(p -> {
                 try {
-                    return readRecordsFromFile(p);
+                    return readRecordsFromFile(p, null);
                 } catch (IOException e) {
                     throw new RuntimeException(e);
                 }
@@ -183,23 +243,133 @@ public class HoodieWriterTest {
         Assert.assertEquals(writeSetV1.size(), 0);
 
         List<HoodieTestDataV2> v2 = readSet.stream()
-            .filter(r -> r.hasField("score"))
+            .filter(r -> r.hasField("aDouble"))
             .map(HoodieTestDataV2::fromGenericRecord)
             .collect(Collectors.toList());
         Assert.assertTrue(writeSetV2.removeAll(v2));
         Assert.assertEquals(writeSetV2.size(), 0);
-        writer.close();
+        hoodieWriter.close();
+    }
+
+    @Test(dataProvider = "storage")
+    public void testConcurrentWrite(String storage) throws Exception {
+        setCloudProperties(storage);
+        final SinkConnectorConfig connectorConfig = sinkConfig;
+        connectorConfig.setProperty("hoodie.write.concurrency.mode", "optimistic_concurrency_control");
+        connectorConfig.setProperty("hoodie.failed.writes.cleaner.policy", "LAZY");
+        connectorConfig.setProperty("hoodie.write.lock.provider", FileSystemBasedLockProviderTestClass.class.getName());
+        connectorConfig.setProperty(LockConfiguration.FILESYSTEM_LOCK_PATH_PROP_KEY, testPath.toString() + "/filelock");
+        // initialize the hoodie writer
+        HoodieTestDataV1 testData = new HoodieTestDataV1();
+        log.info("Using schema {} to initialize hoodie writer", testData.getSchema().toString());
+        HoodieWriter hoodieWriter = new HoodieWriter(connectorConfig, testData.getSchema());
+        Configuration hadoopConf = hoodieWriter.writer.getContext().getHadoopConf().get();
+        final Optional<FileSystem> hdfs = setupFileSystem(storage, hoodieWriter, hadoopConf);
+
+        CyclicBarrier barrier = new CyclicBarrier(2);
+        CountDownLatch latch = new CountDownLatch(2);
+        LinkedBlockingQueue<HoodieTestDataV1> writeSet = new LinkedBlockingQueue<>();
+
+        AtomicLong commitATime = new AtomicLong(-1);
+        AtomicLong commitBTime = new AtomicLong(-2);
+        new Thread(() -> {
+            try (HoodieWriter writer = new HoodieWriter(connectorConfig, testData.getSchema())){
+                // write test data
+                for (int i = 0; i < 10; i++) {
+                    HoodieTestDataV1 data = new HoodieTestDataV1(i, i + "-" + TestUtils.randomString(4));
+                    writer.writeAvroRecord(data.genericRecord());
+                    writeSet.add(data);
+                }
+
+                List<String> committedFiles = getCommittedFiles(testPath, storage, hdfs).collect(Collectors.toList());
+                Assert.assertEquals(committedFiles.size(), 0);
+
+                // flush the record and commit
+                barrier.await();
+                commitATime.set(System.currentTimeMillis());
+                log.info("flush A records at {}", commitATime);
+                writer.flush();
+            } catch (Exception e) {
+                Assert.fail(e.getMessage());
+            } finally {
+                latch.countDown();
+            }
+        }).start();
+
+        new Thread(() -> {
+            // wait a second to await for avoiding the creation files conflicts
+            try {
+                TimeUnit.SECONDS.sleep(3);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+            try (HoodieWriter writer = new HoodieWriter(connectorConfig, testData.getSchema())){
+                // write test data
+                for (int i = 10; i < 20; i++) {
+                    HoodieTestDataV1 data = new HoodieTestDataV1(i, i + "-" + TestUtils.randomString(4));
+                    writer.writeAvroRecord(data.genericRecord());
+                    writeSet.add(data);
+                }
+
+                List<String> committedFiles = getCommittedFiles(testPath, storage, hdfs).collect(Collectors.toList());
+                Assert.assertEquals(committedFiles.size(), 0);
+
+                // flush the record and commit
+                barrier.await();
+                commitBTime.set(System.currentTimeMillis());
+                log.info("flush B records at {}", commitBTime);
+                writer.flush();
+            } catch (Exception e) {
+                Assert.fail(e.getMessage());
+            } finally {
+                latch.countDown();
+            }
+        }).start();
+
+        latch.await();
+        Assert.assertEquals(commitATime.get(), commitBTime.get());
+
+        // read test data
+        List<HoodieTestDataV1> readSet = getCommittedFiles(testPath, storage, hdfs)
+            .map(p -> {
+                try {
+                    return readRecordsFromFile(p, Utils.getDefaultHadoopConf(connectorConfig));
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            })
+            .flatMap(Collection::stream)
+            .map(HoodieTestDataV1::fromGenericRecord)
+            .collect(Collectors.toList());
+
+        Assert.assertEquals(readSet.size(), writeSet.size());
+        Assert.assertTrue(writeSet.removeAll(readSet));
+        Assert.assertEquals(writeSet.size(), 0);
     }
 
 
-    private Stream<Path> getCommittedFiles(Path path) throws IOException {
-        return Files.walk(path).filter(p -> p.toAbsolutePath().toString().endsWith(".parquet"));
+    private Stream<String> getCommittedFiles(URI path, String type, Optional<FileSystem> hdfs) throws IOException {
+        if (type.equals(STORAGE_LOCAL)) {
+            return Files.walk(Paths.get(path))
+                .filter(p -> p.toAbsolutePath().toString().endsWith(".parquet"))
+                .map(Path::toString);
+        } else {
+            if (hdfs.isPresent()) {
+                return getCommittedFiles(hdfs.get(), path);
+            } else {
+                throw new IOException("HDFS is not present");
+            }
+        }
     }
 
-    private List<GenericRecord> readRecordsFromFile(Path path) throws IOException {
+    private Stream<String> getCommittedFiles(FileSystem fileSystem, URI path) throws IOException {
+        return TestUtils.walkThroughCloudDir(fileSystem, path.toString()).stream()
+            .filter(f -> f.endsWith(".parquet"));
+    }
+
+    private List<GenericRecord> readRecordsFromFile(String path, Configuration configuration) throws IOException {
         List<GenericRecord> records = new LinkedList<>();
-        Configuration configuration = new Configuration();
-        org.apache.hadoop.fs.Path hdfs = new org.apache.hadoop.fs.Path(path.toAbsolutePath().toString());
+        org.apache.hadoop.fs.Path hdfs = new org.apache.hadoop.fs.Path(path);
         HoodieFileReader<GenericRecord> reader = HoodieFileReaderFactory.getFileReader(configuration, hdfs);
         log.info("Reader schema is {}", reader.getSchema().toString());
         reader.getRecordIterator().forEachRemaining(records::add);
@@ -244,21 +414,21 @@ public class HoodieWriterTest {
         @Language("JSON5")
         private static final String SCHEMA = "{\"type\":\"record\",\"name\":\"HoodieTestData\","
             + "\"fields\":[{\"name\":\"id\",\"type\":\"int\"},{\"name\":\"name\",\"type\":\"string\"},"
-            + " {\"name\": \"score\", \"type\": \"double\"}]}";
+            + " {\"name\": \"aDouble\", \"type\": \"double\"}]}";
 
         int id;
         String name;
-        double score;
+        double aDouble;
 
         public HoodieTestDataV2() {
             super(SCHEMA);
         }
 
-        public HoodieTestDataV2(int id, String name, double score) {
+        public HoodieTestDataV2(int id, String name, double aDouble) {
             super(SCHEMA);
             this.id = id;
             this.name = name;
-            this.score = score;
+            this.aDouble = aDouble;
         }
 
         @Override
@@ -266,18 +436,18 @@ public class HoodieWriterTest {
             GenericRecord record = new GenericData.Record(getSchema());
             record.put("id", id);
             record.put("name", name);
-            record.put("score", score);
+            record.put("aDouble", aDouble);
             return record;
         }
 
         public static HoodieTestDataV2 fromGenericRecord(GenericRecord record){
-            if (!record.hasField("id") || !record.hasField("name") || !record.hasField("score")) {
+            if (!record.hasField("id") || !record.hasField("name") || !record.hasField("aDouble")) {
                 throw new IllegalArgumentException("Generic record is mismatched");
             }
             return new HoodieTestDataV2(
                 Integer.parseInt(record.get("id").toString()),
                 record.get("name").toString(),
-                Double.parseDouble(record.get("score").toString()));
+                Double.parseDouble(record.get("aDouble").toString()));
         }
     }
 
