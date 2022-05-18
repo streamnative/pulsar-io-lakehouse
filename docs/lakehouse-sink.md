@@ -12,7 +12,7 @@ If you use [Pulsar Function Worker](https://pulsar.apache.org/docs/en/functions-
 - Download the NAR package from [the download page](https://github.com/streamnative/pulsar-io-lakehouse/releases).
 - Build it from the source code.
 
-To build the Hudi sink connector from the source code, follow these steps.
+To build the Lakehouse sink connector from the source code, follow these steps.
 1. Clone the source code to your machin.
    ```bash
    $ git clone https://github.com/streamnative/pulsar-io-lakehouse.git
@@ -58,7 +58,7 @@ Common Configuration
 | partitionColumns | List<String> | false | Collections.empytList() | Partition columns for lakehouse table |
 
 
-Lakehouse specifi configuration
+Lakehouse specific configuration
 ::: tabs
 
 @@@ Hudi configuration
@@ -93,6 +93,8 @@ For the Hudi configurations, you can use all the configs list in [here](https://
 | compression | String | false | SNAPPY | Delta lake parquet file compression type. Default is `SNAPPY` |
 | deltaFileType | String | false | parquet | Delta lake file type. Default is `parquet` |
 | appId | String | false | pulsar-delta-sink-connector | Delta lake appId. Default is `pulsar-delta-sink-connector` |
+
+This Lakehouse connector use hadoop file system to read and write cloud object, such as `aws`, `gcs` and `azure`. If we want to configure hadoop cloud related properties, we should start the prefix `hadoop.`
 
 
 ## Configure with Function Worker
@@ -248,7 +250,7 @@ Iceberg table stored in cloud storage(s3, gcs or azure)
         "maxCommitInterval":120,
         "maxRecordsPerCommit":10000000,
         "tablePath": "s3a://test-dev-us-west-2/lakehouse/delta_sink",
-        "hadoop.fs.s3a.aws.credentials.provider": "com.amazonaws.auth.DefaultAWSCredentialsProviderChain",
+        "hadoop.fs.s3a.aws.credentials.provider": "com.amazonaws.auth.DefaultAWSCredentialsProviderChain"
     }
 }
 ```
@@ -315,19 +317,19 @@ This example describes how to use the Lakehouse sink connector to fetch data fro
 1. Copy the NAR package to the Pulsar connectors directory.
 
     ```
-    cp pulsar-io-lakehouse-{{connector:version}}.nar PULSAR_HOME/connectors/pulsar-io-lakehouse-{{connector:version}}.nar
+    $ cp pulsar-io-lakehouse-{{connector:version}}.nar PULSAR_HOME/connectors/pulsar-io-lakehouse-{{connector:version}}.nar
     ```
 
 2. Start Pulsar in standalone mode.
 
     ```
-    PULSAR_HOME/bin/pulsar standalone
+    $ PULSAR_HOME/bin/pulsar standalone
     ```
 
-3. Run the hudi sink connector locally.
+3. Run the lakehouse sink connector locally.
 
     ```
-    PULSAR_HOME/bin/pulsar-admin sink localrun \
+    $ PULSAR_HOME/bin/pulsar-admin sink localrun \
     --sink-config-file <lakehouse-sink-config.yaml>
     ```
 
@@ -336,7 +338,7 @@ This example describes how to use the Lakehouse sink connector to fetch data fro
    This example sends ten “hello” messages to the `test-lakehouse-pulsar` topic in the `default` namespace of the `public` tenant.
 
     ```
-    PULSAR_HOME/bin/pulsar-client produce public/default/test-lakehouse-pulsar --messages hello -n 10
+    $ PULSAR_HOME/bin/pulsar-client produce public/default/test-lakehouse-pulsar --messages hello -n 10
     ```
 
 5. Query the data from the Lakehouse table. you can follow this guide [hudi](https://hudi.apache.org/docs/quick-start-guide), [iceberg](https://iceberg.apache.org/docs/latest/getting-started/) and [delta](https://delta.io/learn/getting-started) to query the data
@@ -347,26 +349,26 @@ This example explains how to create a Lakehouse sink connector in an on-premises
 
 1. Copy the NAR package of the Lakehouse sink connector to the Pulsar connectors directory.
 
-    ```
-    cp pulsar-io-lakehouse-{{connector:version}}.nar $PULSAR_HOME/connectors/pulsar-io-lakehouse-{{connector:version}}.nar
+    ```bash
+    $ cp pulsar-io-lakehouse-{{connector:version}}.nar $PULSAR_HOME/connectors/pulsar-io-lakehouse-{{connector:version}}.nar
     ```
 
 2. Reload all [built-in connectors](https://pulsar.apache.org/docs/en/next/io-connectors/).
 
-    ```
-    PULSAR_HOME/bin/pulsar-admin sinks reload
+    ```bash
+    $ PULSAR_HOME/bin/pulsar-admin sinks reload
     ```
 
 3. Check whether the Lakehouse sink connector is available on the list or not.
 
-    ```
-    PULSAR_HOME/bin/pulsar-admin sinks available-sinks
+    ```bash
+    $ PULSAR_HOME/bin/pulsar-admin sinks available-sinks
     ```
 
 4. Create a Lakehouse sink connector on a Pulsar cluster using the [`pulsar-admin sinks create`](http://pulsar.apache.org/tools/pulsar-admin/2.8.0-SNAPSHOT/#-em-create-em--24) command.
 
-    ```
-    PULSAR_HOME/bin/pulsar-admin sinks create \
+    ```bash 
+    $ PULSAR_HOME/bin/pulsar-admin sinks create \
     --sink-config-file <lakehouse-sink-config.yaml>
     ```
 

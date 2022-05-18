@@ -88,14 +88,6 @@ public abstract class SourceConnectorConfig implements Serializable {
     )
     Long startTimestamp;
 
-    @FieldContext(
-        category = CATEGORY_SOURCE,
-        required = true,
-        doc = "The table path to fetch"
-    )
-    String tablePath;
-
-
     public static SourceConnectorConfig load(Map<String, Object> map) throws IOException, IncorrectParameterException {
         properties.putAll(map);
 
@@ -127,10 +119,6 @@ public abstract class SourceConnectorConfig implements Serializable {
             startSnapshotVersion = LATEST;
         }
 
-        if (StringUtils.isBlank(tablePath)) {
-            log.error("tablePath should be set.");
-            throw new IllegalArgumentException("tablePath should be set.");
-        }
 
         if (queueSize <= 0) {
             log.warn("queueSize: {} should be > 0, using default: {}",
