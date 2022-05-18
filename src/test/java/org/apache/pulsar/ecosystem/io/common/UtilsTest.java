@@ -16,25 +16,22 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.apache.pulsar.ecosystem.io.sink.hudi;
+package org.apache.pulsar.ecosystem.io.common;
 
-import lombok.extern.slf4j.Slf4j;
 import org.apache.hadoop.conf.Configuration;
-@Slf4j
-public class Utils {
+import org.apache.pulsar.ecosystem.io.SinkConnectorConfig;
+import org.testng.Assert;
+import org.testng.annotations.Test;
 
-    private static final String HOODIE_CONF_PREFIX = "hoodie.";
-    private static final String PULSAR_CONF_PREFIX = "pulsar.";
-    private static final String HADOOP_CONF_PREFIX = "hadoop.";
+public class UtilsTest {
 
-    public static Configuration getDefaultHadoopConf(HoodieSinkConfigs configs) {
-        Configuration hadoopConf = new Configuration();
-        configs.getProps().keySet().stream().filter(prop -> {
-            return prop.toString().startsWith(HADOOP_CONF_PREFIX);
-        }).forEach(prop -> {
-            hadoopConf.set(prop.toString().replaceFirst(HADOOP_CONF_PREFIX, ""),
-                configs.getProps().get(prop.toString()).toString());
-        });
-        return hadoopConf;
+    @Test
+    public void testGetDefaultHadoopConf() {
+        SinkConnectorConfig sinkConnectorConfig = new SinkConnectorConfig.DefaultSinkConnectorConfig();
+        sinkConnectorConfig.setProperty("hadoop.propertyA", "property");
+        sinkConnectorConfig.setProperty("propertyOthers", "others");
+        Configuration conf = Utils.getDefaultHadoopConf(sinkConnectorConfig);
+        Assert.assertEquals(conf.get("propertyA"), "property");
+        Assert.assertNull(conf.get("propertyOthers"));
     }
 }

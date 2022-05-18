@@ -23,7 +23,6 @@ import static org.apache.pulsar.ecosystem.io.DeltaLakeConnectorStats.FILTERED_FI
 import static org.apache.pulsar.ecosystem.io.DeltaLakeConnectorStats.PREPARE_READ_FILES_BYTES_SIZE;
 import static org.apache.pulsar.ecosystem.io.DeltaLakeConnectorStats.PREPARE_READ_FILES_COUNT;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.delta.standalone.DeltaLog;
 import io.delta.standalone.Snapshot;
 import io.delta.standalone.VersionLog;
@@ -51,15 +50,16 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.parquet.example.data.simple.SimpleGroup;
 import org.apache.parquet.schema.Type;
-import org.apache.pulsar.common.util.ObjectMapperFactory;
+import org.apache.pulsar.ecosystem.io.SourceConnectorConfig;
 import org.apache.pulsar.ecosystem.io.common.Murmur32Hash;
+import org.apache.pulsar.ecosystem.io.common.Utils;
 import org.apache.pulsar.ecosystem.io.parquet.DeltaParquetReader;
 import org.apache.pulsar.io.core.SourceContext;
 
 
 
 /**
- * The delta reader for {@link DeltaReaderThread}.
+ * The delta reader for {@link SourceReader}.
  */
 @Data
 @Slf4j
@@ -126,14 +126,10 @@ public class DeltaReader {
             return super.clone();
         }
 
-        public static ObjectMapper jsonMapper() {
-            return ObjectMapperFactory.getThreadLocal();
-        }
-
         @Override
         public String toString() {
             try {
-                return jsonMapper().writeValueAsString(this);
+                return Utils.JSON_MAPPER.get().writeValueAsString(this);
             } catch (JsonProcessingException e) {
                 log.error("Failed to write DeltaLakeConnectorConfig ", e);
                 return "";
@@ -163,11 +159,11 @@ public class DeltaReader {
         }
     }
 
-    public DeltaReader(DeltaSourceConfig config, int topicPartitionNum)
+    public DeltaReader(SourceConnectorConfig config, int topicPartitionNum)
         throws Exception {
-        this.config = config;
+        this.config = (DeltaSourceConfig) config;
         setTopicPartitionNum(topicPartitionNum);
-        open();
+        open(this.config);
     }
 
     /**
@@ -375,7 +371,7 @@ public class DeltaReader {
             && currentReadBytesSize < config.maxReadBytesSizeOneRound; i++) {
             Action act = actionList.get(i).act;
             if (act instanceof AddFile || act instanceof RemoveFile) {
-                String filePath = config.tablePath + "/" + ((FileAction) act).getPath();
+                String filePath = config.getTablePath() + "/" + ((FileAction) act).getPath();
                 try {
                     // calculate records number
                     currentRecordsNum += DeltaParquetReader.getRowNum(filePath, conf);
@@ -411,7 +407,7 @@ public class DeltaReader {
             List<RowRecordData> recordData = new ArrayList<>();
             Action action = startCursor.act;
             if (action instanceof AddFile || action instanceof RemoveFile) {
-                String filePath = config.tablePath + "/" + ((FileAction) action).getPath();
+                String filePath = config.getTablePath() + "/" + ((FileAction) action).getPath();
                 DeltaParquetReader reader = new DeltaParquetReader();
                 try {
                     reader.open(filePath, conf);
@@ -478,8 +474,8 @@ public class DeltaReader {
         return builder.toString();
     }
 
-    private void open() throws Exception {
-        conf = new Configuration();
-        deltaLog = DeltaLog.forTable(conf, this.config.tablePath);
+    private void open(DeltaSourceConfig config) throws Exception {
+        conf = Utils.getDefaultHadoopConf(config.getProperties());
+        deltaLog = DeltaLog.forTable(conf, this.config.getTablePath());
     }
 }

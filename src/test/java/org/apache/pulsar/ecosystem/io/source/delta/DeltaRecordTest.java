@@ -37,9 +37,11 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.pulsar.client.api.schema.GenericRecord;
 import org.apache.pulsar.client.api.schema.GenericSchema;
+import org.apache.pulsar.ecosystem.io.SourceConnectorConfig;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
@@ -47,6 +49,7 @@ import org.testng.annotations.Test;
 /**
  * DeltaRecord test.
  */
+@Slf4j
 public class DeltaRecordTest {
     String path = "src/test/java/resources/external/sales";
     DeltaReader deltaReader;
@@ -70,8 +73,9 @@ public class DeltaRecordTest {
         map.put("maxReadBytesSizeOneRound", 1024 * 1024);
         map.put("maxReadRowCountOneRound", 1000);
         map.put("checkpointInterval", 30);
+        map.put("type", "delta");
 
-        DeltaSourceConfig config = DeltaSourceConfig.load(map);
+        SourceConnectorConfig config = SourceConnectorConfig.load(map);
         config.validate();
         deltaReader = new DeltaReader(config, 5);
         deltaReader.setFilter(readCursor -> true);
@@ -149,7 +153,7 @@ public class DeltaRecordTest {
             DeltaReader.RowRecordData rowRecordData;
 
             int cnt = 0;
-            String topic = "delta_test_v1";
+            String topic = "lakehouse_test_v1";
             DeltaReader.setTopicPartitionNum(10);
             GenericSchema<GenericRecord> pulsarSchema = DeltaRecord.convertToPulsarSchema(deltaSchema);
             AtomicInteger processingException = new AtomicInteger(0);

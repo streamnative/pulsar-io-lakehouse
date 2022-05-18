@@ -31,6 +31,7 @@ import org.apache.hudi.config.HoodieCompactionConfig;
 import org.apache.hudi.config.HoodieIndexConfig;
 import org.apache.hudi.config.HoodieWriteConfig;
 import org.apache.hudi.index.HoodieIndex;
+import org.apache.pulsar.ecosystem.io.common.Utils;
 
 public class HoodieWriterProvider {
 
@@ -41,7 +42,7 @@ public class HoodieWriterProvider {
 
     public HoodieWriterProvider(HoodieSinkConfigs sinkConfigs) throws IOException {
         this.sinkConfigs = sinkConfigs;
-        this.hadoopConf = Utils.getDefaultHadoopConf(sinkConfigs);
+        this.hadoopConf = Utils.getDefaultHadoopConf(sinkConfigs.getProps(true));
         this.defaultWriterConfig = getDefaultConfigBuilder().build();
         this.context = new HoodieJavaEngineContext(hadoopConf);
         createTable();

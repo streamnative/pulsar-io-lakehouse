@@ -24,6 +24,7 @@ import static org.testng.Assert.assertTrue;
 import static org.testng.FileAssert.fail;
 import java.util.HashMap;
 import java.util.Map;
+import org.apache.pulsar.ecosystem.io.SourceConnectorConfig;
 import org.testng.annotations.Test;
 
 
@@ -43,9 +44,10 @@ public class DeltaConnectorConfigTest {
         map.put("maxReadBytesSizeOneRound", 1024 * 1024);
         map.put("maxReadRowCountOneRound", 1000);
         map.put("checkpointInterval", 30);
+        map.put("type", "delta");
 
         try {
-            DeltaSourceConfig config = DeltaSourceConfig.load(map);
+            DeltaSourceConfig config = (DeltaSourceConfig) SourceConnectorConfig.load(map);
             assertEquals(1, config.getStartSnapshotVersion().longValue());
             assertTrue(config.getFetchHistoryData());
             assertEquals("/tmp/test.conf", config.getTablePath());
@@ -62,9 +64,10 @@ public class DeltaConnectorConfigTest {
         Map<String, Object> map = new HashMap<>();
         map.put("startSnapshotVersion", 1);
         map.put("fetchHistoryData", true);
+        map.put("type", "delta");
 
         try {
-            DeltaSourceConfig config = DeltaSourceConfig.load(map);
+            SourceConnectorConfig config = SourceConnectorConfig.load(map);
             config.validate();
             fail();
         } catch (Exception e) {
@@ -76,9 +79,10 @@ public class DeltaConnectorConfigTest {
     public void testDefaultValue() {
         Map<String, Object> map = new HashMap<>();
         map.put("tablePath", "/tmp/test.conf");
+        map.put("type", "delta");
 
         try {
-            DeltaSourceConfig config = DeltaSourceConfig.load(map);
+            DeltaSourceConfig config = (DeltaSourceConfig) SourceConnectorConfig.load(map);
             config.validate();
 
             assertEquals(DeltaSourceConfig.LATEST, config.getStartSnapshotVersion().longValue());
@@ -101,9 +105,10 @@ public class DeltaConnectorConfigTest {
         map.put("tablePath", "/tmp/test.conf");
         map.put("startSnapshotVersion", 1);
         map.put("startTimestamp", 11111);
+        map.put("type", "delta");
 
         try {
-            DeltaSourceConfig config = DeltaSourceConfig.load(map);
+            SourceConnectorConfig config = SourceConnectorConfig.load(map);
             config.validate();
             fail();
         } catch (Exception e) {
@@ -117,9 +122,10 @@ public class DeltaConnectorConfigTest {
         Map<String, Object> map = new HashMap<>();
         map.put("tablePath", "/tmp/test.conf");
         map.put("parquetParseThreads", DeltaSourceConfig.DEFAULT_PARQUET_PARSE_THREADS * 3);
+        map.put("type", "delta");
 
         try {
-            DeltaSourceConfig config = DeltaSourceConfig.load(map);
+            DeltaSourceConfig config = (DeltaSourceConfig) SourceConnectorConfig.load(map);
             assertEquals(DeltaSourceConfig.DEFAULT_PARQUET_PARSE_THREADS * 3,
                     config.getParquetParseThreads());
             config.validate();
@@ -135,9 +141,10 @@ public class DeltaConnectorConfigTest {
         Map<String, Object> map = new HashMap<>();
         map.put("tablePath", "/tmp/test.conf");
         map.put("maxReadBytesSizeOneRound", -1);
+        map.put("type", "delta");
 
         try {
-            DeltaSourceConfig config = DeltaSourceConfig.load(map);
+            DeltaSourceConfig config = (DeltaSourceConfig) SourceConnectorConfig.load(map);
             assertEquals(-1, config.getMaxReadBytesSizeOneRound());
             config.validate();
             assertEquals(DeltaSourceConfig.DEFAULT_MAX_READ_BYTES_SIZE_ONE_ROUND,
@@ -152,9 +159,10 @@ public class DeltaConnectorConfigTest {
         Map<String, Object> map = new HashMap<>();
         map.put("tablePath", "/tmp/test.conf");
         map.put("queueSize", -1);
+        map.put("type", "delta");
 
         try {
-            DeltaSourceConfig config = DeltaSourceConfig.load(map);
+            SourceConnectorConfig config = SourceConnectorConfig.load(map);
             assertEquals(-1, config.getQueueSize());
             config.validate();
             assertEquals(DeltaSourceConfig.DEFAULT_QUEUE_SIZE,

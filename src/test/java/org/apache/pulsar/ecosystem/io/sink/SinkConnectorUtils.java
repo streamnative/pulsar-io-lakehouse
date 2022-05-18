@@ -43,7 +43,7 @@ public class SinkConnectorUtils {
                                                        String recordName) {
         RecordSchemaBuilder recordSchemaBuilder = SchemaBuilder.record(recordName);
         schemaMap.forEach((name, type) -> {
-            recordSchemaBuilder.field(name).type(type);
+            recordSchemaBuilder.field(name).type(type).optional().defaultValue(null);
         });
         GenericSchema<GenericRecord> schema = Schema.generic(recordSchemaBuilder.build(schemaType));
 

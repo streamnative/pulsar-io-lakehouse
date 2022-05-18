@@ -20,16 +20,11 @@
 package org.apache.pulsar.ecosystem.io.source.delta;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import java.io.IOException;
-import java.util.Map;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.pulsar.common.util.ObjectMapperFactory;
 import org.apache.pulsar.ecosystem.io.SourceConnectorConfig;
-import org.apache.pulsar.ecosystem.io.common.Category;
 import org.apache.pulsar.ecosystem.io.common.FieldContext;
+import org.apache.pulsar.ecosystem.io.common.Utils;
 
 /**
  * The configuration class for {@link org.apache.pulsar.ecosystem.io.SourceConnector}.
@@ -43,38 +38,7 @@ public class DeltaSourceConfig extends SourceConnectorConfig {
     public static final int DEFAULT_MAX_READ_ROW_COUNT_ONE_ROUND = 100_000;
     public static final int DEFAULT_PARQUET_PARSE_THREADS =
         Runtime.getRuntime().availableProcessors();
-    public static final int DEFAULT_CHECKPOINT_INTERVAL = 30;
-    public static final long LATEST = -1;
-    public static final long EARLIEST = -2;
-    public static final int DEFAULT_QUEUE_SIZE = 100_000;
 
-    @Category
-    private static final String CATEGORY_SOURCE = "Source";
-
-    @FieldContext(
-        category = CATEGORY_SOURCE,
-        doc = "The start version of the delta lake table to fetch cdc log."
-    )
-    Long startSnapshotVersion;
-
-    @FieldContext(
-        category = CATEGORY_SOURCE,
-        doc = "The start time stamp of the delta lake table to fetch cdc log. Time unit: second"
-    )
-    Long startTimestamp;
-
-    @FieldContext(
-        category = CATEGORY_SOURCE,
-        doc = "Whether fetch the history data of the table. Default is: false"
-    )
-    Boolean fetchHistoryData = false;
-
-    @FieldContext(
-        category = CATEGORY_SOURCE,
-        required = true,
-        doc = "The table path to fetch"
-    )
-    String tablePath;
 
     @FieldContext(
         category = CATEGORY_SOURCE,
@@ -90,43 +54,17 @@ public class DeltaSourceConfig extends SourceConnectorConfig {
 
     @FieldContext(
         category = CATEGORY_SOURCE,
-        doc = "The max read number of rows in one round. Default is 1_000_000"
+        doc = "The max read number of rows in one round. Default is 100_000"
     )
     int maxReadRowCountOneRound = DEFAULT_MAX_READ_ROW_COUNT_ONE_ROUND;
 
-    @FieldContext(
-        category = CATEGORY_SOURCE,
-        doc = "checkpoint interval, time unit: second, Default is 30s"
-    )
-    int checkpointInterval = DEFAULT_CHECKPOINT_INTERVAL;
-
-    @FieldContext(
-        category = CATEGORY_SOURCE,
-        doc = "source connector queue size, used for store record before send to pulsar topic. "
-            + "Default is 100_000"
-    )
-    int queueSize = DEFAULT_QUEUE_SIZE;
 
 
     /**
      * Validate if the configuration is valid.
      */
     public void validate() throws IllegalArgumentException {
-        if (startSnapshotVersion != null && startTimestamp != null) {
-            log.error("startSnapshotVersion: {} and startTimeStamp: {} "
-                    + "should not be set at the same time.",
-                startSnapshotVersion, startTimestamp);
-            throw new IllegalArgumentException("startSnapshotVersion and startTimeStamp "
-                + "should not be set at the same time.");
-        } else if (startSnapshotVersion == null && startTimestamp == null) {
-            startSnapshotVersion = LATEST;
-        }
-
-        if (StringUtils.isBlank(tablePath)) {
-            log.error("tablePath should be set.");
-            throw new IllegalArgumentException("tablePath should be set.");
-        }
-
+        super.validate();
         if (parquetParseThreads > 2 * DEFAULT_PARQUET_PARSE_THREADS
             || parquetParseThreads <= 0) {
             log.warn("parquetParseThreads: {} is out of limit, using default cpus: {}",
@@ -145,35 +83,12 @@ public class DeltaSourceConfig extends SourceConnectorConfig {
                 maxReadRowCountOneRound, DEFAULT_MAX_READ_ROW_COUNT_ONE_ROUND);
             maxReadRowCountOneRound = DEFAULT_MAX_READ_ROW_COUNT_ONE_ROUND;
         }
-
-        if (queueSize <= 0) {
-            log.warn("queueSize: {} should be > 0, using default: {}",
-                queueSize, DEFAULT_QUEUE_SIZE);
-            queueSize = DEFAULT_QUEUE_SIZE;
-        }
-    }
-
-    /**
-     * Pase DeltaLakeConnectorConfig from map.
-     *
-     * @param map
-     * @return
-     * @throws IOException
-     */
-    public static DeltaSourceConfig load(Map<String, Object> map) throws IOException {
-        ObjectMapper mapper = ObjectMapperFactory.getThreadLocal();
-        return mapper.readValue(new ObjectMapper().writeValueAsString(map),
-            DeltaSourceConfig.class);
-    }
-
-    public static ObjectMapper jsonMapper() {
-        return ObjectMapperFactory.getThreadLocal();
     }
 
     @Override
     public String toString() {
         try {
-            return jsonMapper().writeValueAsString(this);
+            return Utils.JSON_MAPPER.get().writeValueAsString(this);
         } catch (JsonProcessingException e) {
             log.error("Failed to write DeltaLakeConnectorConfig ", e);
             return "";

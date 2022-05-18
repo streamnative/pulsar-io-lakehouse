@@ -25,10 +25,13 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.LinkedBlockingQueue;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.avro.Schema;
+import org.apache.avro.generic.GenericDatumReader;
 import org.apache.avro.generic.GenericRecord;
 import org.apache.pulsar.client.api.schema.GenericObject;
 import org.apache.pulsar.common.schema.SchemaType;
 import org.apache.pulsar.ecosystem.io.SinkConnectorConfig;
+import org.apache.pulsar.ecosystem.io.common.SchemaConverter;
 import org.apache.pulsar.ecosystem.io.sink.delta.DeltaSinkConnectorConfig;
 import org.apache.pulsar.functions.api.Record;
 import org.testng.annotations.Test;
@@ -64,7 +67,8 @@ public class SinkWriterTest {
             SchemaType.AVRO, "MyRecord");
 
         try {
-            GenericRecord genericRecord = sinkWriter.convertToAvroGenericData(new PulsarSinkRecord(record)).get();
+            GenericRecord genericRecord =
+                sinkWriter.convertToAvroGenericData(new PulsarSinkRecord(record), null, null).get();
             assertEquals(genericRecord.get("name"), "hang");
             assertEquals(genericRecord.get("age"), 18);
             assertEquals(genericRecord.get("phone"), "110");
@@ -79,7 +83,47 @@ public class SinkWriterTest {
 
     @Test
     public void testJsonGenericDataConverter() {
-        // TODO
+        SinkConnectorConfig sinkConnectorConfig = new DeltaSinkConnectorConfig();
+        SinkWriter sinkWriter = new SinkWriter(sinkConnectorConfig, new LinkedBlockingQueue<>());
+
+
+        Map<String, SchemaType> schemaMap = new HashMap<>();
+        schemaMap.put("name", SchemaType.STRING);
+        schemaMap.put("age", SchemaType.INT32);
+        schemaMap.put("phone", SchemaType.STRING);
+        schemaMap.put("address", SchemaType.STRING);
+        schemaMap.put("score", SchemaType.DOUBLE);
+
+        Map<String, Object> recordMap = new HashMap<>();
+        recordMap.put("name", "hang");
+        recordMap.put("age", 18);
+        recordMap.put("phone", "110");
+        recordMap.put("address", "GuangZhou, China");
+        recordMap.put("score", 59.9);
+
+        Record<GenericObject> record =
+            SinkConnectorUtils.generateRecord(schemaMap, recordMap,
+                SchemaType.JSON, "MyRecord");
+
+        try {
+            String schemaStr = record.getSchema().getSchemaInfo().getSchemaDefinition();
+            Schema schema = new org.apache.avro.Schema.Parser().parse(schemaStr);
+            Schema schemaWithoutNull = SchemaConverter.convertPulsarAvroSchemaToNonNullSchema(schema);
+            GenericDatumReader<GenericRecord> datumReader = new GenericDatumReader<>();
+            datumReader.setExpected(schemaWithoutNull);
+            datumReader.setSchema(schemaWithoutNull);
+            log.info("[hangc] schemaStr: {}", schemaStr);
+            GenericRecord genericRecord =
+                sinkWriter.convertToAvroGenericData(new PulsarSinkRecord(record), schemaWithoutNull, datumReader).get();
+            assertEquals(String.valueOf(genericRecord.get("name")), "hang");
+            assertEquals(genericRecord.get("age"), 18);
+            assertEquals(String.valueOf(genericRecord.get("phone")), "110");
+            assertEquals(String.valueOf(genericRecord.get("address")), "GuangZhou, China");
+            assertEquals(genericRecord.get("score"), 59.9);
+            assertEquals(genericRecord.getSchema().toString(), schemaWithoutNull.toString());
+        } catch (IOException e) {
+            fail();
+        }
     }
 
     @Test

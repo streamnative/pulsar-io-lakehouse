@@ -20,7 +20,6 @@
 package org.apache.pulsar.ecosystem.io.sink.delta;
 
 import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertTrue;
 import io.delta.standalone.DeltaLog;
@@ -113,7 +112,10 @@ public class DeltaLakeSinkConnectorTest {
         sinkConnector.close();
 
         // read data through delta lake api
-        DeltaLog deltaLog = DeltaLog.forTable(new Configuration(), tablePath);
+        Configuration configuration = new Configuration();
+        configuration.set("hadoop.fs.s3a.aws.credentials.provider",
+            "com.amazonaws.auth.DefaultAWSCredentialsProviderChain");
+        DeltaLog deltaLog = DeltaLog.forTable(configuration, tablePath);
         Snapshot currentSnapshot = deltaLog.snapshot();
         StructType schema = currentSnapshot.getMetadata().getSchema();
         assertEquals(currentSnapshot.getVersion(), 1);
@@ -137,7 +139,6 @@ public class DeltaLakeSinkConnectorTest {
             StructField field = schema.getFields()[i];
             assertEquals(field.getName(), fields.get(i));
             assertNotNull(schemaMap.get(field.getName()));
-            assertFalse(field.isNullable());
             // delta integer type is `integer`, avro schema integer type is `INT32`
             if (field.getDataType().getTypeName().equals("integer")) {
                 continue;
@@ -235,7 +236,6 @@ public class DeltaLakeSinkConnectorTest {
             StructField field = schema.getFields()[i];
             assertEquals(field.getName(), fields.get(i));
             assertNotNull(schemaMap.get(field.getName()));
-            assertFalse(field.isNullable());
             // delta integer type is `integer`, avro schema integer type is `INT32`
             if (field.getDataType().getTypeName().equals("integer")) {
                 continue;

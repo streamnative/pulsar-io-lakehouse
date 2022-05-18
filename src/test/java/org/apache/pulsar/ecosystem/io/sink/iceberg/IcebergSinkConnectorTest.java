@@ -20,6 +20,7 @@ package org.apache.pulsar.ecosystem.io.sink.iceberg;
 
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
+import static org.testng.Assert.fail;
 import java.io.IOException;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
@@ -34,7 +35,9 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Random;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.iceberg.CatalogProperties;
@@ -82,7 +85,7 @@ public class IcebergSinkConnectorTest {
         IcebergSinkConnectorConfig sinkConnectorConfig =
             (IcebergSinkConnectorConfig) sinkConnector.getSinkConnectorConfig();
 
-        Map<String, SchemaType> schemaTypeMap = new HashMap<>();
+        Map<String, SchemaType> schemaTypeMap = new TreeMap<>();
         schemaTypeMap.put("name", SchemaType.STRING);
         schemaTypeMap.put("age", SchemaType.INT32);
         schemaTypeMap.put("phone", SchemaType.STRING);
@@ -95,7 +98,7 @@ public class IcebergSinkConnectorTest {
         recordMap.put("phone", "110");
         recordMap.put("address", "GuangZhou, China");
         recordMap.put("score", 59.9);
-        for (int i = 0; i < 1500; ++i) {
+        for (int i = 0; i < 1400; ++i) {
             recordMap.put("age", i);
             recordMap.put("score", 59.9 + i);
             Record<GenericObject> record = SinkConnectorUtils
@@ -103,7 +106,18 @@ public class IcebergSinkConnectorTest {
             sinkConnector.write(record);
         }
 
-        Awaitility.await().until(() -> sinkConnector.getMessages().isEmpty());
+        schemaTypeMap.put("ba", SchemaType.INT32);
+        for (int i = 0; i < 100; ++i) {
+            recordMap.put("age", i);
+            recordMap.put("score", 159.9 + i);
+            recordMap.put("ba", i + 10);
+            Record<GenericObject> record = SinkConnectorUtils.generateRecord(schemaTypeMap, recordMap,
+                SchemaType.AVRO, "MyRecord");
+            sinkConnector.write(record);
+        }
+
+
+        Awaitility.waitAtMost(120, TimeUnit.SECONDS).until(() -> sinkConnector.getMessages().isEmpty());
         sinkConnector.close();
 
         // read message from iceberg table using java api to check the data correctness.
@@ -131,11 +145,13 @@ public class IcebergSinkConnectorTest {
         table.currentSnapshot().addedFiles().forEach(dataFile -> {
             assertEquals(dataFile.format(), FileFormat.PARQUET);
             assertEquals(dataFile.partition().size(), 0);
-            assertEquals(dataFile.recordCount(), 1500);
+            if (!(dataFile.recordCount() == 1400 || dataFile.recordCount() == 100)) {
+                fail();
+            }
         });
 
         CloseableIterable<org.apache.iceberg.data.Record> records =
-            IcebergGenerics.read(table).select("name", "age", "phone", "address", "score")
+            IcebergGenerics.read(table).select("name", "age", "phone", "address", "score", "ba")
                 .where(Expressions.greaterThan("age", 10))
                 .where(Expressions.lessThan("age", 20))
                 .where(Expressions.greaterThan("score", 75))

@@ -23,6 +23,7 @@ import static org.apache.pulsar.ecosystem.io.sink.iceberg.IcebergSinkConnectorCo
 import static org.apache.pulsar.ecosystem.io.sink.iceberg.IcebergSinkConnectorConfig.HIVE_CATALOG;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -30,7 +31,6 @@ import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.avro.Schema;
 import org.apache.avro.generic.GenericRecord;
-import org.apache.hadoop.conf.Configuration;
 import org.apache.iceberg.PartitionSpec;
 import org.apache.iceberg.Table;
 import org.apache.iceberg.UpdateSchema;
@@ -40,6 +40,7 @@ import org.apache.iceberg.io.TaskWriter;
 import org.apache.iceberg.io.WriteResult;
 import org.apache.iceberg.types.Types;
 import org.apache.pulsar.ecosystem.io.SinkConnectorConfig;
+import org.apache.pulsar.ecosystem.io.common.Utils;
 import org.apache.pulsar.ecosystem.io.exception.IncorrectParameterException;
 import org.apache.pulsar.ecosystem.io.exception.LakehouseConnectorException;
 import org.apache.pulsar.ecosystem.io.sink.LakehouseWriter;
@@ -55,6 +56,7 @@ public class IcebergWriter implements LakehouseWriter {
     private final TableLoader tableLoader;
     private volatile TaskWriter<GenericRecord> taskWriter;
     private volatile PulsarFileCommitter fileCommitter = null;
+    private MessageTaskWriterFactory taskWriterFactory;
 
     public IcebergWriter(SinkConnectorConfig sinkConfig, Schema schema) {
         this.config = (IcebergSinkConnectorConfig) sinkConfig;
@@ -64,11 +66,11 @@ public class IcebergWriter implements LakehouseWriter {
         switch (config.catalogImpl) {
             case HADOOP_CATALOG:
                 catalogLoader = CatalogLoader.hadoop(config.getCatalogName(),
-                    new Configuration(), config.catalogProperties);
+                    Utils.getDefaultHadoopConf(sinkConfig), config.catalogProperties);
                 break;
             case HIVE_CATALOG:
                 catalogLoader = CatalogLoader.hive(config.getCatalogName(),
-                    new Configuration(), config.catalogProperties);
+                    Utils.getDefaultHadoopConf(sinkConfig), config.catalogProperties);
                 break;
             default:
                 String errmsg = "Not support catalog: " + config.catalogImpl
@@ -85,7 +87,10 @@ public class IcebergWriter implements LakehouseWriter {
         }
         tableLoader.open();
 
-        MessageTaskWriterFactory taskWriterFactory = new MessageTaskWriterFactory(
+        // check whether given schema consist with table schema
+        checkAndUpdateIcebergTableSchema(schema);
+
+        taskWriterFactory = new MessageTaskWriterFactory(
             tableLoader.loadTable(), schema, config.parquetBatchSizeInBytes, config.fileFormat, null, false);
         // TODO specify partitionId and attemptId
         taskWriterFactory.initialize(0, 1);
@@ -126,9 +131,6 @@ public class IcebergWriter implements LakehouseWriter {
                 // commit files
                 WriteResult writeResult = taskWriter.complete();
                 getFileCommitter().commit(writeResult);
-
-                // close task writer
-                taskWriter.close();
             } catch (IOException e) {
                 log.error("Failed to close iceberg writer. ", e);
                 throw e;
@@ -136,10 +138,11 @@ public class IcebergWriter implements LakehouseWriter {
 
             // step2: update table schema
             checkAndUpdateIcebergTableSchema(newSchema);
-            schema = newSchema;
-        }
 
-        MessageTaskWriterFactory taskWriterFactory = new MessageTaskWriterFactory(tableLoader.loadTable(),
+        }
+        schema = newSchema;
+
+        taskWriterFactory = new MessageTaskWriterFactory(tableLoader.loadTable(),
             schema, config.parquetBatchSizeInBytes, config.fileFormat, null, false);
         taskWriterFactory.initialize(0, 1);
         taskWriter = taskWriterFactory.create();
@@ -151,10 +154,11 @@ public class IcebergWriter implements LakehouseWriter {
         taskWriter.write(record);
     }
 
-    public boolean flush() {
+    public synchronized boolean flush() {
         try {
             WriteResult writeResult = taskWriter.complete();
             getFileCommitter().commit(writeResult);
+            taskWriter = taskWriterFactory.create();
         } catch (IOException e) {
             log.error("Failed to commit. ", e);
             return false;
@@ -180,17 +184,19 @@ public class IcebergWriter implements LakehouseWriter {
         List<Types.NestedField> pulsarSchemaFields =
             AvroSchemaUtil.convert(schema).asNestedType().asNestedType().fields();
 
-        List<Types.NestedField> fieldsToAdd = new ArrayList<>();
+        Map<Types.NestedField, String> fieldsToAdd = new HashMap<>();
         List<Types.NestedField> fieldsToRemove = new ArrayList<>();
         Set<String> pulsarSchemaFieldsNames = new HashSet<>();
 
         // check fields to add
+        String prevFiledName = null;
         for (Types.NestedField pulsarSchemaField : pulsarSchemaFields) {
             String fieldName = pulsarSchemaField.name();
             if (originalIcebergSchema.findField(fieldName) == null) {
-                fieldsToAdd.add(pulsarSchemaField);
+                fieldsToAdd.put(pulsarSchemaField, prevFiledName);
                 log.info("Fields to add: {}", pulsarSchemaField);
             }
+            prevFiledName = fieldName;
             pulsarSchemaFieldsNames.add(fieldName);
         }
 
@@ -213,7 +219,13 @@ public class IcebergWriter implements LakehouseWriter {
 
         // update schema
         UpdateSchema updateSchema = table.updateSchema();
-        fieldsToAdd.forEach(field -> updateSchema.addColumn(field.name(), field.type()));
+        fieldsToAdd.forEach((field, t) -> {
+            if (t == null) {
+                updateSchema.addColumn(field.name(), field.type()).moveFirst(field.name());
+            } else {
+                updateSchema.addColumn(field.name(), field.type()).moveAfter(field.name(), t);
+            }
+        });
         fieldsToRemove.forEach(field -> updateSchema.deleteColumn(field.name()));
         updateSchema.commit();
 

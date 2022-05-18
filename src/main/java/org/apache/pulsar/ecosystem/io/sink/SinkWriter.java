@@ -43,9 +43,8 @@ import org.apache.pulsar.ecosystem.io.exception.LakehouseWriterException;
 public class SinkWriter implements Runnable {
     private final SinkConnectorConfig sinkConnectorConfig;
     private LakehouseWriter writer;
-    private final Schema.Parser parser;
     private Schema currentPulsarSchema;
-    private Schema avroSchema;
+    private Schema schemaWithoutNull;
     private PulsarSinkRecord lastRecord;
     private final GenericDatumReader<GenericRecord> datumReader;
     private final long timeIntervalPerCommit;
@@ -61,7 +60,6 @@ public class SinkWriter implements Runnable {
     public SinkWriter(SinkConnectorConfig sinkConnectorConfig, LinkedBlockingQueue<PulsarSinkRecord> messages) {
         this.messages = messages;
         this.sinkConnectorConfig = sinkConnectorConfig;
-        this.parser = new Schema.Parser();
         this.datumReader = new GenericDatumReader<>();
         this.timeIntervalPerCommit = TimeUnit.SECONDS.toMillis(sinkConnectorConfig.getMaxCommitInterval());
         this.maxRecordsPerCommit = sinkConnectorConfig.getMaxRecordsPerCommit();
@@ -95,19 +93,20 @@ public class SinkWriter implements Runnable {
                     continue;
                 }
                 if (currentPulsarSchema == null || !currentPulsarSchema.toString().equals(schemaStr)) {
-                    Schema schema = parser.parse(schemaStr);
+                    Schema schema = new Schema.Parser().parse(schemaStr);
                     currentPulsarSchema = schema;
-                    avroSchema = SchemaConverter.convertPulsarAvroSchemaToNonNullSchema(currentPulsarSchema);
                     if (log.isDebugEnabled()) {
-                        log.debug("new schema after convert: {}", avroSchema);
+                        log.debug("new schema: {}", currentPulsarSchema);
                     }
-                    datumReader.setSchema(schema);
-                    datumReader.setExpected(schema);
+                    schemaWithoutNull = SchemaConverter.convertPulsarAvroSchemaToNonNullSchema(schema);
+                    datumReader.setSchema(schemaWithoutNull);
+                    datumReader.setExpected(schemaWithoutNull);
                     if (getOrCreateWriter().updateSchema(schema)) {
                         resetStatus();
                     }
                 }
-                Optional<GenericRecord> avroRecord = convertToAvroGenericData(pulsarSinkRecord);
+                Optional<GenericRecord> avroRecord =
+                    convertToAvroGenericData(pulsarSinkRecord, schemaWithoutNull, datumReader);
                 if (avroRecord.isPresent()) {
                     getOrCreateWriter().writeAvroRecord(avroRecord.get());
                     lastRecord = pulsarSinkRecord;
@@ -164,12 +163,16 @@ public class SinkWriter implements Runnable {
             || recordsCnt >= maxRecordsPerCommit;
     }
 
-    public Optional<GenericRecord> convertToAvroGenericData(PulsarSinkRecord record) throws IOException {
+    public Optional<GenericRecord> convertToAvroGenericData(PulsarSinkRecord record,
+                                                            Schema schema,
+                                                            GenericDatumReader<GenericRecord> datumReader)
+        throws IOException {
         switch (record.getSchemaType()) {
             case AVRO:
                 return Optional.of((GenericRecord) record.getNativeObject());
             case JSON:
-                Decoder decoder = DecoderFactory.get().jsonDecoder(avroSchema, record.getNativeObject().toString());
+                Decoder decoder = DecoderFactory.get()
+                    .jsonDecoder(schema, record.getNativeObject().toString());
                 return Optional.of(datumReader.read(null, decoder));
             default:
                 log.error("not support this kind of schema: {}", record.getSchemaType());

@@ -46,6 +46,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.parquet.example.data.simple.SimpleGroup;
 import org.apache.parquet.schema.Type;
+import org.apache.pulsar.ecosystem.io.SourceConnectorConfig;
 import org.apache.pulsar.ecosystem.io.common.Murmur32Hash;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
@@ -77,8 +78,9 @@ public class DeltaReaderTest {
         map.put("maxReadBytesSizeOneRound", 1024 * 1024);
         map.put("maxReadRowCountOneRound", 1000);
         map.put("checkpointInterval", 30);
+        map.put("type", "delta");
 
-        DeltaSourceConfig config = DeltaSourceConfig.load(map);
+        SourceConnectorConfig config = SourceConnectorConfig.load(map);
         config.validate();
         deltaReader = new DeltaReader(config, 5);
         deltaReader.setFilter(readCursor -> true);
