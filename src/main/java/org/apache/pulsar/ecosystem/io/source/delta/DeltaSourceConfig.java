@@ -22,6 +22,7 @@ package org.apache.pulsar.ecosystem.io.source.delta;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.pulsar.ecosystem.io.SourceConnectorConfig;
 import org.apache.pulsar.ecosystem.io.common.FieldContext;
 import org.apache.pulsar.ecosystem.io.common.Utils;
@@ -58,13 +59,23 @@ public class DeltaSourceConfig extends SourceConnectorConfig {
     )
     int maxReadRowCountOneRound = DEFAULT_MAX_READ_ROW_COUNT_ONE_ROUND;
 
-
+    @FieldContext(
+        category = CATEGORY_SOURCE,
+        required = true,
+        doc = "The table path to fetch"
+    )
+    String tablePath;
 
     /**
      * Validate if the configuration is valid.
      */
     public void validate() throws IllegalArgumentException {
         super.validate();
+        if (StringUtils.isBlank(tablePath)) {
+            log.error("tablePath should be set.");
+            throw new IllegalArgumentException("tablePath should be set.");
+        }
+
         if (parquetParseThreads > 2 * DEFAULT_PARQUET_PARSE_THREADS
             || parquetParseThreads <= 0) {
             log.warn("parquetParseThreads: {} is out of limit, using default cpus: {}",
