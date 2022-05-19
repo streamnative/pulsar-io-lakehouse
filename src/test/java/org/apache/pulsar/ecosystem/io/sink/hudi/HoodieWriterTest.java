@@ -34,7 +34,6 @@ import java.util.Random;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -297,12 +296,6 @@ public class HoodieWriterTest {
         }).start();
 
         new Thread(() -> {
-            // wait a second to await for avoiding the creation files conflicts
-            try {
-                TimeUnit.SECONDS.sleep(3);
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
-            }
             try (HoodieWriter writer = new HoodieWriter(connectorConfig, testData.getSchema())){
                 // write test data
                 for (int i = 10; i < 20; i++) {
@@ -327,7 +320,9 @@ public class HoodieWriterTest {
         }).start();
 
         latch.await();
-        Assert.assertEquals(commitATime.get(), commitBTime.get());
+
+        long diff = Math.abs(commitATime.longValue() - commitBTime.longValue());
+        Assert.assertTrue(diff < 50);
 
         // read test data
         List<HoodieTestDataV1> readSet = getCommittedFiles(testPath, storage, hdfs)

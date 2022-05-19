@@ -39,7 +39,7 @@ jobs:
           CLOUD_BUCKET_NAME: ${{ secrets.CLOUD_BUCKET_NAME }}
           AWS_SECRET_KEY: ${{ secrets.AWS_SECRET_KEY }}
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        run: mvn test -DfailIfNoTests=false -Pcloud
+        run: mvn test -Pcloud
 
       - name: package surefire artifacts
         if: failure()
