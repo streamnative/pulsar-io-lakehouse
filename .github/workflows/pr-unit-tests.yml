@@ -35,6 +35,10 @@ jobs:
         run: mvn -ntp -B spotbugs:check
 
       - name: unit test after build
+        env:
+          CLOUD_BUCKET_NAME: ${{ env.CLOUD_BUCKET_NAME }}
+          AWS_SECRET_KEY: ${{ env.AWS_SECRET_KEY }}
+          AWS_ACCESS_KEY_ID: ${{ env.AWS_ACCESS_KEY_ID }}
         run: mvn test -ntp -B -DfailIfNoTests=false
 
       - name: package surefire artifacts

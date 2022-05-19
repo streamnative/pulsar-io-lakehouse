@@ -91,7 +91,7 @@ public class HoodieWriterTest {
         sinkConfig.setProperties(properties);
     }
 
-    private void setCloudProperties(String storage) {
+    private void setCloudProperties(String storage) throws Exception {
         if (storage.equals("S3")) {
             testPath = URI.create(getBucket() + "/writer-test-" + TestUtils.randomString(4));
             sinkConfig.setProperty("hoodie.base.path", testPath.toString());
@@ -100,10 +100,10 @@ public class HoodieWriterTest {
         }
     }
 
-    private String getBucket() {
+    private String getBucket() throws Exception {
         String bucket = System.getenv("CLOUD_BUCKET_NAME");
         if (bucket == null || bucket.trim().equals("")) {
-            throw new IllegalArgumentException("Failed to get the bucket name from environment variable");
+            throw new Exception("Failed to get the bucket name from environment variable");
         }
         return bucket + "/hudi";
     }
