@@ -8,8 +8,8 @@ This section describes how to build the Lakehouse source connector.
 You can get the Lakehouse source connector using one of the following methods
 
 If you use [Pulsar Function Worker](https://pulsar.apache.org/docs/en/functions-worker/) to run connectors in a cluster.
-- Download the NAR package from [the download page](https://github.com/streamnative/pulsar-io-lakehouse/releases).
-- Build it from the source code.
+    - Download the NAR package from [the download page](https://github.com/streamnative/pulsar-io-lakehouse/releases).
+    - Build it from the source code.
 
 To build the Lakehouse sink connector from the source code, follow these steps.
 1. Clone the source code to your machin.
@@ -27,6 +27,7 @@ To build the Lakehouse sink connector from the source code, follow these steps.
         ```bash
         $ mvn clean install -P cloud -DskipTests
         ```
+   
    After the connector is successfully built, a `NAR` package is generated under the target directory.
    ```bash
    $ ls target
@@ -50,6 +51,7 @@ Common Configuration
 | startTimestamp | long | false |  | Delta snapshot timestamp to start to capture data change, Time unit: second. The startSnapshotVersion and startTimestamp can only configure one |
 
 Lakehouse specific configuration
+
 ::: tabs
 
 @@@ DeltaLake Configuration
@@ -69,10 +71,13 @@ This Lakehouse connector use hadoop file system to read and write cloud object, 
 You can create a configuration file (JSON or YAML) to set the properties if you use [Pulsar Function Worker](https://pulsar.apache.org/docs/en/functions-worker/) to run connectors in a cluster.
 
 **Example**
+
 ::: tabs
 
 @@@ DeltaLake Example
+
 DeltaLake table stored in file system
+
 ```json
 {
     "tenant":"public",
@@ -97,6 +102,7 @@ DeltaLake table stored in file system
 ```
 
 DetlaLake table stored in cloud storage(s3, gcs or azure)
+
 ```json
 {
     "tenant":"public",

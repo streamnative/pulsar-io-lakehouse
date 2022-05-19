@@ -9,8 +9,8 @@ This section describes how to build the Lakehouse sink connector.
 You can get the Lakehouse sink connector using one of the following methods
 
 If you use [Pulsar Function Worker](https://pulsar.apache.org/docs/en/functions-worker/) to run connectors in a cluster.
-- Download the NAR package from [the download page](https://github.com/streamnative/pulsar-io-lakehouse/releases).
-- Build it from the source code.
+    - Download the NAR package from [the download page](https://github.com/streamnative/pulsar-io-lakehouse/releases).
+    - Build it from the source code.
 
 To build the Lakehouse sink connector from the source code, follow these steps.
 1. Clone the source code to your machin.
@@ -28,6 +28,7 @@ To build the Lakehouse sink connector from the source code, follow these steps.
        ```bash
        $ mvn clean install -P cloud -DskipTests
        ```
+   
    After the connector is successfully built, a `NAR` package is generated under the target directory.
    ```bash
    $ ls target
@@ -40,22 +41,24 @@ Before using the Lakehouse sink connector, you need to configure it. This table 
 
 Common Configuration
 
-| Name                                 | Type     | Required | Default | Description                                                 
-|--------------------------------------|----------|----------|---------|-------------------------------------------------------------|
-| className | String | true | N/A | Sink connector className |
-| type | String | true | N/A | The type of lakehouse connector. Available values: `hudi`, `iceberg` and `delta` |
-| maxCommitInterval | Integer | false | 120 | Max flush interval in seconds for each batch. Default is 120s |
-| maxRecordsPerCommit | Integer | false | 10_000_000 | Max records number for each batch to commit. Default is 10_000_000 |
-| maxCommitFailedTimes | Integer | false | 5 | Max commit fail times until failing the process. Default is 5 |
+| Name                                 | Type     | Required | Default | Description                                                                              
+|--------------------------------------|----------|----------|---------|------------------------------------------------------------------------------------------|
+| className | String | true | N/A | Sink connector className.  Should be `org.apache.pulsar.ecosystem.io.SinkConnector`      |
+| type | String | true | N/A | The type of lakehouse connector. Available values: `hudi`, `iceberg` and `delta`         |
+| maxCommitInterval | Integer | false | 120 | Max flush interval in seconds for each batch. Default is 120s                            |
+| maxRecordsPerCommit | Integer | false | 10_000_000 | Max records number for each batch to commit. Default is 10_000_000                       |
+| maxCommitFailedTimes | Integer | false | 5 | Max commit fail times until failing the process. Default is 5                            |
 | sinkConnectorQueueSize | Integer | false | 10_000 | The max queue size of sink connector to buffer records before writing to lakehouse table |
-| partitionColumns | List<String> | false | Collections.empytList() | Partition columns for lakehouse table |
+| partitionColumns | List<String> | false | Collections.empytList() | Partition columns for lakehouse table                                                    |
 
 `processingGuarantees`: Currently only support `EFFECTIVELY_ONCE`
 
 Lakehouse specific configuration
+
 ::: tabs
 
 @@@ Hudi configuration
+
 For the Hudi configurations, you can use all the configs list in [here](https://hudi.apache.org/docs/configurations#WRITE_CLIENT) to configure the Hudi write client.
 
 | Name                                 | Type     | Required | Default | Description
@@ -96,9 +99,11 @@ This Lakehouse connector use hadoop file system to read and write cloud object, 
 You can create a configuration file (JSON or YAML) to set the properties if you use [Pulsar Function Worker](https://pulsar.apache.org/docs/en/functions-worker/) to run connectors in a cluster.
 
 **Example**
+
 ::: tabs
 
 @@@ Hudi Example
+
 * JSON
 
    ```json
@@ -146,7 +151,9 @@ You can create a configuration file (JSON or YAML) to set the properties if you 
     ```
 
 @@@ Iceberg Example
+
 Iceberg table stored in file system
+
 ```json
 {
     "tenant":"public",
@@ -175,6 +182,7 @@ Iceberg table stored in file system
 ```
 
 Iceberg table stored in cloud storage(s3, gcs or azure)
+
 ```json
 {
     "tenant":"public",
@@ -204,7 +212,9 @@ Iceberg table stored in cloud storage(s3, gcs or azure)
 ```
 
 @@@ DeltaLake Example
+
 DeltaLake table stored in file system
+
 ```json
 {
     "tenant":"public",
@@ -227,6 +237,7 @@ DeltaLake table stored in file system
 ```
 
 Iceberg table stored in cloud storage(s3, gcs or azure)
+
 ```json
 {
     "tenant":"public",
