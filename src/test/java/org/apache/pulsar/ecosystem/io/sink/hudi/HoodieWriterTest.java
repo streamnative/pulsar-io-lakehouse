@@ -226,7 +226,7 @@ public class HoodieWriterTest {
         List<GenericRecord> readSet = getCommittedFiles(testPath, storage, hdfs)
             .map(p -> {
                 try {
-                    return readRecordsFromFile(p, null);
+                    return readRecordsFromFile(p, hadoopConf);
                 } catch (IOException e) {
                     throw new RuntimeException(e);
                 }
