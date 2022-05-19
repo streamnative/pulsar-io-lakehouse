@@ -41,12 +41,6 @@ Common Configuration
 
 | Name                                 | Type     | Required | Default | Description
 |--------------------------------------|----------|----------|---------|-------------------------------------------------------------|
-| tenant | String | true | N/A | The tenant of the output topics in Pulsar cluster |
-| namespace | String | true | N/A | The namespace of the output topics in Pulsar cluster |
-| name | String | true | N/A | The name of this source connector, which should be unique in Pulsar function cluster |
-| topicName | String | true | N/A | The output topic name. The lakehouse changelog record will write into it |
-| parallelism | Integer | true | N/A | The parallelism of the source connector |
-| processingGuarantees | String | false | ATLEAST_ONCE | Process guarantees. Possible Values: [`ATLEAST_ONCE`, `ATMOST_ONCE`, `EFFECTIVELY_ONCE`] |
 | className | String | true | N/A | Source connector className. Should be `org.apache.pulsar.ecosystem.io.SourceConnector` |
 | type | String | true | N/A | The type of lakehouse connector. Available values: `delta` |
 | checkpointInterval | int | false | 30 | Checkpoint interval. TimeUnit: second. Default is 30s |

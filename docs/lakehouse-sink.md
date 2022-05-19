@@ -42,13 +42,6 @@ Common Configuration
 
 | Name                                 | Type     | Required | Default | Description                                                 
 |--------------------------------------|----------|----------|---------|-------------------------------------------------------------|
-| tenant | String | true | N/A | The tenant of the input topics in Pulsar cluster |
-| namespace | String | true | N/A | The namespace of the input topics in Pulsar cluster |
-| name | String | true | N/A | The name of this sink connector, which should be unique in Pulsar function cluster |
-| parallelism | Integer | true | N/A | The parallelism of the sink connector |
-| inputs | List<String> | true | N/A | The list of input topics |
-| sourceSubscriptionName | String | false | N/A |  Pulsar source subscription name if user wants a specific subscription-name for input-topic consumer |
-| processingGuarantees | String | false | N/A | The processing guarantees (aka delivery semantics) applied to the sink. Currently only support `EFFECTIVELY_ONCE` |
 | className | String | true | N/A | Sink connector className |
 | type | String | true | N/A | The type of lakehouse connector. Available values: `hudi`, `iceberg` and `delta` |
 | maxCommitInterval | Integer | false | 120 | Max flush interval in seconds for each batch. Default is 120s |
@@ -57,6 +50,7 @@ Common Configuration
 | sinkConnectorQueueSize | Integer | false | 10_000 | The max queue size of sink connector to buffer records before writing to lakehouse table |
 | partitionColumns | List<String> | false | Collections.empytList() | Partition columns for lakehouse table |
 
+`processingGuarantees`: Currently only support `EFFECTIVELY_ONCE`
 
 Lakehouse specific configuration
 ::: tabs
