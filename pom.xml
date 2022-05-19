@@ -44,7 +44,7 @@
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     <redirectTestOutputToFile>true</redirectTestOutputToFile>
     <spotbugs-annotations.version>3.1.8</spotbugs-annotations.version>
-    <testRetryCount>2</testRetryCount>
+    <testRetryCount>0</testRetryCount>
 
     <!-- connector dependencies -->
     <jackson.version>2.13.2.1</jackson.version>
