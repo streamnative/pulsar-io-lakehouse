@@ -18,11 +18,13 @@
  */
 package org.apache.pulsar.ecosystem.io.sink.hudi;
 
+import java.io.Closeable;
 import java.io.IOException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.avro.Schema;
 import org.apache.avro.generic.GenericRecord;
 import org.apache.hudi.common.model.HoodieAvroPayload;
+import org.apache.hudi.common.model.HoodieAvroRecord;
 import org.apache.hudi.common.model.HoodieRecord;
 import org.apache.hudi.common.util.Option;
 import org.apache.hudi.keygen.KeyGenerator;
@@ -32,7 +34,7 @@ import org.apache.pulsar.ecosystem.io.exception.HoodieConnectorException;
 import org.apache.pulsar.ecosystem.io.sink.LakehouseWriter;
 
 @Slf4j
-public class HoodieWriter implements LakehouseWriter {
+public class HoodieWriter implements LakehouseWriter, Closeable {
 
     BufferedConnectWriter writer;
     HoodieWriterProvider writerProvider;
@@ -69,7 +71,7 @@ public class HoodieWriter implements LakehouseWriter {
         if (log.isDebugEnabled()) {
             log.debug("Writing generic records to the hudi: {}", record);
         }
-        HoodieRecord hoodieRecord = new HoodieRecord(
+        HoodieRecord hoodieRecord = new HoodieAvroRecord(
             keyGenerator.getKey(record), new HoodieAvroPayload(Option.of(record)));
         writer.writeHoodieRecord(hoodieRecord);
     }

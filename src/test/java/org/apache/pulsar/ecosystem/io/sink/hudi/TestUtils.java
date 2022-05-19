@@ -18,10 +18,34 @@
  */
 package org.apache.pulsar.ecosystem.io.sink.hudi;
 
+import java.io.IOException;
 import java.security.SecureRandom;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Queue;
 import java.util.Random;
+import org.apache.hadoop.fs.FileStatus;
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.Path;
 
 public class TestUtils {
+
+    public static List<String> walkThroughCloudDir(FileSystem fileSystem, String path) throws IOException {
+        List<String> files = new LinkedList<>();
+        Queue<Path> dirs = new LinkedList<>();
+        dirs.add(new Path(path));
+        Path dir;
+        while ((dir = dirs.poll()) != null) {
+            for (FileStatus fileStatus : fileSystem.listStatus(dir)) {
+                if (fileStatus.isDirectory()) {
+                    dirs.add(fileStatus.getPath());
+                    continue;
+                }
+                files.add(fileStatus.getPath().toString());
+            }
+        }
+        return files;
+    }
 
     public static String randomString(int len) {
         return new RandomString(len).nextString();

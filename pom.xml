@@ -52,15 +52,16 @@
     <pulsar.version>2.9.2</pulsar.version>
     <log4j2.version>2.16.0</log4j2.version>
     <slf4j.version>1.7.25</slf4j.version>
-    <hadoop.version>3.2.1</hadoop.version>
+    <hadoop.version>3.2.2</hadoop.version>
     <iceberg.version>0.13.1</iceberg.version>
     <parquet.version>1.12.0</parquet.version>
-    <hudi.version>0.10.1</hudi.version>
+    <hudi.version>0.11.0</hudi.version>
     <delta.version>0.3.0</delta.version>
     <parquet.avro.version>1.12.2</parquet.avro.version>
     <netty.version>4.1.77.Final</netty.version>
     <aws.sdk.version>1.12.220</aws.sdk.version>
     <gcs.version>hadoop3-2.2.1</gcs.version>
+    <curator.version>2.12.0</curator.version>
 
     <!-- test dependencies -->
     <testng.version>7.3.0</testng.version>
@@ -158,11 +159,6 @@
       </dependency>
 
       <!-- delta lake dependency -->
-      <dependency>
-        <groupId>io.delta</groupId>
-        <artifactId>delta-standalone_2.12</artifactId>
-        <version>${delta.version}</version>
-      </dependency>
       <dependency>
         <groupId>org.apache.parquet</groupId>
         <artifactId>parquet-avro</artifactId>
@@ -406,10 +402,6 @@
       <artifactId>hudi-java-client</artifactId>
       <exclusions>
         <exclusion>
-          <groupId>org.apache.hbase</groupId>
-          <artifactId>*</artifactId>
-        </exclusion>
-        <exclusion>
           <groupId>io.prometheus</groupId>
           <artifactId>*</artifactId>
         </exclusion>
@@ -422,6 +414,20 @@
           <artifactId>*</artifactId>
         </exclusion>
       </exclusions>
+    </dependency>
+
+    <dependency>
+      <groupId>org.apache.curator</groupId>
+      <artifactId>curator-framework</artifactId>
+      <version>${curator.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.apache.hudi</groupId>
+      <artifactId>hudi-client-common</artifactId>
+      <version>${hudi.version}</version>
+      <scope>test</scope>
+      <classifier>tests</classifier>
     </dependency>
 
     <!-- test dependencies -->
