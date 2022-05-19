@@ -75,7 +75,7 @@
     <nifi.nar.plugin.version>1.2.0</nifi.nar.plugin.version>
     <puppycrawl.checkstyle.version>8.37</puppycrawl.checkstyle.version>
     <spotbugs-maven-plugin.version>3.1.8</spotbugs-maven-plugin.version>
-    <fname></fname>
+    <cloudPkgSuffix></cloudPkgSuffix>
   </properties>
 
   <licenses>
@@ -448,7 +448,7 @@
     <profile>
       <id>cloud</id>
       <properties>
-        <fname>-cloud</fname>
+        <cloudPkgSuffix>-cloud</cloudPkgSuffix>
       </properties>
       <dependencies>
         <!-- Cloud dependencies begin -->
@@ -483,7 +483,7 @@
   </profiles>
 
   <build>
-    <finalName>${project.artifactId}-${project.version}${fname}</finalName>
+    <finalName>${project.artifactId}-${project.version}${cloudPkgSuffix}</finalName>
     <pluginManagement>
       <plugins>
         <!-- compile -->
@@ -520,7 +520,7 @@
           <version>${nifi.nar.plugin.version}</version>
           <extensions>true</extensions>
           <configuration>
-            <finalName>${project.artifactId}-${project.version}${fname}</finalName>
+            <finalName>${project.artifactId}-${project.version}${cloudPkgSuffix}</finalName>
           </configuration>
           <executions>
             <execution>
