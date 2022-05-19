@@ -25,6 +25,9 @@ jobs:
       - name: License check
         run: mvn -ntp -B license:check
 
+      - name: Build cloud package with Maven skipTests
+        run: mvn clean install -ntp -B -DskipTests -P cloud
+
       - name: Build with Maven skipTests
         run: mvn clean install -ntp -B -DskipTests
 
