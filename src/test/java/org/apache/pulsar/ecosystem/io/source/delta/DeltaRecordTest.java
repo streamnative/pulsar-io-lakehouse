@@ -22,28 +22,23 @@ import static org.apache.pulsar.ecosystem.io.source.delta.DeltaRecord.OP_ADD_REC
 import static org.apache.pulsar.ecosystem.io.source.delta.DeltaRecord.OP_FIELD;
 import static org.apache.pulsar.ecosystem.io.source.delta.DeltaRecord.PARTITION_VALUE_FIELD;
 import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertTrue;
 import static org.testng.AssertJUnit.fail;
 import io.delta.standalone.types.DoubleType;
 import io.delta.standalone.types.LongType;
 import io.delta.standalone.types.StringType;
-import io.delta.standalone.types.StructField;
 import io.delta.standalone.types.StructType;
 import io.netty.util.concurrent.DefaultThreadFactory;
 import java.io.IOException;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.pulsar.client.api.schema.Field;
 import org.apache.pulsar.client.api.schema.GenericRecord;
 import org.apache.pulsar.client.api.schema.GenericSchema;
 import org.apache.pulsar.ecosystem.io.SourceConnectorConfig;
@@ -74,8 +69,7 @@ public class DeltaRecordTest {
         map.put("startSnapshotVersion", 1);
         map.put("fetchHistoryData", true);
         map.put("tablePath", path);
-        map.put("fileSystemType", "filesystem");
-        map.put("parquetParseParallelism", 3);
+        map.put("parquetParseThreads", 3);
         map.put("maxReadBytesSizeOneRound", 1024 * 1024);
         map.put("maxReadRowCountOneRound", 1000);
         map.put("checkpointInterval", 30);
@@ -94,14 +88,12 @@ public class DeltaRecordTest {
     public void testConvertToPulsarSchema() {
         try {
             GenericSchema<GenericRecord> pulsarSchema = DeltaRecord.convertToPulsarSchema(deltaSchema);
-            Set<String> fieldsInPulsarSchema = new HashSet<>();
-            for (Field field : pulsarSchema.getFields()) {
-                assertNotNull(deltaSchema.get(field.getName()));
-                fieldsInPulsarSchema.add(field.getName());
-            }
 
-            for (StructField field : deltaSchema.getFields()) {
-                assertTrue(fieldsInPulsarSchema.contains(field.getName()));
+            //check fields size and order
+            assertEquals(pulsarSchema.getFields().size(), deltaSchema.getFields().length);
+
+            for (int i = 0; i < pulsarSchema.getFields().size(); i++) {
+                assertEquals(pulsarSchema.getFields().get(i).getName(), deltaSchema.getFields()[i].getName());
             }
         } catch (IOException e) {
             fail();

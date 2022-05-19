@@ -392,14 +392,13 @@ public class DeltaReader {
                         maxConcurrency++;
                     }
                 } catch (IOException e) {
-                    log.error("Failed to get file records info. ", e);
+                    log.error("Failed to get file records info.", e);
                     return -1;
                 }
             }
         }
         return maxConcurrency;
     }
-
 
     public CompletableFuture<List<RowRecordData>> readParquetFileAsync(ReadCursor startCursor,
                                          ExecutorService executorService,
@@ -413,7 +412,7 @@ public class DeltaReader {
                 try {
                     reader.open(filePath, conf);
                 } catch (IOException e) {
-                    log.error("Open parquet file {} failed ", filePath, e);
+                    log.error("Open parquet file {} failed.", filePath, e);
                     readStatus.set(-1);
                     return recordData;
                 }
@@ -441,14 +440,14 @@ public class DeltaReader {
                     }
                     readStatus.set(1);
                 } catch (IOException e) {
-                    log.error("readPartParquetFileAsync readBatch encounter exception,", e);
+                    log.error("readPartParquetFileAsync readBatch encounter exception.", e);
                     readStatus.set(-1);
                 } finally {
                     try {
                         reader.close();
                     } catch (IOException e2) {
                         log.error("readPartParquetFileAsync close encounter exception,", e2);
-                        readStatus.set(-1);
+                        readStatus.set(-2);
                     }
                 }
             } else if (action instanceof CommitInfo) {

@@ -329,8 +329,7 @@ public class DeltaSourceConnectorTest {
         Map<String, Object> configMap = new HashMap<>();
         configMap.put("fetchHistoryData", true);
         configMap.put("tablePath", path);
-        configMap.put("fileSystemType", "filesystem");
-        configMap.put("parquetParseParallelism", 3);
+        configMap.put("parquetParseThreads", 3);
         configMap.put("maxReadBytesSizeOneRound", 1024 * 1024);
         configMap.put("maxReadRowCountOneRound", 1000);
         configMap.put("checkpointInterval", 0);

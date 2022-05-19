@@ -62,7 +62,7 @@ public class DeltaWriter implements LakehouseWriter {
     private final DeltaSinkConnectorConfig config;
     private final String appId;
     private DeltaLog deltaLog;
-    private final Schema schema;
+    private Schema schema;
     private DeltaParquetWriter writer;
     private Random random;
 
@@ -168,6 +168,7 @@ public class DeltaWriter implements LakehouseWriter {
         }
 
         writer.updateSchema(schema);
+        this.schema = schema;
         return true;
     }
 

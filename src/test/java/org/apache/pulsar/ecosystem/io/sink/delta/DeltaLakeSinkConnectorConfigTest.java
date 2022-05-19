@@ -61,12 +61,13 @@ public class DeltaLakeSinkConnectorConfigTest {
         config.put("sinkConnectorQueueSize", 1000);
         config.put("maxParquetFileSize", 1024 * 1024);
         config.put("tablePath", "/tmp/test_v1");
-        config.put("fileSystemType", "filesystem");
         config.put("partitionColumns", Arrays.asList("a", "b", "c"));
         config.put("compression", "aa");
         config.put("type", "delta");
 
         DeltaSinkConnectorConfig deltaLakeSinkConnectorConfig = DeltaSinkConnectorConfig.load(config);
+        assertEquals(deltaLakeSinkConnectorConfig.getCompression(), "aa");
+
         deltaLakeSinkConnectorConfig.validate();
 
         assertEquals(deltaLakeSinkConnectorConfig.getCompression(), "SNAPPY");
