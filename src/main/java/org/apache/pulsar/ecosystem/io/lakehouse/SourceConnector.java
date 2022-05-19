@@ -346,7 +346,9 @@ public class SourceConnector implements Source<GenericRecord> {
             DeltaCheckpoint s = checkpointMap.get(slot);
             if (s == null) {
                 // no checkpoint before means there are no record before, no need to filter
-                log.info("checkpoint for partition {} {} is missing", checkpointMap, slot);
+                if (log.isDebugEnabled()) {
+                    log.debug("checkpoint for partition {} {} is missing", checkpointMap, slot);
+                }
                 return true;
             }
 
