@@ -86,6 +86,7 @@ DeltaLake table stored in file system
     "parallelism":1,
     "topicName": "delta_source",
     "processingGuarantees":"ATLEAST_ONCE",
+    "archive": "connectors/pulsar-io-lakehouse-{{connector:version}}.nar",
     "className":"org.apache.pulsar.ecosystem.io.SourceConnector",
     "configs":{
         "type":"delta",
@@ -111,6 +112,7 @@ DetlaLake table stored in cloud storage(s3, gcs or azure)
     "parallelism":1,
     "topicName": "delta_source",
     "processingGuarantees":"ATLEAST_ONCE",
+    "archive": "connectors/pulsar-io-lakehouse-{{connector:version}}.nar",
     "className":"org.apache.pulsar.ecosystem.io.SourceConnector",
     "configs":{
         "type":"delta",

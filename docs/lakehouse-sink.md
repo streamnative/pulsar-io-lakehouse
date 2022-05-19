@@ -163,7 +163,7 @@ Iceberg table stored in file system
     "inputs": [
       "test-iceberg-pulsar"
     ],
-    "sourceSubscriptionName":"sandbox_iceberg_sink",
+    "archive": "connectors/pulsar-io-lakehouse-{{connector:version}}.nar",
     "processingGuarantees":"EFFECTIVELY_ONCE",
     "className":"org.apache.pulsar.ecosystem.io.SinkConnector",
     "configs":{
@@ -192,7 +192,7 @@ Iceberg table stored in cloud storage(s3, gcs or azure)
     "inputs": [
       "test-iceberg-pulsar"
     ],
-    "sourceSubscriptionName":"sandbox_iceberg_sink",
+    "archive": "connectors/pulsar-io-lakehouse-{{connector:version}}.nar",
     "processingGuarantees":"EFFECTIVELY_ONCE",
     "className":"org.apache.pulsar.ecosystem.io.SinkConnector",
     "configs":{
@@ -224,7 +224,7 @@ DeltaLake table stored in file system
     "inputs": [
       "test-delta-pulsar"
     ],
-    "sourceSubscriptionName":"sandbox_delta_sink",
+    "archive": "connectors/pulsar-io-lakehouse-{{connector:version}}.nar",
     "processingGuarantees":"EFFECTIVELY_ONCE",
     "className":"org.apache.pulsar.ecosystem.io.SinkConnector",
     "configs":{
@@ -247,7 +247,7 @@ Iceberg table stored in cloud storage(s3, gcs or azure)
     "inputs": [
       "test-delta-pulsar"
     ],
-    "sourceSubscriptionName":"sandbox_delta_sink",
+    "archive": "connectors/pulsar-io-lakehouse-{{connector:version}}.nar",
     "processingGuarantees":"EFFECTIVELY_ONCE",
     "className":"org.apache.pulsar.ecosystem.io.SinkConnector",
     "configs":{
