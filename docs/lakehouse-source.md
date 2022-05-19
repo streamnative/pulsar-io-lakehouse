@@ -192,7 +192,7 @@ This example describes how to use the Lakehouse source connector to fetch data f
     --source-config-file <lakehouse-source-config.yaml>
     ```
 
-4. Write rows into Lakehouse table. You can follow this guide [hudi](https://hudi.apache.org/docs/quick-start-guide), [iceberg](https://iceberg.apache.org/docs/latest/getting-started/) and [delta](https://delta.io/learn/getting-started)
+4. Write rows into Lakehouse table. You can follow this guide [delta](https://delta.io/learn/getting-started)
 
 5. Consume pulsar topics to get changelogs.
     ```bash

@@ -300,7 +300,7 @@ This example shows how to create a Lakehouse sink connector on a Pulsar cluster 
 
 ```
 $ PULSAR_HOME/bin/pulsar-admin sinks create \
---sink-config-file <hudi-sink-config.yaml>
+--sink-config-file <lakehouse-sink-config.yaml>
 ```
 
 @@@
@@ -311,7 +311,7 @@ You can make the Lakehouse sink connector as a built-in connector and use it on 
 
 ### Standalone cluster
 
-This example describes how to use the Lakehouse sink connector to fetch data from Pulsar topics and save data to Hudi tables in standalone mode.
+This example describes how to use the Lakehouse sink connector to fetch data from Pulsar topics and save data to Lakehouse tables in standalone mode.
 
 #### Prerequisites
 
