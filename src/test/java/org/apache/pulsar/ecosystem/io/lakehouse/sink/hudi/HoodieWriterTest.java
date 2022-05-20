@@ -181,7 +181,7 @@ public class HoodieWriterTest {
             hoodieWriter.writeAvroRecord(data.genericRecord());
             writeSetV1.add(data);
         }
-        Assert.assertEquals(writeSetV1.size(), 10);
+        Assert.assertEquals(writeSetV1.size(), 3);
 
         List<String> committedFiles = getCommittedFiles(testPath, storage, hdfs).collect(Collectors.toList());
         Assert.assertEquals(committedFiles.size(), 0);
@@ -216,7 +216,7 @@ public class HoodieWriterTest {
             hoodieWriter.writeAvroRecord(data.genericRecord());
             writeSetV2.add(data);
         }
-        Assert.assertEquals(writeSetV2.size(), 10);
+        Assert.assertEquals(writeSetV2.size(), 3);
 
         // flush the record and commit
         hoodieWriter.flush();
