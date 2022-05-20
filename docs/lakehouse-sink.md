@@ -43,7 +43,6 @@ Common Configuration
 
 | Name                                 | Type     | Required | Default | Description                                                                              
 |--------------------------------------|----------|----------|---------|------------------------------------------------------------------------------------------|
-| className | String | true | N/A | Sink connector className.  Should be `org.apache.pulsar.ecosystem.io.SinkConnector`      |
 | type | String | true | N/A | The type of lakehouse connector. Available values: `hudi`, `iceberg` and `delta`         |
 | maxCommitInterval | Integer | false | 120 | Max flush interval in seconds for each batch. Default is 120s                            |
 | maxRecordsPerCommit | Integer | false | 10_000_000 | Max records number for each batch to commit. Default is 10_000_000                       |
@@ -116,7 +115,6 @@ You can create a configuration file (JSON or YAML) to set the properties if you 
         ],
         "archive": "connectors/pulsar-io-hudi-{{connector:version}}.nar",
         "parallelism": 1,
-        "className": "org.apache.pulsar.ecosystem.io.SinkConnector",
         "configs":   {
             "hoodie.table.name": "hudi-connector-test",
             "hoodie.table.type": "COPY_ON_WRITE",
@@ -139,7 +137,6 @@ You can create a configuration file (JSON or YAML) to set the properties if you 
       - test-hudi-pulsar
     archive: connectors/pulsar-io-hudi-{{connector:version}}.nar
     parallelism: 1
-    className: org.apache.pulsar.ecosystem.io.SinkConnector
     configs:
       hoodie.table.name: hudi-connector-test
       hoodie.table.type: COPY_ON_WRITE
@@ -165,7 +162,6 @@ Iceberg table stored in file system
     ],
     "archive": "connectors/pulsar-io-lakehouse-{{connector:version}}.nar",
     "processingGuarantees":"EFFECTIVELY_ONCE",
-    "className":"org.apache.pulsar.ecosystem.io.SinkConnector",
     "configs":{
         "type":"iceberg",
         "maxCommitInterval":120,
@@ -194,7 +190,6 @@ Iceberg table stored in cloud storage(s3, gcs or azure)
     ],
     "archive": "connectors/pulsar-io-lakehouse-{{connector:version}}.nar",
     "processingGuarantees":"EFFECTIVELY_ONCE",
-    "className":"org.apache.pulsar.ecosystem.io.SinkConnector",
     "configs":{
         "type":"iceberg",
         "maxCommitInterval":120,
@@ -226,7 +221,6 @@ DeltaLake table stored in file system
     ],
     "archive": "connectors/pulsar-io-lakehouse-{{connector:version}}.nar",
     "processingGuarantees":"EFFECTIVELY_ONCE",
-    "className":"org.apache.pulsar.ecosystem.io.SinkConnector",
     "configs":{
         "type":"delta",
         "maxCommitInterval":120,
@@ -249,7 +243,6 @@ Iceberg table stored in cloud storage(s3, gcs or azure)
     ],
     "archive": "connectors/pulsar-io-lakehouse-{{connector:version}}.nar",
     "processingGuarantees":"EFFECTIVELY_ONCE",
-    "className":"org.apache.pulsar.ecosystem.io.SinkConnector",
     "configs":{
         "type":"delta",
         "maxCommitInterval":120,

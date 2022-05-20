@@ -42,7 +42,6 @@ Common Configuration
 
 | Name                                 | Type     | Required | Default | Description
 |--------------------------------------|----------|----------|---------|-------------------------------------------------------------|
-| className | String | true | N/A | Source connector className. Should be `org.apache.pulsar.ecosystem.io.SourceConnector` |
 | type | String | true | N/A | The type of lakehouse connector. Available values: `delta` |
 | checkpointInterval | int | false | 30 | Checkpoint interval. TimeUnit: second. Default is 30s |
 | queueSize | int | false | 10_000 | Source connector buffer queue size, used for store records before send to pulsar topic. Default is 10_000 |
@@ -87,7 +86,6 @@ DeltaLake table stored in file system
     "topicName": "delta_source",
     "processingGuarantees":"ATLEAST_ONCE",
     "archive": "connectors/pulsar-io-lakehouse-{{connector:version}}.nar",
-    "className":"org.apache.pulsar.ecosystem.io.SourceConnector",
     "configs":{
         "type":"delta",
         "checkpointInterval": 180,
@@ -113,7 +111,6 @@ DetlaLake table stored in cloud storage(s3, gcs or azure)
     "topicName": "delta_source",
     "processingGuarantees":"ATLEAST_ONCE",
     "archive": "connectors/pulsar-io-lakehouse-{{connector:version}}.nar",
-    "className":"org.apache.pulsar.ecosystem.io.SourceConnector",
     "configs":{
         "type":"delta",
         "checkpointInterval": 180,
