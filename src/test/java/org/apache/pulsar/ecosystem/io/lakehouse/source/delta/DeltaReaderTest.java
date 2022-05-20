@@ -56,7 +56,7 @@ import org.testng.annotations.Test;
  * DeltaRead test.
  */
 public class DeltaReaderTest {
-    String path = "src/test/java/resources/external/sales";
+    String path = getClass().getClassLoader().getResource("external/sales").toString();
     DeltaReader deltaReader;
     SourceContextForTest sourceContext;
     ExecutorService executorService;

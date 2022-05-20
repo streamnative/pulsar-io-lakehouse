@@ -323,7 +323,7 @@ public class DeltaSourceConnectorTest {
 
     @Test
     public void integrationTest() throws Exception {
-        String path = "src/test/java/resources/external/sales";
+        String path = this.getClass().getClassLoader().getResource("external/sales").toString();
         Map<String, Object> configMap = new HashMap<>();
         configMap.put("fetchHistoryData", true);
         configMap.put("tablePath", path);

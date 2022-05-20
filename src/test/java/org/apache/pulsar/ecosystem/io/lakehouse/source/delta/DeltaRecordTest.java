@@ -50,7 +50,7 @@ import org.testng.annotations.Test;
  */
 @Slf4j
 public class DeltaRecordTest {
-    String path = "src/test/java/resources/external/sales";
+    String path = getClass().getClassLoader().getResource("external/sales").toString();
     DeltaReader deltaReader;
     SourceContextForTest sourceContext;
     ExecutorService executorService;

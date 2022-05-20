@@ -51,11 +51,12 @@ public class ParquetReaderTest {
         .add("customer", new StringType())
         .add("total_cost", new FloatType());
 
+    private final String path = getClass().getClassLoader().getResource("external/sales/"
+        + "part-00000-29bf7ab2-30a1-473b-8e0c-2970c40059dc-c000.snappy.parquet").getPath();
+
     @Test
     public void testFetchAadParseParquet() throws IOException {
         Configuration configuration = new Configuration();
-        String path = "src/test/java/resources/external/sales/"
-            + "part-00000-29bf7ab2-30a1-473b-8e0c-2970c40059dc-c000.snappy.parquet";
 
         DeltaParquetReader.Parquet parquet = DeltaParquetReader.getTotalParquetData(path, configuration);
         try {
@@ -83,8 +84,6 @@ public class ParquetReaderTest {
     @Test
     public void testParquetGetRowNum() throws IOException {
         Configuration configuration = new Configuration();
-        String path = "src/test/java/resources/external/sales/"
-            + "part-00000-29bf7ab2-30a1-473b-8e0c-2970c40059dc-c000.snappy.parquet";
         long totalRowNumber = 28 * 12 * 21;
         assertEquals(totalRowNumber, DeltaParquetReader.getRowNum(path, configuration));
     }
@@ -93,8 +92,6 @@ public class ParquetReaderTest {
     public void testReadBatch() throws IOException {
         DeltaParquetReader parquetReader = new DeltaParquetReader();
         Configuration configuration = new Configuration();
-        String path = "src/test/java/resources/external/sales/"
-            + "part-00000-29bf7ab2-30a1-473b-8e0c-2970c40059dc-c000.snappy.parquet";
         int rowCnt = 5;
 
         parquetReader.open(path, configuration);
