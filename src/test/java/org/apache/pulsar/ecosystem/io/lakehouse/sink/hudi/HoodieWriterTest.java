@@ -117,7 +117,7 @@ public class HoodieWriterTest {
         return Optional.empty();
     }
 
-    @Test(dataProvider = "storage")
+    @Test(dataProvider = "storage", timeOut = 10 * 60 * 1000)
     public void testHoodieWriteAndRead(String storage) throws Exception {
         setCloudProperties(storage);
         final SinkConnectorConfig sinkConnectorConfig = sinkConfig;
@@ -162,7 +162,7 @@ public class HoodieWriterTest {
         hoodieWriter.close();
     }
 
-    @Test(dataProvider = "storage")
+    @Test(dataProvider = "storage", timeOut = 10 * 60 * 1000)
     public void testHoodieSchemaFieldAdd(String storage) throws Exception {
         setCloudProperties(storage);
         final SinkConnectorConfig sinkConnectorConfig = sinkConfig;
@@ -250,7 +250,7 @@ public class HoodieWriterTest {
         hoodieWriter.close();
     }
 
-    @Test(dataProvider = "storage")
+    @Test(dataProvider = "storage", timeOut = 10 * 60 * 1000)
     public void testConcurrentWrite(String storage) throws Exception {
         setCloudProperties(storage);
         final SinkConnectorConfig connectorConfig = sinkConfig;
