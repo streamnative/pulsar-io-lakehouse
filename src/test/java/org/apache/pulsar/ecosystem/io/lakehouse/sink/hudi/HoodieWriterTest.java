@@ -117,7 +117,7 @@ public class HoodieWriterTest {
         return Optional.empty();
     }
 
-    @Test(dataProvider = "storage")
+    @Test(dataProvider = "storage", timeOut = 10 * 60 * 1000)
     public void testHoodieWriteAndRead(String storage) throws Exception {
         setCloudProperties(storage);
         final SinkConnectorConfig sinkConnectorConfig = sinkConfig;
@@ -162,7 +162,7 @@ public class HoodieWriterTest {
         hoodieWriter.close();
     }
 
-    @Test(dataProvider = "storage")
+    @Test(dataProvider = "storage", timeOut = 10 * 60 * 1000)
     public void testHoodieSchemaFieldAdd(String storage) throws Exception {
         setCloudProperties(storage);
         final SinkConnectorConfig sinkConnectorConfig = sinkConfig;
@@ -176,12 +176,12 @@ public class HoodieWriterTest {
 
         // write v1 test data
         List<HoodieTestDataV1> writeSetV1 = new LinkedList<>();
-        for (int i = 0; i < 10; i++) {
+        for (int i = 0; i < 3; i++) {
             HoodieTestDataV1 data = new HoodieTestDataV1(i, i + "-" + TestUtils.randomString(4));
             hoodieWriter.writeAvroRecord(data.genericRecord());
             writeSetV1.add(data);
         }
-        Assert.assertEquals(writeSetV1.size(), 10);
+        Assert.assertEquals(writeSetV1.size(), 3);
 
         List<String> committedFiles = getCommittedFiles(testPath, storage, hdfs).collect(Collectors.toList());
         Assert.assertEquals(committedFiles.size(), 0);
@@ -211,12 +211,12 @@ public class HoodieWriterTest {
         // the v1 data should be committed after updating the schema
         Random random = new SecureRandom();
         List<HoodieTestDataV2> writeSetV2 = new LinkedList<>();
-        for (int i = 10; i < 20; i++) {
+        for (int i = 3; i < 6; i++) {
             HoodieTestDataV2 data = new HoodieTestDataV2(i, i + "-" + TestUtils.randomString(4), random.nextDouble());
             hoodieWriter.writeAvroRecord(data.genericRecord());
             writeSetV2.add(data);
         }
-        Assert.assertEquals(writeSetV2.size(), 10);
+        Assert.assertEquals(writeSetV2.size(), 3);
 
         // flush the record and commit
         hoodieWriter.flush();
@@ -250,7 +250,7 @@ public class HoodieWriterTest {
         hoodieWriter.close();
     }
 
-    @Test(dataProvider = "storage")
+    @Test(dataProvider = "storage", timeOut = 10 * 60 * 1000)
     public void testConcurrentWrite(String storage) throws Exception {
         setCloudProperties(storage);
         final SinkConnectorConfig connectorConfig = sinkConfig;
@@ -274,7 +274,7 @@ public class HoodieWriterTest {
         new Thread(() -> {
             try (HoodieWriter writer = new HoodieWriter(connectorConfig, testData.getSchema())){
                 // write test data
-                for (int i = 0; i < 10; i++) {
+                for (int i = 0; i < 3; i++) {
                     HoodieTestDataV1 data = new HoodieTestDataV1(i, i + "-" + TestUtils.randomString(4));
                     writer.writeAvroRecord(data.genericRecord());
                     writeSet.add(data);
@@ -298,7 +298,7 @@ public class HoodieWriterTest {
         new Thread(() -> {
             try (HoodieWriter writer = new HoodieWriter(connectorConfig, testData.getSchema())){
                 // write test data
-                for (int i = 10; i < 20; i++) {
+                for (int i = 3; i < 6; i++) {
                     HoodieTestDataV1 data = new HoodieTestDataV1(i, i + "-" + TestUtils.randomString(4));
                     writer.writeAvroRecord(data.genericRecord());
                     writeSet.add(data);
