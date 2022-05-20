@@ -48,7 +48,7 @@
 
     <!-- connector dependencies -->
     <jackson.version>2.13.2.1</jackson.version>
-    <lombok.version>1.16.22</lombok.version>
+    <lombok.version>1.18.22</lombok.version>
     <pulsar.version>2.9.2</pulsar.version>
     <log4j2.version>2.16.0</log4j2.version>
     <slf4j.version>1.7.25</slf4j.version>
