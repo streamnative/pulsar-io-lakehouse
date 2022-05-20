@@ -9,8 +9,8 @@ This section describes how to build the Lakehouse sink connector.
 You can get the Lakehouse sink connector using one of the following methods
 
 If you use [Pulsar Function Worker](https://pulsar.apache.org/docs/en/functions-worker/) to run connectors in a cluster.
-- Download the NAR package from [the download page](https://github.com/streamnative/pulsar-io-lakehouse/releases).
-- Build it from the source code.
+    - Download the NAR package from [the download page](https://github.com/streamnative/pulsar-io-lakehouse/releases).
+    - Build it from the source code.
 
 To build the Lakehouse sink connector from the source code, follow these steps.
 1. Clone the source code to your machin.
@@ -28,6 +28,7 @@ To build the Lakehouse sink connector from the source code, follow these steps.
        ```bash
        $ mvn clean install -P cloud -DskipTests
        ```
+   
    After the connector is successfully built, a `NAR` package is generated under the target directory.
    ```bash
    $ ls target
@@ -40,22 +41,23 @@ Before using the Lakehouse sink connector, you need to configure it. This table 
 
 Common Configuration
 
-| Name                                 | Type     | Required | Default | Description                                                 
-|--------------------------------------|----------|----------|---------|-------------------------------------------------------------|
-| className | String | true | N/A | Sink connector className |
-| type | String | true | N/A | The type of lakehouse connector. Available values: `hudi`, `iceberg` and `delta` |
-| maxCommitInterval | Integer | false | 120 | Max flush interval in seconds for each batch. Default is 120s |
-| maxRecordsPerCommit | Integer | false | 10_000_000 | Max records number for each batch to commit. Default is 10_000_000 |
-| maxCommitFailedTimes | Integer | false | 5 | Max commit fail times until failing the process. Default is 5 |
+| Name                                 | Type     | Required | Default | Description                                                                              
+|--------------------------------------|----------|----------|---------|------------------------------------------------------------------------------------------|
+| type | String | true | N/A | The type of lakehouse connector. Available values: `hudi`, `iceberg` and `delta`         |
+| maxCommitInterval | Integer | false | 120 | Max flush interval in seconds for each batch. Default is 120s                            |
+| maxRecordsPerCommit | Integer | false | 10_000_000 | Max records number for each batch to commit. Default is 10_000_000                       |
+| maxCommitFailedTimes | Integer | false | 5 | Max commit fail times until failing the process. Default is 5                            |
 | sinkConnectorQueueSize | Integer | false | 10_000 | The max queue size of sink connector to buffer records before writing to lakehouse table |
-| partitionColumns | List<String> | false | Collections.empytList() | Partition columns for lakehouse table |
+| partitionColumns | List<String> | false | Collections.empytList() | Partition columns for lakehouse table                                                    |
 
 `processingGuarantees`: Currently only support `EFFECTIVELY_ONCE`
 
 Lakehouse specific configuration
+
 ::: tabs
 
 @@@ Hudi configuration
+
 For the Hudi configurations, you can use all the configs list in [here](https://hudi.apache.org/docs/configurations#WRITE_CLIENT) to configure the Hudi write client.
 
 | Name                                 | Type     | Required | Default | Description
@@ -96,9 +98,11 @@ This Lakehouse connector use hadoop file system to read and write cloud object, 
 You can create a configuration file (JSON or YAML) to set the properties if you use [Pulsar Function Worker](https://pulsar.apache.org/docs/en/functions-worker/) to run connectors in a cluster.
 
 **Example**
+
 ::: tabs
 
 @@@ Hudi Example
+
 * JSON
 
    ```json
@@ -111,7 +115,6 @@ You can create a configuration file (JSON or YAML) to set the properties if you 
         ],
         "archive": "connectors/pulsar-io-hudi-{{connector:version}}.nar",
         "parallelism": 1,
-        "className": "org.apache.pulsar.ecosystem.io.SinkConnector",
         "configs":   {
             "hoodie.table.name": "hudi-connector-test",
             "hoodie.table.type": "COPY_ON_WRITE",
@@ -134,7 +137,6 @@ You can create a configuration file (JSON or YAML) to set the properties if you 
       - test-hudi-pulsar
     archive: connectors/pulsar-io-hudi-{{connector:version}}.nar
     parallelism: 1
-    className: org.apache.pulsar.ecosystem.io.SinkConnector
     configs:
       hoodie.table.name: hudi-connector-test
       hoodie.table.type: COPY_ON_WRITE
@@ -146,7 +148,9 @@ You can create a configuration file (JSON or YAML) to set the properties if you 
     ```
 
 @@@ Iceberg Example
+
 Iceberg table stored in file system
+
 ```json
 {
     "tenant":"public",
@@ -156,9 +160,8 @@ Iceberg table stored in file system
     "inputs": [
       "test-iceberg-pulsar"
     ],
-    "sourceSubscriptionName":"sandbox_iceberg_sink",
+    "archive": "connectors/pulsar-io-lakehouse-{{connector:version}}.nar",
     "processingGuarantees":"EFFECTIVELY_ONCE",
-    "className":"org.apache.pulsar.ecosystem.io.SinkConnector",
     "configs":{
         "type":"iceberg",
         "maxCommitInterval":120,
@@ -175,6 +178,7 @@ Iceberg table stored in file system
 ```
 
 Iceberg table stored in cloud storage(s3, gcs or azure)
+
 ```json
 {
     "tenant":"public",
@@ -184,9 +188,8 @@ Iceberg table stored in cloud storage(s3, gcs or azure)
     "inputs": [
       "test-iceberg-pulsar"
     ],
-    "sourceSubscriptionName":"sandbox_iceberg_sink",
+    "archive": "connectors/pulsar-io-lakehouse-{{connector:version}}.nar",
     "processingGuarantees":"EFFECTIVELY_ONCE",
-    "className":"org.apache.pulsar.ecosystem.io.SinkConnector",
     "configs":{
         "type":"iceberg",
         "maxCommitInterval":120,
@@ -204,7 +207,9 @@ Iceberg table stored in cloud storage(s3, gcs or azure)
 ```
 
 @@@ DeltaLake Example
+
 DeltaLake table stored in file system
+
 ```json
 {
     "tenant":"public",
@@ -214,9 +219,8 @@ DeltaLake table stored in file system
     "inputs": [
       "test-delta-pulsar"
     ],
-    "sourceSubscriptionName":"sandbox_delta_sink",
+    "archive": "connectors/pulsar-io-lakehouse-{{connector:version}}.nar",
     "processingGuarantees":"EFFECTIVELY_ONCE",
-    "className":"org.apache.pulsar.ecosystem.io.SinkConnector",
     "configs":{
         "type":"delta",
         "maxCommitInterval":120,
@@ -227,6 +231,7 @@ DeltaLake table stored in file system
 ```
 
 Iceberg table stored in cloud storage(s3, gcs or azure)
+
 ```json
 {
     "tenant":"public",
@@ -236,9 +241,8 @@ Iceberg table stored in cloud storage(s3, gcs or azure)
     "inputs": [
       "test-delta-pulsar"
     ],
-    "sourceSubscriptionName":"sandbox_delta_sink",
+    "archive": "connectors/pulsar-io-lakehouse-{{connector:version}}.nar",
     "processingGuarantees":"EFFECTIVELY_ONCE",
-    "className":"org.apache.pulsar.ecosystem.io.SinkConnector",
     "configs":{
         "type":"delta",
         "maxCommitInterval":120,
@@ -289,7 +293,7 @@ This example shows how to create a Lakehouse sink connector on a Pulsar cluster 
 
 ```
 $ PULSAR_HOME/bin/pulsar-admin sinks create \
---sink-config-file <hudi-sink-config.yaml>
+--sink-config-file <lakehouse-sink-config.yaml>
 ```
 
 @@@
@@ -300,7 +304,7 @@ You can make the Lakehouse sink connector as a built-in connector and use it on 
 
 ### Standalone cluster
 
-This example describes how to use the Lakehouse sink connector to fetch data from Pulsar topics and save data to Hudi tables in standalone mode.
+This example describes how to use the Lakehouse sink connector to fetch data from Pulsar topics and save data to Lakehouse tables in standalone mode.
 
 #### Prerequisites
 

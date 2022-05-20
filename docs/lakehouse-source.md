@@ -8,8 +8,8 @@ This section describes how to build the Lakehouse source connector.
 You can get the Lakehouse source connector using one of the following methods
 
 If you use [Pulsar Function Worker](https://pulsar.apache.org/docs/en/functions-worker/) to run connectors in a cluster.
-- Download the NAR package from [the download page](https://github.com/streamnative/pulsar-io-lakehouse/releases).
-- Build it from the source code.
+    - Download the NAR package from [the download page](https://github.com/streamnative/pulsar-io-lakehouse/releases).
+    - Build it from the source code.
 
 To build the Lakehouse sink connector from the source code, follow these steps.
 1. Clone the source code to your machin.
@@ -27,6 +27,7 @@ To build the Lakehouse sink connector from the source code, follow these steps.
         ```bash
         $ mvn clean install -P cloud -DskipTests
         ```
+   
    After the connector is successfully built, a `NAR` package is generated under the target directory.
    ```bash
    $ ls target
@@ -41,7 +42,6 @@ Common Configuration
 
 | Name                                 | Type     | Required | Default | Description
 |--------------------------------------|----------|----------|---------|-------------------------------------------------------------|
-| className | String | true | N/A | Source connector className. Should be `org.apache.pulsar.ecosystem.io.SourceConnector` |
 | type | String | true | N/A | The type of lakehouse connector. Available values: `delta` |
 | checkpointInterval | int | false | 30 | Checkpoint interval. TimeUnit: second. Default is 30s |
 | queueSize | int | false | 10_000 | Source connector buffer queue size, used for store records before send to pulsar topic. Default is 10_000 |
@@ -50,6 +50,7 @@ Common Configuration
 | startTimestamp | long | false |  | Delta snapshot timestamp to start to capture data change, Time unit: second. The startSnapshotVersion and startTimestamp can only configure one |
 
 Lakehouse specific configuration
+
 ::: tabs
 
 @@@ DeltaLake Configuration
@@ -69,10 +70,13 @@ This Lakehouse connector use hadoop file system to read and write cloud object, 
 You can create a configuration file (JSON or YAML) to set the properties if you use [Pulsar Function Worker](https://pulsar.apache.org/docs/en/functions-worker/) to run connectors in a cluster.
 
 **Example**
+
 ::: tabs
 
 @@@ DeltaLake Example
+
 DeltaLake table stored in file system
+
 ```json
 {
     "tenant":"public",
@@ -81,7 +85,7 @@ DeltaLake table stored in file system
     "parallelism":1,
     "topicName": "delta_source",
     "processingGuarantees":"ATLEAST_ONCE",
-    "className":"org.apache.pulsar.ecosystem.io.SourceConnector",
+    "archive": "connectors/pulsar-io-lakehouse-{{connector:version}}.nar",
     "configs":{
         "type":"delta",
         "checkpointInterval": 180,
@@ -97,6 +101,7 @@ DeltaLake table stored in file system
 ```
 
 DetlaLake table stored in cloud storage(s3, gcs or azure)
+
 ```json
 {
     "tenant":"public",
@@ -105,7 +110,7 @@ DetlaLake table stored in cloud storage(s3, gcs or azure)
     "parallelism":1,
     "topicName": "delta_source",
     "processingGuarantees":"ATLEAST_ONCE",
-    "className":"org.apache.pulsar.ecosystem.io.SourceConnector",
+    "archive": "connectors/pulsar-io-lakehouse-{{connector:version}}.nar",
     "configs":{
         "type":"delta",
         "checkpointInterval": 180,
@@ -186,7 +191,7 @@ This example describes how to use the Lakehouse source connector to fetch data f
     --source-config-file <lakehouse-source-config.yaml>
     ```
 
-4. Write rows into Lakehouse table. You can follow this guide [hudi](https://hudi.apache.org/docs/quick-start-guide), [iceberg](https://iceberg.apache.org/docs/latest/getting-started/) and [delta](https://delta.io/learn/getting-started)
+4. Write rows into Lakehouse table. You can follow this guide [delta](https://delta.io/learn/getting-started)
 
 5. Consume pulsar topics to get changelogs.
     ```bash
