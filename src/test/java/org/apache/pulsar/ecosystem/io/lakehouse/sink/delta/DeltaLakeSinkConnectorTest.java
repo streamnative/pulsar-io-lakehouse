@@ -77,6 +77,7 @@ public class DeltaLakeSinkConnectorTest {
 
     @Test
     public void testNonPartitionedIntegration() throws Exception {
+        System.setProperty("hadoop.home.dir", "/");
         String tablePath = "/tmp/delta-test-data-" + UUID.randomUUID();
         Map<String, Object> config = new HashMap<>();
         config.put("tablePath", tablePath);
@@ -167,6 +168,7 @@ public class DeltaLakeSinkConnectorTest {
 
     @Test
     public void testPartitionedIntegration() throws Exception {
+        System.setProperty("hadoop.home.dir", "/");
         String tablePath = "/tmp/delta-test-data-" + UUID.randomUUID();
 
         Map<String, Object> config = new HashMap<>();

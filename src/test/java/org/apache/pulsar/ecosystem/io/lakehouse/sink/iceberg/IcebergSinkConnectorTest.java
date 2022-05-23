@@ -68,6 +68,7 @@ public class IcebergSinkConnectorTest {
 
     @Test
     public void testNonPartitionedIntegration() throws Exception {
+        System.setProperty("hadoop.home.dir", "/");
         String tablePath = "/tmp/iceberg-test-data-" + UUID.randomUUID();
         Map<String, Object> config = new HashMap<>();
         config.put("maxParquetFileSize", 1024 * 1024 * 1);
@@ -176,6 +177,7 @@ public class IcebergSinkConnectorTest {
 
     @Test
     public void testPartitionedIntegration() throws Exception {
+        System.setProperty("hadoop.home.dir", "/");
         String tablePath = "/tmp/iceberg-test-data-" + UUID.randomUUID();
         Map<String, Object> config = new HashMap<>();
         config.put("maxParquetFileSize", 1024 * 1024 * 1);
