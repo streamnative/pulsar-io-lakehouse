@@ -67,8 +67,6 @@ For the Hudi configurations, you can use all the configs list in [here](https://
 | `hoodie.base.path`                   | String   | true     | N/A | Base path on lake storage, under which all the table data is stored. Always prefix it explicitly with the storage scheme (e.g hdfs://, s3:// etc). Hudi stores all the main meta-data about commits, savepoints, cleaning audit logs etc in .hoodie directory. |
 | `hoodie.datasource.write.recordkey.field` | String | false     | uuid | Record key field. Value to be used as the recordKey component of HoodieKey. Actual value will be obtained by invoking .toString() on the field value. Nested fields can be specified using the dot notation eg: a.b.c. |
 | `hoodie.datasource.write.partitionpath.field` | String   | true     | N/A | Partition path field. Value to be used at the partitionPath component of HoodieKey. Actual value ontained by invoking .toString(). |
-| `connector.hoodieCommitMaxRecords`   | Integer  | false    | 1000 | The max records received from pulsar before doing a commit. |
-| `connector.hoodieCommitIntervalSecs` | Integer  | false    | 60 | The max time interval between the commit operation.         |
 
 
 @@@ Iceberg Configuration
@@ -103,7 +101,7 @@ You can create a configuration file (JSON or YAML) to set the properties if you 
 
 @@@ Hudi Example
 
-* JSON
+Hudi table stores in the FileSystem
 
    ```json
     {
@@ -116,37 +114,41 @@ You can create a configuration file (JSON or YAML) to set the properties if you 
         "archive": "connectors/pulsar-io-hudi-{{connector:version}}.nar",
         "parallelism": 1,
         "configs":   {
+            "type": "hudi",
             "hoodie.table.name": "hudi-connector-test",
             "hoodie.table.type": "COPY_ON_WRITE",
             "hoodie.base.path": "file:///tmp/data/hudi-sink",
             "hoodie.datasource.write.recordkey.field": "id",
             "hoodie.datasource.write.partitionpath.field": "id",
-            "connector.hoodieCommitMaxRecords": 1000,
-            "connector.hoodieCommitIntervalSecs": 60
         }
     }
-    ```
+   ```
 
-* YAML
+Hudi table stores in the S3
 
-    ```yaml
-    tenant: public
-    namespace: default
-    name: hudi-sink
-    inputs:
-      - test-hudi-pulsar
-    archive: connectors/pulsar-io-hudi-{{connector:version}}.nar
-    parallelism: 1
-    configs:
-      hoodie.table.name: hudi-connector-test
-      hoodie.table.type: COPY_ON_WRITE
-      hoodie.base.path: file:///tmp/data/hudi-sink
-      hoodie.datasource.write.recordkey.field: id
-      hoodie.datasource.write.partitionpath.field: id
-      connector.hoodieCommitMaxRecords: 1000
-      connector.hoodieCommitIntervalSecs: 60
-    ```
+   ```json
+    {
+        "tenant": "public",
+        "namespace": "default",
+        "name": "hudi-sink",
+        "inputs": [
+          "test-hudi-pulsar"
+        ],
+        "archive": "connectors/pulsar-io-hudi-{{connector:version}}.nar",
+        "parallelism": 1,
+        "configs":   {
+            "type": "hudi",
+            "hoodie.table.name": "hudi-connector-test",
+            "hoodie.table.type": "COPY_ON_WRITE",
+            "hoodie.base.path": "s3a://bucket/path/to/hudi",
+            "hoodie.datasource.write.recordkey.field": "id",
+            "hoodie.datasource.write.partitionpath.field": "id",
+            "hadoop.fs.s3a.aws.credentials.provider": "com.amazonaws.auth.DefaultAWSCredentialsProviderChain"
+        }
+    }
+   ```
 
+        
 @@@ Iceberg Example
 
 Iceberg table stored in file system
