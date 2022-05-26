@@ -1,36 +1,47 @@
-The Lakehouse (currently only including [DeltaLake](https://delta.io/))  connector fetch lakehouse table's changelog and save changelogs into Pulsar topic..
+---
+dockerfile: ""
+alias: Lakehouse Source Connector
+---
+
+The Lakehouse source connector (currently only including the [Delta Lake](https://delta.io/) source connector) fetches the Lakehouse table's changelog and saves changelogs into a Pulsar topic.
 
 ![](/docs/lakehouse-source.png)
 
 # How to get
+
 This section describes how to build the Lakehouse source connector.
 
-You can get the Lakehouse source connector using one of the following methods
+You can get the Lakehouse source connector using one of the following methods:
 
-If you use [Pulsar Function Worker](https://pulsar.apache.org/docs/en/functions-worker/) to run connectors in a cluster.
-    - Download the NAR package from [the download page](https://github.com/streamnative/pulsar-io-lakehouse/releases).
-    - Build it from the source code.
+- Download the NAR package from [the download page](https://github.com/streamnative/pulsar-io-lakehouse/releases).
+- Build it from the source code.
 
-To build the Lakehouse sink connector from the source code, follow these steps.
-1. Clone the source code to your machin.
+To build the Lakehouse source connector from the source code, follow these steps.◊
+
+1. Clone the source code to your machine.
+
    ```bash
-   $ git clone https://github.com/streamnative/pulsar-io-lakehouse.git
+   git clone https://github.com/streamnative/pulsar-io-lakehouse.git
    ```
 
 2. Build the connector in the `pulsar-io-lakehouse` directory.
-    - Build local file system NAR package
+
+    - Build the NAR package for your local file system.
+
         ```bash
-        $ mvn clean install -DskipTests
+        mvn clean install -DskipTests
         ```
 
-    - Build cloud NAR package (Including aws, gcs and azure related package dependency)
+    - Build the NAR package for your cloud storage (Including AWS, GCS, and Azure-related package dependency).
+
         ```bash
-        $ mvn clean install -P cloud -DskipTests
+        mvn clean install -P cloud -DskipTests
         ```
-   
-   After the connector is successfully built, a `NAR` package is generated under the target directory.
+
+   After the connector is successfully built, a NAR package is generated under the target directory.
+
    ```bash
-   $ ls target
+   ls target
    pulsar-io-lakehouse-{{connector:version}}.nar
    ```
 
@@ -38,34 +49,30 @@ To build the Lakehouse sink connector from the source code, follow these steps.
 
 Before using the Lakehouse source connector, you need to configure it. This table lists the properties and the descriptions.
 
-Common Configuration
-
-| Name                                 | Type     | Required | Default | Description
-|--------------------------------------|----------|----------|---------|-------------------------------------------------------------|
-| type | String | true | N/A | The type of lakehouse connector. Available values: `delta` |
-| checkpointInterval | int | false | 30 | Checkpoint interval. TimeUnit: second. Default is 30s |
-| queueSize | int | false | 10_000 | Source connector buffer queue size, used for store records before send to pulsar topic. Default is 10_000 |
-| fetchHistoryData | bool | false | false | Whether fetch the history data of the table. Default is `false` |
-| startSnapshotVersion | long | false | -1 | Delta snapshot version to start to capture data change. Values: [-1: LATEST, -2: EARLIEST]. The `startSnapshotVersion` and `startTimestamp` can only configure one |
-| startTimestamp | long | false |  | Delta snapshot timestamp to start to capture data change, Time unit: second. The startSnapshotVersion and startTimestamp can only configure one |
-
-Lakehouse specific configuration
-
 ::: tabs
 
-@@@ DeltaLake Configuration
+@@@ Delta Lake
 
 | Name                                 | Type     | Required | Default | Description
 |--------------------------------------|----------|----------|---|-------------------------------------------------------------|
-| tablePath | String | true | N/A | Delta lake table path |
-| parquetParseThreads | int | false | Runtime.getRuntime().availableProcessors() | The parallelism of paring delta parquet files. Default is `Runtime.getRuntime().availableProcessors()` |
-| maxReadBytesSizeOneRound | long | false | total memory * 0.2	| The max read bytes size from parquet files in one fetch round. Default is 20% of heap memory |
-| maxReadRowCountOneRound | int | false | 100_000 | The max read number of rows process in one round. Default is 1_000_000 |
+| `type` | String | true | N/A | The type of the Lakehouse source connector. Available values: `delta`. |
+| `checkpointInterval` | int | false | 30 | The checkpoint interval (in units of seconds). By default, it is set to 30s.  |
+| `queueSize` | int | false | 10_000 | The buffer queue size of the Lakehouse source connector. The buffer queue is used for store records before they are sent to Pulsar topics. By default, it is set to `10_000`. |
+| `fetchHistoryData` | bool | false | false | Configure whether to fetch the history data of the table. By default, it is set to `false`. |
+| `startSnapshotVersion` | long | false | -1 | The Delta snapshot version to start capturing data change. Available values: [-1: LATEST, -2: EARLIEST]. The `startSnapshotVersion` and `startTimestamp` are mutually exclusive.  |
+| `startTimestamp` | long | false | N/A | The Delta snapshot timestamp (in units of seconds) to start capturing data change. The `startSnapshotVersion` and `startTimestamp` are mutually exclusive. |
+| `tablePath` | String | true | N/A | The path of the Delta table. |
+| `parquetParseThreads` | int | false | Runtime.getRuntime().availableProcessors() | The parallelism of paring Delta Parquet files. By default, it is set to `Runtime.getRuntime().availableProcessors()`. |
+| `maxReadBytesSizeOneRound` | long | false | Total memory * 0.2	| The maximum read bytes size from Parquet files in one fetch round. By default, it is set to 20% of the heap memory. |
+| `maxReadRowCountOneRound` | int | false | 100_000 | The maximum read number of rows processed in one round. By default, it is set to `1_000_000`. |
 
+@@@
 
-This Lakehouse connector use hadoop file system to read and write cloud object, such as `aws`, `gcs` and `azure`. If we want to configure hadoop cloud related properties, we should start the prefix `hadoop.`
+:::
 
-## Configure with Function Worker
+> **Note**
+>
+> The Lakehouse source connector uses the Hadoop file system to read and write data to and from cloud objects, such as AWS, GCS, and Azure. If you want to configure Hadoop related properties, you should use the prefix `hadoop.`.
 
 You can create a configuration file (JSON or YAML) to set the properties if you use [Pulsar Function Worker](https://pulsar.apache.org/docs/en/functions-worker/) to run connectors in a cluster.
 
@@ -73,9 +80,9 @@ You can create a configuration file (JSON or YAML) to set the properties if you 
 
 ::: tabs
 
-@@@ DeltaLake Example
+@@@ Delta Lake
 
-DeltaLake table stored in file system
+- The Delta table that is stored in the file system
 
 ```json
 {
@@ -100,7 +107,7 @@ DeltaLake table stored in file system
 }
 ```
 
-DetlaLake table stored in cloud storage(s3, gcs or azure)
+- The Delta table that is stored in cloud storage (AWS S3, GCS, or Azure)
 
 ```json
 {
@@ -126,51 +133,47 @@ DetlaLake table stored in cloud storage(s3, gcs or azure)
 }
 ```
 
-### Data format types
+@@@
 
-Currently, The Lakehouse Source Connector only support read delta lake table changelogs, whose storage formate is `parquet`
+:::
 
+## Data format types
 
-## Configure with Function Mesh
+Currently, The Lakehouse source connector only supports reading Delta table changelogs, which adopt a `parquet` storage format.
 
-TBD
 
 # How to use
 
-You can use the Lakehouse source connector with Function Worker or Function Mesh.
-
-## Work with Function Worker
-
-You can use the Lakehouse source connector as a non built-in connector or a built-in connector.
+You can use the Lakehouse source connector with Function Worker. You can use the Lakehouse source connector as a non built-in connector or a built-in connector.
 
 ::: tabs
 
-@@@ Use it as non built-in connector
+@@@ Use it as a non built-in connector
 
 If you already have a Pulsar cluster, you can use the Lakehouse source connector as a non built-in connector directly.
 
-This example shows how to create a Lakehouse source connector on a Pulsar cluster using the [`pulsar-admin sinks create`](http://pulsar.apache.org/tools/pulsar-admin/2.8.0-SNAPSHOT/#-em-create-em--24) command.
+This example shows how to create a Lakehouse source connector on a Pulsar cluster using the [`pulsar-admin sources create`](https://pulsar.apache.org/tools/pulsar-admin/2.8.0-SNAPSHOT/#-em-create-em--14) command.
 
 ```
-$ PULSAR_HOME/bin/pulsar-admin sources create \
+PULSAR_HOME/bin/pulsar-admin sources create \
 --source-config-file <lakehouse-source-config.yaml>
 ```
 
 @@@
 
-@@@ Use it as built-in connector
+@@@ Use it as a built-in connector
 
 You can make the Lakehouse source connector as a built-in connector and use it on a standalone cluster or an on-premises cluster.
 
-### Standalone cluster
+## Standalone cluster
 
-This example describes how to use the Lakehouse source connector to fetch data from Pulsar topics and save data to lakehouse tables in standalone mode.
+This example describes how to use the Lakehouse source connector to fetch data from Lakehouse tables and save data to Pulsar topics in standalone mode.
 
-#### Prerequisites
+### Prerequisites
 
 - Install Pulsar locally. For details, see [set up a standalone Pulsar locally](https://pulsar.apache.org/docs/en/standalone/#install-pulsar-using-binary-release).
 
-#### Steps
+### Steps
 
 1. Copy the NAR package to the Pulsar connectors directory.
 
@@ -191,14 +194,15 @@ This example describes how to use the Lakehouse source connector to fetch data f
     --source-config-file <lakehouse-source-config.yaml>
     ```
 
-4. Write rows into Lakehouse table. You can follow this guide [delta](https://delta.io/learn/getting-started)
+4. Write rows into the Lakehouse table. For details, see [Getting Started with Delta Lake](https://delta.io/learn/getting-started).
 
-5. Consume pulsar topics to get changelogs.
+5. Consume Pulsar topics to get changelogs.
+
     ```bash
-    $ PULSAR_HOME/bin/pulsar-client consume -s test-sub -n 0 <topic-name>
+    PULSAR_HOME/bin/pulsar-client consume -s test-sub -n 0 <topic-name>
     ```
 
-### On-premises cluster
+## On-premises cluster
 
 This example explains how to create a Lakehouse source connector in an on-premises cluster.
 
@@ -217,7 +221,7 @@ This example explains how to create a Lakehouse source connector in an on-premis
 3. Check whether the Lakehouse source connector is available on the list or not.
 
     ```
-    PULSAR_HOME/bin/pulsar-admin sources available-sinks
+    PULSAR_HOME/bin/pulsar-admin sources available-sources
     ```
 
 4. Create a Lakehouse source connector on a Pulsar cluster using the [`pulsar-admin sources create`](https://pulsar.apache.org/tools/pulsar-admin/2.8.0-SNAPSHOT/#-em-create-em--14) command.
@@ -231,6 +235,3 @@ This example explains how to create a Lakehouse source connector in an on-premis
 
 :::
 
-## Work with Function Mesh
-
-TBD
