@@ -91,7 +91,7 @@
   <dependencyManagement>
     <dependencies>
       <dependency>
-        <groupId>org.apache.pulsar</groupId>
+        <groupId>io.streamnative</groupId>
         <artifactId>pulsar-io-core</artifactId>
         <version>${pulsar.version}</version>
       </dependency>
@@ -111,7 +111,7 @@
         <version>${spotbugs-annotations.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.apache.pulsar</groupId>
+        <groupId>io.streamnative</groupId>
         <artifactId>pulsar-client-original</artifactId>
         <version>${pulsar.version}</version>
         <scope>provided</scope>
@@ -292,7 +292,7 @@
 
     <!-- runtime dependencies -->
     <dependency>
-      <groupId>org.apache.pulsar</groupId>
+      <groupId>io.streamnative</groupId>
       <artifactId>pulsar-io-core</artifactId>
     </dependency>
 
@@ -301,7 +301,7 @@
       <artifactId>jackson-databind</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.apache.pulsar</groupId>
+      <groupId>io.streamnative</groupId>
       <artifactId>pulsar-client-original</artifactId>
       <scope>provided</scope>
     </dependency>
