@@ -3,7 +3,7 @@ dockerfile: ""
 alias: Lakehouse Sink Connector
 ---
 
-The Lakehouse sink connector (including the [Hudi](https://hudi.apache.org), [Iceberg](https://iceberg.apache.org/), and [Delta Lake](https://delta.io/) sink connectors) fetches data from a Pulsar topic and save data to the Lakehouse tables.
+The Lakehouse sink connector (including the [Hudi](https://hudi.apache.org), [Iceberg](https://iceberg.apache.org/), and [Delta Lake](https://delta.io/) sink connectors) fetches data from a Pulsar topic and saves data to the Lakehouse tables.
 
 ![](/docs/lakehouse-sink.png)
 
@@ -60,7 +60,7 @@ For a list of Hudi configurations, see [Write Client Configs](https://hudi.apach
 | `type` | String | true | N/A | The type of the Lakehouse source connector. Available values: `hudi`, `iceberg`, and `delta`.         |
 | `maxCommitInterval` | Integer | false | 120 | The maximum flush interval (in units of seconds) for each batch. By default, it is set to 120s.                            |
 | `maxRecordsPerCommit` | Integer | false | 10_000_000 | The maximum number of records for each batch to commit. By default, it is set to `10_000_000`.                       |
-| `maxCommitFailedTimes` | Integer | false | 5 | The maximum times of commit failure until failing the process. By default, it is set to `5`.                            |
+| `maxCommitFailedTimes` | Integer | false | 5 | The maximum commit failure times until failing the process. By default, it is set to `5`.                            |
 | `sinkConnectorQueueSize` | Integer | false | 10_000 | The maximum queue size of the Lakehouse sink connector to buffer records before writing to Lakehouse tables. |
 | `partitionColumns` | List<String> | false | Collections.empytList() | The partition columns for Lakehouse tables. |                                                   |
 | `processingGuarantees` | Int | true | " " (empty string) | The processing guarantees. Currently the Lakehouse connector only supports `EFFECTIVELY_ONCE`. |
@@ -79,7 +79,7 @@ For a list of Hudi configurations, see [Write Client Configs](https://hudi.apach
 | `type` | String | true | N/A | The type of the Lakehouse source connector. Available values: `hudi`, `iceberg`, and `delta`.         |
 | `maxCommitInterval` | Integer | false | 120 | The maximum flush interval (in units of seconds) for each batch. By default, it is set to 120s.                            |
 | `maxRecordsPerCommit` | Integer | false | 10_000_000 | The maximum number of records for each batch to commit. By default, it is set to `10_000_000`.                       |
-| `maxCommitFailedTimes` | Integer | false | 5 | The maximum times of commit failure until failing the process. By default, it is set to `5`.                            |
+| `maxCommitFailedTimes` | Integer | false | 5 | The maximum commit failure times until failing the process. By default, it is set to `5`.                            |
 | `sinkConnectorQueueSize` | Integer | false | 10_000 | The maximum queue size of the Lakehouse sink connector to buffer records before writing to Lakehouse tables. |
 | `partitionColumns` | List<String> | false | Collections.empytList() | The partition columns for Lakehouse tables. |                                                   |
 | `processingGuarantees` | Int | true | " " (empty string) | The processing guarantees. Currently the Lakehouse connector only supports `EFFECTIVELY_ONCE`. |
@@ -98,7 +98,7 @@ For a list of Hudi configurations, see [Write Client Configs](https://hudi.apach
 | `type` | String | true | N/A | The type of the Lakehouse source connector. Available values: `hudi`, `iceberg`, and `delta`.         |
 | `maxCommitInterval` | Integer | false | 120 | The maximum flush interval (in units of seconds) for each batch. By default, it is set to 120s.                            |
 | `maxRecordsPerCommit` | Integer | false | 10_000_000 | The maximum number of records for each batch to commit. By default, it is set to `10_000_000`.                       |
-| `maxCommitFailedTimes` | Integer | false | 5 | The maximum times of commit failure until failing the process. By default, it is set to `5`.                            |
+| `maxCommitFailedTimes` | Integer | false | 5 | The maximum commit failure times until failing the process. By default, it is set to `5`.                            |
 | `sinkConnectorQueueSize` | Integer | false | 10_000 | The maximum queue size of the Lakehouse sink connector to buffer records before writing to Lakehouse tables. |
 | `partitionColumns` | List<String> | false | Collections.empytList() | The partition columns for Lakehouse tables. |                                                   |
 | `processingGuarantees` | Int | true | " " (empty string) | The processing guarantees. Currently the Lakehouse connector only supports `EFFECTIVELY_ONCE`. |
@@ -287,7 +287,7 @@ You can create a configuration file (JSON or YAML) to set the properties if you 
 ## Data format types
 
 The Lakehouse sink Connector provides multiple output format options, including Avro and Parquet. The default format is Parquet.
-With current implementation, there are some limitations for different formats:
+With the current implementation, there are some limitations for different formats:
 
 This table lists the Pulsar Schema types supported by the writers.
 
