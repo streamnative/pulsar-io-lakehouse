@@ -57,11 +57,11 @@ import java.util.function.Function;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Triple;
+import org.apache.pulsar.client.api.ClientBuilder;
 import org.apache.pulsar.client.api.PulsarClient;
 import org.apache.pulsar.client.api.schema.GenericObject;
 import org.apache.pulsar.client.api.schema.GenericRecord;
 import org.apache.pulsar.client.api.schema.GenericSchema;
-import org.apache.pulsar.client.impl.PulsarClientImpl;
 import org.apache.pulsar.common.schema.SchemaType;
 import org.apache.pulsar.ecosystem.io.lakehouse.SinkConnector;
 import org.apache.pulsar.ecosystem.io.lakehouse.SourceConnector;
@@ -345,9 +345,11 @@ public class DeltaSourceConnectorTest {
         sourceContextForTest.setInstanceId(0);
         sourceContextForTest.setNumInstances(1);
 
-        Mockito.doReturn(mock(PulsarClientImpl.class)).when(sourceContextForTest).getPulsarClient();
+        ClientBuilder mockBuilder = mock(ClientBuilder.class);
+        Mockito.doReturn(mockBuilder).when(sourceContextForTest).getPulsarClientBuilder();
+        Mockito.doReturn(mock(PulsarClient.class)).when(mockBuilder).build();
         SourceConnector deltaLakeSourceConnector = new SourceConnector();
-        PulsarClient pulsarClient = sourceContextForTest.getPulsarClient();
+        PulsarClient pulsarClient = sourceContextForTest.getPulsarClientBuilder().build();
         Mockito.doReturn(future).when(pulsarClient).getPartitionsForTopic(any());
         deltaLakeSourceConnector.open(configMap, sourceContextForTest);
 
@@ -433,9 +435,11 @@ public class DeltaSourceConnectorTest {
         sourceContextForTest.setInstanceId(0);
         sourceContextForTest.setNumInstances(1);
 
-        Mockito.doReturn(mock(PulsarClientImpl.class)).when(sourceContextForTest).getPulsarClient();
+        ClientBuilder mockBuilder = mock(ClientBuilder.class);
+        Mockito.doReturn(mockBuilder).when(sourceContextForTest).getPulsarClientBuilder();
+        Mockito.doReturn(mock(PulsarClient.class)).when(mockBuilder).build();
         SourceConnector deltaLakeSourceConnector = new SourceConnector();
-        PulsarClient pulsarClient = sourceContextForTest.getPulsarClient();
+        PulsarClient pulsarClient = sourceContextForTest.getPulsarClientBuilder().build();
         Mockito.doReturn(future).when(pulsarClient).getPartitionsForTopic(any());
         deltaLakeSourceConnector.open(sourceConfigMap, sourceContextForTest);
 

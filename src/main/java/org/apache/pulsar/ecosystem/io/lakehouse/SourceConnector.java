@@ -91,7 +91,8 @@ public class SourceConnector implements Source<GenericRecord> {
 
         this.sourceContext = sourceContext;
         outputTopic = sourceContext.getOutputTopic();
-        int topicPartitionNum = sourceContext.getPulsarClient().getPartitionsForTopic(outputTopic).get().size();
+        int topicPartitionNum = sourceContext.getPulsarClientBuilder().build()
+            .getPartitionsForTopic(outputTopic).get().size();
 
         // load the configuration and validate it
         config = SourceConnectorConfig.load(configMap);
