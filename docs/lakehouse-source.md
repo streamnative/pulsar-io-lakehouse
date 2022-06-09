@@ -42,7 +42,7 @@ To build the Lakehouse source connector from the source code, follow these steps
 
    ```bash
    ls target
-   pulsar-io-lakehouse-{{connector:version}}.nar
+   pulsar-io-lakehouse-2.9.2.19-rc-0609.nar
    ```
 
 # How to configure
@@ -92,7 +92,7 @@ You can create a configuration file (JSON or YAML) to set the properties if you 
     "parallelism":1,
     "topicName": "delta_source",
     "processingGuarantees":"ATLEAST_ONCE",
-    "archive": "connectors/pulsar-io-lakehouse-{{connector:version}}.nar",
+    "archive": "connectors/pulsar-io-lakehouse-2.9.2.19-rc-0609.nar",
     "configs":{
         "type":"delta",
         "checkpointInterval": 180,
@@ -117,7 +117,7 @@ You can create a configuration file (JSON or YAML) to set the properties if you 
     "parallelism":1,
     "topicName": "delta_source",
     "processingGuarantees":"ATLEAST_ONCE",
-    "archive": "connectors/pulsar-io-lakehouse-{{connector:version}}.nar",
+    "archive": "connectors/pulsar-io-lakehouse-2.9.2.19-rc-0609.nar",
     "configs":{
         "type":"delta",
         "checkpointInterval": 180,
@@ -178,7 +178,7 @@ This example describes how to use the Lakehouse source connector to fetch data f
 1. Copy the NAR package to the Pulsar connectors directory.
 
     ```
-    cp pulsar-io-lakehouse-{{connector:version}}.nar PULSAR_HOME/connectors/pulsar-io-lakehouse-{{connector:version}}.nar
+    cp pulsar-io-lakehouse-2.9.2.19-rc-0609.nar PULSAR_HOME/connectors/pulsar-io-lakehouse-2.9.2.19-rc-0609.nar
     ```
 
 2. Start Pulsar in standalone mode.
@@ -209,7 +209,7 @@ This example explains how to create a Lakehouse source connector in an on-premis
 1. Copy the NAR package of the Lakehouse source connector to the Pulsar connectors directory.
 
     ```
-    cp pulsar-io-lakehouse-{{connector:version}}.nar $PULSAR_HOME/connectors/pulsar-io-lakehouse-{{connector:version}}.nar
+    cp pulsar-io-lakehouse-2.9.2.19-rc-0609.nar $PULSAR_HOME/connectors/pulsar-io-lakehouse-2.9.2.19-rc-0609.nar
     ```
 
 2. Reload all [built-in connectors](https://pulsar.apache.org/docs/en/next/io-connectors/).
