@@ -21,5 +21,5 @@ name: lakehouse
 description: Lakehouse connectors
 sinkClass: org.apache.pulsar.ecosystem.io.lakehouse.SinkConnector
 sinkConfigClass: org.apache.pulsar.ecosystem.io.lakehouse.SinkConnectorConfig
-sourceClass: org.apache.pulsar.ecosystem.io.lakehouse.SinkConnector
+sourceClass: org.apache.pulsar.ecosystem.io.lakehouse.SourceConnector
 sourceConfigClass: org.apache.pulsar.ecosystem.io.lakehouse.SourceConnectorConfig
