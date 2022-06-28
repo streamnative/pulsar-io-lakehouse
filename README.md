@@ -1,6 +1,6 @@
 ## Pulsar IO :: Lakehouse Connector
 
-The Lakehouse connector is a Pulsar IO connector for synchronizing data between Delta Lake and Pulsar. It contains two types of connectors:
+The Lakehouse connector is a Pulsar IO connector for synchronizing data between Lakehouse (Delta Lake, Iceberg and Hudi) and Pulsar. It contains two types of connectors:
 
 ***Lakehouse source connector***
 Currently support `DeltaLake`
@@ -18,6 +18,12 @@ Currently, Lakehouse connector versions (x.y.z) are based on Pulsar versions (x.
 | Delta connector version | Pulsar version                                       | Doc |
 | :--------------- |:-----------------------------------------------------| :------------------------------|
 2.9.x| [2.9.2](https://github.com/apache/pulsar/tree/v2.9.2)| - [Lakehouse source connector](docs/lakehouse-source.md)<br><br>- [Lakehouse sink connector](docs/lakehouse-sink.md)
+
+
+Lakehouse Demos
+| Lakehouse | Demo                                      |
+| :--------------- |:-----------------------------------------------------|
+| Delta Lake| [Delta Lake Source and Sink Demo](docs/delta-lake-demo.md)  |
 
 
 ## Project layout
