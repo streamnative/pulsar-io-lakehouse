@@ -130,7 +130,7 @@ You can create a configuration file (JSON or YAML) to set the properties if you 
 | `type` | String | true | N/A | The type of the Lakehouse source connector. Available values: `hudi`, `iceberg`, and `delta`.         |
 | `maxCommitInterval` | Integer | false | 120 | The maximum flush interval (in units of seconds) for each batch. By default, it is set to 120s.                            |
 | `maxRecordsPerCommit` | Integer | false | 10_000_000 | The maximum number of records for each batch to commit. By default, it is set to `10_000_000`.                       |
-| `maxCommitFailedTimes` | Integer | false | 5 | The maximum maximum commit failure times until failing the process. By default, it is set to `5`.                            |
+| `maxCommitFailedTimes` | Integer | false | 5 | The maximum commit failure times until failing the process. By default, it is set to `5`.                            |
 | `sinkConnectorQueueSize` | Integer | false | 10_000 | The maximum queue size of the Lakehouse sink connector to buffer records before writing to Lakehouse tables. |
 | `partitionColumns` | List<String> | false | Collections.empytList() | The partition columns for Lakehouse tables. |                                                   |
 | `processingGuarantees` | Int | true | " " (empty string) | The processing guarantees. Currently the Lakehouse connector only supports `EFFECTIVELY_ONCE`. |
