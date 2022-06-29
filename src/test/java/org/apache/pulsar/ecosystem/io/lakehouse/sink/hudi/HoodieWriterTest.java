@@ -20,11 +20,13 @@ package org.apache.pulsar.ecosystem.io.lakehouse.sink.hudi;
 
 import java.io.IOException;
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.SecureRandom;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
@@ -49,8 +51,11 @@ import org.apache.hudi.client.transaction.FileSystemBasedLockProviderTestClass;
 import org.apache.hudi.common.config.LockConfiguration;
 import org.apache.hudi.io.storage.HoodieFileReader;
 import org.apache.hudi.io.storage.HoodieFileReaderFactory;
+import org.apache.pulsar.common.schema.SchemaType;
 import org.apache.pulsar.ecosystem.io.lakehouse.SinkConnectorConfig;
 import org.apache.pulsar.ecosystem.io.lakehouse.common.Utils;
+import org.apache.pulsar.ecosystem.io.lakehouse.sink.PrimitiveFactory;
+import org.apache.pulsar.ecosystem.io.lakehouse.sink.PulsarObject;
 import org.intellij.lang.annotations.Language;
 import org.testng.Assert;
 import org.testng.annotations.BeforeMethod;
@@ -115,6 +120,54 @@ public class HoodieWriterTest {
             return Optional.of(fileSystem);
         }
         return Optional.empty();
+    }
+
+    @Test
+    public void testHoodieWritePulsarPrimitiveTypeMessages() throws Exception {
+        final SinkConnectorConfig sinkConnectorConfig = sinkConfig;
+        sinkConnectorConfig.getProperties().remove("hoodie.datasource.write.recordkey.field");
+        sinkConnectorConfig.setProperty("hoodie.datasource.write.partitionpath.field", "uuid");
+        sinkConnectorConfig.setProperty("hoodie.datasource.write.recordkey.field", "uuid");
+        final int maxNumber = 10;
+        List<PulsarObject<byte[]>> writeSet = new ArrayList<>(maxNumber);
+        for (int i = 0; i < maxNumber; i++) {
+            String message = "message-" + i;
+            byte[] value = message.getBytes(StandardCharsets.UTF_8);
+            PulsarObject obj = PrimitiveFactory.getPulsarPrimitiveObject(SchemaType.BYTES, value, "");
+            writeSet.add(obj);
+        }
+
+        HoodieWriter hoodieWriter = new HoodieWriter(sinkConnectorConfig, writeSet.get(0).getSchema());
+        Configuration hadoopConf = hoodieWriter.writer.getContext().getHadoopConf().get();
+
+        for (PulsarObject<byte[]> testDatum : writeSet) {
+            hoodieWriter.writeAvroRecord(testDatum.getRecord());
+        }
+
+        hoodieWriter.flush();
+        List<PulsarObject> readSet = getCommittedFiles(testPath, STORAGE_LOCAL, Optional.empty())
+            .map(p -> {
+                try {
+                    return readRecordsFromFile(p, hadoopConf);
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            })
+            .flatMap(Collection::stream)
+            .map(PulsarObject::fromGenericRecord)
+            .collect(Collectors.toList());
+
+        Assert.assertEquals(readSet.size(), writeSet.size());
+        for (PulsarObject byteBufferPulsarObject : writeSet) {
+            System.out.println(byteBufferPulsarObject.hashCode());
+        }
+
+        for (PulsarObject object : readSet) {
+            System.out.println(object.hashCode());
+        }
+        Assert.assertTrue(writeSet.removeAll(readSet));
+        Assert.assertEquals(writeSet.size(), 0);
+        hoodieWriter.close();
     }
 
     @Test(dataProvider = "storage", timeOut = 10 * 60 * 1000)

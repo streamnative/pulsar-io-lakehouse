@@ -97,6 +97,12 @@ public abstract class SinkConnectorConfig implements Serializable {
     )
     List<String> partitionColumns = Collections.emptyList();
 
+    @FieldContext(
+        category = CATEGORY_SINK,
+        doc = "Override the default fieldname for the primitive schema messages, default is 'message'"
+    )
+    String overrideFieldName = "";
+
     static SinkConnectorConfig load(Map<String, Object> map) throws IOException, IncorrectParameterException {
         properties.putAll(map);
         String type = (String) map.get("type");

@@ -26,12 +26,14 @@ import io.delta.standalone.Snapshot;
 import io.delta.standalone.actions.AddFile;
 import io.delta.standalone.types.StructType;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -43,6 +45,8 @@ import org.apache.pulsar.client.api.schema.GenericObject;
 import org.apache.pulsar.common.schema.SchemaType;
 import org.apache.pulsar.ecosystem.io.lakehouse.common.SchemaConverter;
 import org.apache.pulsar.ecosystem.io.lakehouse.parquet.DeltaParquetWriter;
+import org.apache.pulsar.ecosystem.io.lakehouse.sink.PrimitiveFactory;
+import org.apache.pulsar.ecosystem.io.lakehouse.sink.PulsarObject;
 import org.apache.pulsar.ecosystem.io.lakehouse.sink.SinkConnectorUtils;
 import org.apache.pulsar.functions.api.Record;
 import org.testng.annotations.AfterMethod;
@@ -136,6 +140,47 @@ public class DeltaWriterTest {
         assertEquals(deltaLog.snapshot().getMetadata().getDescription(), "create table");
         assertEquals(deltaLog.snapshot().getMetadata().getName(), DeltaWriter.NAME);
         assertEquals(deltaLog.snapshot().getMetadata().getPartitionColumns().size(), 0);
+    }
+
+    @Test
+    public void testWriteBytesToNonPartitionedDeltaTable() {
+        final int maxNumber = 10;
+        List<PulsarObject<byte[]>> writeSet = new ArrayList<>(maxNumber);
+        for (int i = 0; i < maxNumber; i++) {
+            String message = "message-" + i;
+            byte[] value = message.getBytes(StandardCharsets.UTF_8);
+            PulsarObject obj = PrimitiveFactory.getPulsarPrimitiveObject(SchemaType.BYTES, value, "");
+            writeSet.add(obj);
+        }
+        DeltaWriter writer = new DeltaWriter(config, writeSet.get(0).getSchema());
+        try {
+            for (PulsarObject<byte[]> pulsarObject : writeSet) {
+                writer.writeAvroRecord(pulsarObject.getRecord());
+            }
+
+            List<DeltaParquetWriter.FileStat> fileStats = writer.getWriter().closeAndFlush();
+            writer.commitFiles(fileStats);
+            writer.close();
+
+            DeltaLog deltaLog = writer.getDeltaLog();
+
+            // validate current snapshot
+            Snapshot snapshot = deltaLog.snapshot();
+            assertEquals(snapshot.getVersion(), 1);
+            assertEquals(snapshot.getAllFiles().size(), 1);
+
+            AddFile addFile = snapshot.getAllFiles().get(0);
+            DeltaParquetWriter.FileStat fileStat = fileStats.get(0);
+            assertEquals(addFile.getPath(), fileStat.getFilePath());
+            assertEquals(addFile.getPartitionValues(), fileStat.getPartitionValues());
+            assertEquals(addFile.getSize(), fileStat.getFileSize().longValue());
+
+            String engineInfo = DeltaWriter.COMMIT_INFO + " Delta-Standalone/0.3.0";
+            assertEquals(deltaLog.getCommitInfoAt(1).getEngineInfo().get(), engineInfo);
+        } catch (IOException e) {
+            log.error("write record into delta table failed. ", e);
+            fail();
+        }
     }
 
     @Test
