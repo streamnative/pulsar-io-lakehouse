@@ -175,8 +175,14 @@ public class SinkWriter implements Runnable {
                     .jsonDecoder(schema, record.getNativeObject().toString());
                 return Optional.of(datumReader.read(null, decoder));
             default:
-                log.error("not support this kind of schema: {}", record.getSchemaType());
-                return Optional.empty();
+                try {
+                    GenericRecord gr = PrimitiveFactory.getPulsarPrimitiveObject(record.getSchemaType(),
+                        record.getNativeObject(), sinkConnectorConfig.getOverrideFieldName()).getRecord();
+                    return Optional.of(gr);
+                } catch (Exception e) {
+                    log.error("not support this kind of schema: {}", record.getSchemaType(), e);
+                    return Optional.empty();
+                }
         }
     }
 
