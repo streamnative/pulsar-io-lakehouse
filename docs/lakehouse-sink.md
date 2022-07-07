@@ -52,7 +52,6 @@ Before using the Lakehouse sink connector, you need to configure it. This table 
 ::: tabs
 
 @@@ Hudi
-
 For a list of Hudi configurations, see [Write Client Configs](https://hudi.apache.org/docs/configurations#WRITE_CLIENT).
 
 | Name                                 | Type     | Required | Default | Description
@@ -69,62 +68,9 @@ For a list of Hudi configurations, see [Write Client Configs](https://hudi.apach
 | `hoodie.base.path`                   | String   | true     | N/A | The base path of the lake storage where all table data is stored. It always has a specific prefix with the storage scheme (for example, hdfs://, s3:// etc). Hudi stores all the main metadata about commits, savepoints, cleaning audit logs etc in the `.hoodie` directory. |
 | `hoodie.datasource.write.recordkey.field` | String | false     | UUID | The record key field. It is used as the `recordKey` component of `HoodieKey`. You can obtain the value by invoking `.toString()` on the field value. You can use the dot notation for nested fields such as a.b.c. |
 | `hoodie.datasource.write.partitionpath.field` | String   | true     | N/A | The partition path field. It is used as the `partitionPath` component of the `HoodieKey`.  You can obtain the value by invoking `.toString()`. |
-
-You can create a configuration file (JSON or YAML) to set the properties if you use [Pulsar Function Worker](https://pulsar.apache.org/docs/en/functions-worker/) to run connectors in a cluster.
-
-**Example**
-
-- The Hudi table that is stored in the file system
-
-    ```json
-    {
-      "tenant": "public",
-      "namespace": "default",
-      "name": "hudi-sink",
-      "inputs":[
-        "test-hudi-pulsar"
-      ],
-      "archive": "connectors/pulsar-io-hudi-{{connector:version}}.nar",
-      "parallelism": 1,
-      "configs":{
-        "type": "hudi",
-        "hoodie.table.name": "hudi-connector-test",
-        "hoodie.table.type": "COPY_ON_WRITE",
-        "hoodie.base.path": "file:///tmp/data/hudi-sink",
-        "hoodie.datasource.write.recordkey.field": "id",
-        "hoodie.datasource.write.partitionpath.field": "id",
-      }
-    }
-    ```
-
-- The Hudi table that is stored in the AWS S3
-
-    ```json
-    {
-      "tenant": "public",
-      "namespace": "default",
-      "name": "hudi-sink",
-      "inputs":[
-        "test-hudi-pulsar"
-      ],
-      "archive": "connectors/pulsar-io-hudi-{{connector:version}}.nar",
-      "parallelism": 1,
-      "configs":{
-        "type": "hudi",
-        "hoodie.table.name": "hudi-connector-test",
-        "hoodie.table.type": "COPY_ON_WRITE",
-        "hoodie.base.path": "s3a://bucket/path/to/hudi",
-        "hoodie.datasource.write.recordkey.field": "id",
-        "hoodie.datasource.write.partitionpath.field": "id",
-        "hadoop.fs.s3a.aws.credentials.provider": "com.amazonaws.auth.DefaultAWSCredentialsProviderChain"
-      }
-    }
-    ```
-
 @@@
 
 @@@ Iceberg
-
 | Name                                 | Type     | Required | Default | Description                                                 
 |--------------------------------------|----------|----------|---|-------------------------------------------------------------|
 | `type` | String | true | N/A | The type of the Lakehouse source connector. Available values: `hudi`, `iceberg`, and `delta`.         |
@@ -139,72 +85,9 @@ You can create a configuration file (JSON or YAML) to set the properties if you 
 | `catalogName` | String | false | icebergSinkConnector | The name of the Iceberg catalog. |
 | `tableNamespace` | String | true | N/A | The namespace of the Iceberg table. |
 | `tableName` | String | true | N/A | The name of the Iceberg table. |
-
-You can create a configuration file (JSON or YAML) to set the properties if you use [Pulsar Function Worker](https://pulsar.apache.org/docs/en/functions-worker/) to run connectors in a cluster.
-
-**Example**
-
-- The Iceberg table that is stored in the file system
-
-    ```json
-    {
-      "tenant":"public",
-      "namespace":"default",
-      "name":"iceberg_sink",
-      "parallelism":2,
-      "inputs":[
-        "test-iceberg-pulsar"
-      ],
-      "archive": "connectors/pulsar-io-lakehouse-{{connector:version}}.nar",
-      "processingGuarantees":"EFFECTIVELY_ONCE",
-      "configs":{
-        "type":"iceberg",
-        "maxCommitInterval":120,
-        "maxRecordsPerCommit":10000000,
-        "catalogName":"test_v1",
-        "tableNamespace":"iceberg_sink_test",
-        "tableName":"ice_sink_person",
-        "catalogProperties":{
-          "warehouse":"file:///tmp/data/iceberg-sink",
-          "catalog-impl":"hadoopCatalog"
-        }
-      }
-    }
-    ```
-
-- The Iceberg table that is stored in cloud storage (AWS S3, GCS, or Azure)
-
-    ```json
-    {
-      "tenant":"public",
-      "namespace":"default",
-      "name":"iceberg_sink",
-      "parallelism":2,
-      "inputs":[
-        "test-iceberg-pulsar"
-      ],
-      "archive": "connectors/pulsar-io-lakehouse-{{connector:version}}.nar",
-      "processingGuarantees":"EFFECTIVELY_ONCE",
-      "configs":{
-        "type":"iceberg",
-        "maxCommitInterval":120,
-        "maxRecordsPerCommit":10000000,
-        "catalogName":"test_v1",
-        "tableNamespace":"iceberg_sink_test",
-        "tableName":"ice_sink_person",
-        "hadoop.fs.s3a.aws.credentials.provider": "com.amazonaws.auth.DefaultAWSCredentialsProviderChain",
-        "catalogProperties":{
-          "warehouse":"s3a://test-dev-us-west-2/lakehouse/iceberg_sink",
-          "catalog-impl":"hadoopCatalog"
-        }
-      }
-    }
-    ```
-
 @@@
 
 @@@ Delta Lake
-
 | Name                                 | Type     | Required | Default | Description                                                 
 |--------------------------------------|----------|----------|---|-------------------------------------------------------------|
 | `type` | String | true | N/A | The type of the Lakehouse source connector. Available values: `hudi`, `iceberg`, and `delta`.         |
@@ -218,56 +101,6 @@ You can create a configuration file (JSON or YAML) to set the properties if you 
 | `compression` | String | false | SNAPPY | The compression type of the Delta Parquet file. compression type. By default, it is set to `SNAPPY`. |
 | `deltaFileType` | String | false | parquet | The type of the Delta file. By default, it is set to `parquet`. |
 | `appId` | String | false | pulsar-delta-sink-connector | The Delta APP ID. By default, it is set to `pulsar-delta-sink-connector`. |
-
-You can create a configuration file (JSON or YAML) to set the properties if you use [Pulsar Function Worker](https://pulsar.apache.org/docs/en/functions-worker/) to run connectors in a cluster.
-
-**Example**
-
-- The Delta table that is stored in the file system
-
-    ```json
-    {
-      "tenant":"public",
-      "namespace":"default",
-      "name":"delta_sink",
-      "parallelism":1,
-      "inputs":[
-        "test-delta-pulsar"
-      ],
-      "archive": "connectors/pulsar-io-lakehouse-{{connector:version}}.nar",
-      "processingGuarantees":"EFFECTIVELY_ONCE",
-      "configs":{
-        "type":"delta",
-        "maxCommitInterval":120,
-        "maxRecordsPerCommit":10000000,
-        "tablePath": "file:///tmp/data/delta-sink"
-      }
-    }
-    ```
-
-- The Delta table that is stored in cloud storage (AWS S3, GCS, or Azure)
-
-    ```json
-    {
-      "tenant":"public",
-      "namespace":"default",
-      "name":"delta_sink",
-      "parallelism":1,
-      "inputs":[
-        "test-delta-pulsar"
-      ],
-      "archive": "connectors/pulsar-io-lakehouse-{{connector:version}}.nar",
-      "processingGuarantees":"EFFECTIVELY_ONCE",
-      "configs":{
-        "type":"delta",
-        "maxCommitInterval":120,
-        "maxRecordsPerCommit":10000000,
-        "tablePath":"s3a://test-dev-us-west-2/lakehouse/delta_sink",
-        "hadoop.fs.s3a.aws.credentials.provider":"com.amazonaws.auth.DefaultAWSCredentialsProviderChain"
-      }
-    }
-    ```
-
 @@@
 
 :::
@@ -276,9 +109,173 @@ You can create a configuration file (JSON or YAML) to set the properties if you 
 >
 > The Lakehouse sink connector uses the Hadoop file system to read and write data to and from cloud objects, such as AWS, GCS, and Azure. If you want to configure Hadoop related properties, you should use the prefix `hadoop.`.
 
+## Examples
+
+You can create a configuration file (JSON or YAML) to set the properties if you use [Pulsar Function Worker](https://pulsar.apache.org/docs/en/functions-worker/) to run connectors in a cluster.
+
+::: tabs
+
+@@@ Hudi
+
+- The Hudi table that is stored in the file system
+
+   ```json
+    {
+        "tenant": "public",
+        "namespace": "default",
+        "name": "hudi-sink",
+        "inputs": [
+          "test-hudi-pulsar"
+        ],
+        "archive": "connectors/pulsar-io-hudi-2.10.0.7.nar",
+        "parallelism": 1,
+        "configs":   {
+            "type": "hudi",
+            "hoodie.table.name": "hudi-connector-test",
+            "hoodie.table.type": "COPY_ON_WRITE",
+            "hoodie.base.path": "file:///tmp/data/hudi-sink",
+            "hoodie.datasource.write.recordkey.field": "id",
+            "hoodie.datasource.write.partitionpath.field": "id",
+        }
+    }
+   ```
+
+- The Hudi table that is stored in the AWS S3
+
+   ```json
+    {
+        "tenant": "public",
+        "namespace": "default",
+        "name": "hudi-sink",
+        "inputs": [
+          "test-hudi-pulsar"
+        ],
+        "archive": "connectors/pulsar-io-hudi-2.10.0.7.nar",
+        "parallelism": 1,
+        "configs":   {
+            "type": "hudi",
+            "hoodie.table.name": "hudi-connector-test",
+            "hoodie.table.type": "COPY_ON_WRITE",
+            "hoodie.base.path": "s3a://bucket/path/to/hudi",
+            "hoodie.datasource.write.recordkey.field": "id",
+            "hoodie.datasource.write.partitionpath.field": "id",
+            "hadoop.fs.s3a.aws.credentials.provider": "com.amazonaws.auth.DefaultAWSCredentialsProviderChain"
+        }
+    }
+   ```
+@@@
+
+@@@ Iceberg
+- The Iceberg table that is stored in the file system
+
+    ```json
+    {
+        "tenant":"public",
+        "namespace":"default",
+        "name":"iceberg_sink",
+        "parallelism":2,
+        "inputs": [
+          "test-iceberg-pulsar"
+        ],
+        "archive": "connectors/pulsar-io-lakehouse-2.10.0.7.nar",
+        "processingGuarantees":"EFFECTIVELY_ONCE",
+        "configs":{
+            "type":"iceberg",
+            "maxCommitInterval":120,
+            "maxRecordsPerCommit":10000000,
+            "catalogName":"test_v1",
+            "tableNamespace":"iceberg_sink_test",
+            "tableName":"ice_sink_person",
+            "catalogProperties":{
+                "warehouse":"file:///tmp/data/iceberg-sink",
+                "catalog-impl":"hadoopCatalog"
+            }
+        }
+    }
+    ```
+
+- The Iceberg table that is stored in cloud storage (AWS S3, GCS, or Azure)
+
+    ```json
+    {
+        "tenant":"public",
+        "namespace":"default",
+        "name":"iceberg_sink",
+        "parallelism":2,
+        "inputs": [
+          "test-iceberg-pulsar"
+        ],
+        "archive": "connectors/pulsar-io-lakehouse-2.10.0.7.nar",
+        "processingGuarantees":"EFFECTIVELY_ONCE",
+        "configs":{
+            "type":"iceberg",
+            "maxCommitInterval":120,
+            "maxRecordsPerCommit":10000000,
+            "catalogName":"test_v1",
+            "tableNamespace":"iceberg_sink_test",
+            "tableName":"ice_sink_person",
+            "hadoop.fs.s3a.aws.credentials.provider": "com.amazonaws.auth.DefaultAWSCredentialsProviderChain",
+            "catalogProperties":{
+                "warehouse":"s3a://test-dev-us-west-2/lakehouse/iceberg_sink",
+                "catalog-impl":"hadoopCatalog"
+            }
+        }
+    }
+    ```
+@@@
+
+@@@ Delta Lake
+- The Delta table that is stored in the file system
+
+    ```json
+    {
+        "tenant":"public",
+        "namespace":"default",
+        "name":"delta_sink",
+        "parallelism":1,
+        "inputs": [
+          "test-delta-pulsar"
+        ],
+        "archive": "connectors/pulsar-io-lakehouse-2.10.0.7.nar",
+        "processingGuarantees":"EFFECTIVELY_ONCE",
+        "configs":{
+            "type":"delta",
+            "maxCommitInterval":120,
+            "maxRecordsPerCommit":10000000,
+            "tablePath": "file:///tmp/data/delta-sink"
+        }
+    }
+    ```
+
+- The Delta table that is stored in cloud storage (AWS S3, GCS, or Azure)
+
+    ```json
+    {
+        "tenant":"public",
+        "namespace":"default",
+        "name":"delta_sink",
+        "parallelism":1,
+        "inputs": [
+          "test-delta-pulsar"
+        ],
+        "archive": "connectors/pulsar-io-lakehouse-2.10.0.7.nar",
+        "processingGuarantees":"EFFECTIVELY_ONCE",
+        "configs":{
+            "type":"delta",
+            "maxCommitInterval":120,
+            "maxRecordsPerCommit":10000000,
+            "tablePath": "s3a://test-dev-us-west-2/lakehouse/delta_sink",
+            "hadoop.fs.s3a.aws.credentials.provider": "com.amazonaws.auth.DefaultAWSCredentialsProviderChain"
+        }
+    }
+    ```
+@@@
+
+:::
+
 ## Data format types
 
-The Lakehouse sink Connector provides multiple output format options, including Avro and Parquet. The default format is Parquet.
+The Lakehouse sink connector provides multiple output format options, including Avro and Parquet. The default format is Parquet.
 With the current implementation, there are some limitations for different formats:
 
 This table lists the Pulsar Schema types supported by the writers.
@@ -355,7 +352,7 @@ This example describes how to use the Lakehouse sink connector to fetch data fro
     PULSAR_HOME/bin/pulsar-client produce public/default/test-lakehouse-pulsar --messages hello -n 10
     ```
 
-5. Query the data from the Lakehouse table. For details, see  [Hudi Quickstart guide](https://hudi.apache.org/docs/quick-start-guide), [Iceberg Quickstart guide](https://iceberg.apache.org/docs/latest/getting-started/), and [Delta Quickstart guide](https://delta.io/learn/getting-started).
+5. Query the data from the Lakehouse table. For details, see [Hudi Quickstart guide](https://hudi.apache.org/docs/quick-start-guide), [Iceberg Quickstart guide](https://iceberg.apache.org/docs/latest/getting-started/), and [Delta Quickstart guide](https://delta.io/learn/getting-started).
 
 ## On-premises cluster
 

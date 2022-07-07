@@ -52,7 +52,6 @@ Before using the Lakehouse source connector, you need to configure it. This tabl
 ::: tabs
 
 @@@ Delta Lake
-
 | Name                                 | Type     | Required | Default | Description
 |--------------------------------------|----------|----------|---|-------------------------------------------------------------|
 | `type` | String | true | N/A | The type of the Lakehouse source connector. Available values: `delta`. |
@@ -63,64 +62,8 @@ Before using the Lakehouse source connector, you need to configure it. This tabl
 | `startTimestamp` | long | false | N/A | The Delta snapshot timestamp (in units of seconds) to start capturing data change. The `startSnapshotVersion` and `startTimestamp` are mutually exclusive. |
 | `tablePath` | String | true | N/A | The path of the Delta table. |
 | `parquetParseThreads` | int | false | Runtime.getRuntime().availableProcessors() | The parallelism of paring Delta Parquet files. By default, it is set to `Runtime.getRuntime().availableProcessors()`. |
-| `maxReadBytesSizeOneRound` | long | false | Total memory * 0.2	| The maximum read bytes size from Parquet files in one fetch round. By default, it is set to 20% of the heap memory. |
+| `maxReadBytesSizeOneRound` | long | false | Total memory * 0.2 | The maximum read bytes size from Parquet files in one fetch round. By default, it is set to 20% of the heap memory. |
 | `maxReadRowCountOneRound` | int | false | 100_000 | The maximum read number of rows processed in one round. By default, it is set to `1_000_000`. |
-
-You can create a configuration file (JSON or YAML) to set the properties if you use [Pulsar Function Worker](https://pulsar.apache.org/docs/en/functions-worker/) to run connectors in a cluster.
-
-**Example**
-
-- The Delta table that is stored in the file system
-
-```json
-{
-  "tenant":"public",
-  "namespace":"default",
-  "name":"delta_source",
-  "parallelism":1,
-  "topicName": "delta_source",
-  "processingGuarantees":"ATLEAST_ONCE",
-  "archive": "connectors/pulsar-io-lakehouse-{{connector:version}}.nar",
-  "configs":{
-    "type":"delta",
-    "checkpointInterval": 180,
-    "queueSize": 10000,
-    "fatchHistoryData": false,
-    "startSnapshotVersion": -1,
-    "tablePath": "file:///tmp/data/delta-source",
-    "parquetParseThreads": 3,
-    "maxReadBytesSizeOneRound": 134217728,
-    "maxReadRowCountOneRound": 100000
-  }
-}
-```
-
-- The Delta table that is stored in cloud storage (AWS S3, GCS, or Azure)
-
-```json
-{
-  "tenant":"public",
-  "namespace":"default",
-  "name":"delta_source",
-  "parallelism":1,
-  "topicName": "delta_source",
-  "processingGuarantees":"ATLEAST_ONCE",
-  "archive": "connectors/pulsar-io-lakehouse-{{connector:version}}.nar",
-  "configs":{
-    "type":"delta",
-    "checkpointInterval": 180,
-    "queueSize": 10000,
-    "fatchHistoryData": false,
-    "startSnapshotVersion": -1,
-    "tablePath": "s3a://test-dev-us-west-2/lakehouse/delta_source",
-    "hadoop.fs.s3a.aws.credentials.provider": "com.amazonaws.auth.DefaultAWSCredentialsProviderChain",
-    "parquetParseThreads": 3,
-    "maxReadBytesSizeOneRound": 134217728,
-    "maxReadRowCountOneRound": 100000
-  }
-}
-```
-
 @@@
 
 :::
@@ -129,6 +72,67 @@ You can create a configuration file (JSON or YAML) to set the properties if you 
 >
 > The Lakehouse source connector uses the Hadoop file system to read and write data to and from cloud objects, such as AWS, GCS, and Azure. If you want to configure Hadoop related properties, you should use the prefix `hadoop.`.
 
+## Examples
+
+You can create a configuration file (JSON or YAML) to set the properties if you use [Pulsar Function Worker](https://pulsar.apache.org/docs/en/functions-worker/) to run connectors in a cluster.
+
+::: tabs
+
+@@@ Delta Lake
+
+- The Delta table that is stored in the file system
+
+    ```json
+    {
+        "tenant":"public",
+        "namespace":"default",
+        "name":"delta_source",
+        "parallelism":1,
+        "topicName": "delta_source",
+        "processingGuarantees":"ATLEAST_ONCE",
+        "archive": "connectors/pulsar-io-lakehouse-2.9.2.22.nar",
+        "configs":{
+            "type":"delta",
+            "checkpointInterval": 180,
+            "queueSize": 10000,
+            "fatchHistoryData": false,
+            "startSnapshotVersion": -1,
+            "tablePath": "file:///tmp/data/delta-source",
+            "parquetParseThreads": 3,
+            "maxReadBytesSizeOneRound": 134217728,
+            "maxReadRowCountOneRound": 100000
+        }
+    }
+    ```
+
+- The Delta table that is stored in cloud storage (AWS S3, GCS, or Azure)
+
+    ```json
+    {
+        "tenant":"public",
+        "namespace":"default",
+        "name":"delta_source",
+        "parallelism":1,
+        "topicName": "delta_source",
+        "processingGuarantees":"ATLEAST_ONCE",
+        "archive": "connectors/pulsar-io-lakehouse-2.9.2.22.nar",
+        "configs":{
+            "type":"delta",
+            "checkpointInterval": 180,
+            "queueSize": 10000,
+            "fatchHistoryData": false,
+            "startSnapshotVersion": -1,
+            "tablePath": "s3a://test-dev-us-west-2/lakehouse/delta_source",
+            "hadoop.fs.s3a.aws.credentials.provider": "com.amazonaws.auth.DefaultAWSCredentialsProviderChain",
+            "parquetParseThreads": 3,
+            "maxReadBytesSizeOneRound": 134217728,
+            "maxReadRowCountOneRound": 100000
+        }
+    }
+    ```
+@@@
+
+:::
 
 ## Data format types
 
