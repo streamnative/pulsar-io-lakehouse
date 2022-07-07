@@ -52,7 +52,6 @@ Before using the Lakehouse sink connector, you need to configure it. This table 
 ::: tabs
 
 @@@ Hudi
-
 For a list of Hudi configurations, see [Write Client Configs](https://hudi.apache.org/docs/configurations#WRITE_CLIENT).
 
 | Name                                 | Type     | Required | Default | Description
@@ -69,11 +68,9 @@ For a list of Hudi configurations, see [Write Client Configs](https://hudi.apach
 | `hoodie.base.path`                   | String   | true     | N/A | The base path of the lake storage where all table data is stored. It always has a specific prefix with the storage scheme (for example, hdfs://, s3:// etc). Hudi stores all the main metadata about commits, savepoints, cleaning audit logs etc in the `.hoodie` directory. |
 | `hoodie.datasource.write.recordkey.field` | String | false     | UUID | The record key field. It is used as the `recordKey` component of `HoodieKey`. You can obtain the value by invoking `.toString()` on the field value. You can use the dot notation for nested fields such as a.b.c. |
 | `hoodie.datasource.write.partitionpath.field` | String   | true     | N/A | The partition path field. It is used as the `partitionPath` component of the `HoodieKey`.  You can obtain the value by invoking `.toString()`. |
-
 @@@
 
 @@@ Iceberg
-
 | Name                                 | Type     | Required | Default | Description                                                 
 |--------------------------------------|----------|----------|---|-------------------------------------------------------------|
 | `type` | String | true | N/A | The type of the Lakehouse source connector. Available values: `hudi`, `iceberg`, and `delta`.         |
@@ -88,11 +85,9 @@ For a list of Hudi configurations, see [Write Client Configs](https://hudi.apach
 | `catalogName` | String | false | icebergSinkConnector | The name of the Iceberg catalog. |
 | `tableNamespace` | String | true | N/A | The namespace of the Iceberg table. |
 | `tableName` | String | true | N/A | The name of the Iceberg table. |
-
 @@@
 
 @@@ Delta Lake
-
 | Name                                 | Type     | Required | Default | Description                                                 
 |--------------------------------------|----------|----------|---|-------------------------------------------------------------|
 | `type` | String | true | N/A | The type of the Lakehouse source connector. Available values: `hudi`, `iceberg`, and `delta`.         |
@@ -106,7 +101,6 @@ For a list of Hudi configurations, see [Write Client Configs](https://hudi.apach
 | `compression` | String | false | SNAPPY | The compression type of the Delta Parquet file. compression type. By default, it is set to `SNAPPY`. |
 | `deltaFileType` | String | false | parquet | The type of the Delta file. By default, it is set to `parquet`. |
 | `appId` | String | false | pulsar-delta-sink-connector | The Delta APP ID. By default, it is set to `pulsar-delta-sink-connector`. |
-
 @@@
 
 :::
@@ -115,9 +109,9 @@ For a list of Hudi configurations, see [Write Client Configs](https://hudi.apach
 >
 > The Lakehouse sink connector uses the Hadoop file system to read and write data to and from cloud objects, such as AWS, GCS, and Azure. If you want to configure Hadoop related properties, you should use the prefix `hadoop.`.
 
-You can create a configuration file (JSON or YAML) to set the properties if you use [Pulsar Function Worker](https://pulsar.apache.org/docs/en/functions-worker/) to run connectors in a cluster.
+## Examples
 
-**Example**
+You can create a configuration file (JSON or YAML) to set the properties if you use [Pulsar Function Worker](https://pulsar.apache.org/docs/en/functions-worker/) to run connectors in a cluster.
 
 ::: tabs
 
@@ -156,7 +150,7 @@ You can create a configuration file (JSON or YAML) to set the properties if you 
         "inputs": [
           "test-hudi-pulsar"
         ],
-        "archive": "connectors/pulsar-io-hudi-{{connector:version}}.nar",
+        "archive": "connectors/pulsar-io-hudi-{{connector:version}}-cloud.nar",
         "parallelism": 1,
         "configs":   {
             "type": "hudi",
@@ -169,11 +163,9 @@ You can create a configuration file (JSON or YAML) to set the properties if you 
         }
     }
    ```
-
 @@@
 
 @@@ Iceberg
-
 - The Iceberg table that is stored in the file system
 
     ```json
@@ -213,7 +205,7 @@ You can create a configuration file (JSON or YAML) to set the properties if you 
         "inputs": [
           "test-iceberg-pulsar"
         ],
-        "archive": "connectors/pulsar-io-lakehouse-{{connector:version}}.nar",
+        "archive": "connectors/pulsar-io-lakehouse-{{connector:version}}-cloud.nar",
         "processingGuarantees":"EFFECTIVELY_ONCE",
         "configs":{
             "type":"iceberg",
@@ -230,11 +222,9 @@ You can create a configuration file (JSON or YAML) to set the properties if you 
         }
     }
     ```
-
 @@@
 
 @@@ Delta Lake
-
 - The Delta table that is stored in the file system
 
     ```json
@@ -268,7 +258,7 @@ You can create a configuration file (JSON or YAML) to set the properties if you 
         "inputs": [
           "test-delta-pulsar"
         ],
-        "archive": "connectors/pulsar-io-lakehouse-{{connector:version}}.nar",
+        "archive": "connectors/pulsar-io-lakehouse-{{connector:version}}-cloud.nar",
         "processingGuarantees":"EFFECTIVELY_ONCE",
         "configs":{
             "type":"delta",
@@ -279,14 +269,13 @@ You can create a configuration file (JSON or YAML) to set the properties if you 
         }
     }
     ```
-
 @@@
 
 :::
 
 ## Data format types
 
-The Lakehouse sink Connector provides multiple output format options, including Avro and Parquet. The default format is Parquet.
+The Lakehouse sink connector provides multiple output format options, including Avro and Parquet. The default format is Parquet.
 With the current implementation, there are some limitations for different formats:
 
 This table lists the Pulsar Schema types supported by the writers.
@@ -363,7 +352,7 @@ This example describes how to use the Lakehouse sink connector to fetch data fro
     PULSAR_HOME/bin/pulsar-client produce public/default/test-lakehouse-pulsar --messages hello -n 10
     ```
 
-5. Query the data from the Lakehouse table. For details, see  [Hudi Quickstart guide](https://hudi.apache.org/docs/quick-start-guide), [Iceberg Quickstart guide](https://iceberg.apache.org/docs/latest/getting-started/), and [Delta Quickstart guide](https://delta.io/learn/getting-started).
+5. Query the data from the Lakehouse table. For details, see [Hudi Quickstart guide](https://hudi.apache.org/docs/quick-start-guide), [Iceberg Quickstart guide](https://iceberg.apache.org/docs/latest/getting-started/), and [Delta Quickstart guide](https://delta.io/learn/getting-started).
 
 ## On-premises cluster
 
@@ -397,3 +386,15 @@ This example explains how to create a Lakehouse sink connector in an on-premises
 @@@
 
 :::
+
+# Demos
+
+This table lists demos that show how to run the [Delta Lake](https://delta.io/), [Hudi](https://hudi.apache.org), and [Iceberg](https://iceberg.apache.org/) sink connectors with other external systems.
+
+Currently, only the demo on the Delta Lake sink connector is available. 
+
+| Connector  | Link                                                                                                                             |
+|------------|----------------------------------------------------------------------------------------------------------------------------------|
+| Delta Lake | For details, see the [Delta Lake demo](https://github.com/streamnative/pulsar-io-lakehouse/blob/master/docs/delta-lake-demo.md). |
+| Hudi       |                                                                                                                                  |
+| Iceberg    |                                                                                                                                  |
