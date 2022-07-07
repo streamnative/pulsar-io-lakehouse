@@ -115,7 +115,7 @@ You can create a configuration file (JSON or YAML) to set the properties if you 
         "parallelism":1,
         "topicName": "delta_source",
         "processingGuarantees":"ATLEAST_ONCE",
-        "archive": "connectors/pulsar-io-lakehouse-{{connector:version}}.nar",
+        "archive": "connectors/pulsar-io-lakehouse-{{connector:version}}-cloud.nar",
         "configs":{
             "type":"delta",
             "checkpointInterval": 180,
