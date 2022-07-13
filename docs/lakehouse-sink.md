@@ -128,6 +128,7 @@ You can create a configuration file (JSON or YAML) to set the properties if you 
           "test-hudi-pulsar"
         ],
         "archive": "connectors/pulsar-io-hudi-{{connector:version}}.nar",
+        "processingGuarantees": "EFFECTIVELY_ONCE",
         "parallelism": 1,
         "configs":   {
             "type": "hudi",
@@ -152,6 +153,7 @@ You can create a configuration file (JSON or YAML) to set the properties if you 
         ],
         "archive": "connectors/pulsar-io-hudi-{{connector:version}}-cloud.nar",
         "parallelism": 1,
+        "processingGuarantees": "EFFECTIVELY_ONCE",
         "configs":   {
             "type": "hudi",
             "hoodie.table.name": "hudi-connector-test",
