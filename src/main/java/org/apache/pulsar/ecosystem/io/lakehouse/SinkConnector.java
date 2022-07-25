@@ -90,8 +90,12 @@ public class SinkConnector implements Sink<GenericObject> {
 
     @Override
     public void close() throws Exception {
-        writer.close();
-        executor.shutdown();
+        if (writer != null) {
+            writer.close();
+        }
+        if (executor != null) {
+            executor.shutdown();
+        }
         log.info("{} sink connector closed.", sinkConnectorConfig.getType());
     }
 }
