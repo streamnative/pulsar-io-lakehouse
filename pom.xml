@@ -77,13 +77,6 @@
     <puppycrawl.checkstyle.version>8.37</puppycrawl.checkstyle.version>
     <spotbugs-maven-plugin.version>4.2.2</spotbugs-maven-plugin.version>
     <cloudPkgSuffix></cloudPkgSuffix>
-
-    <test.additional.args>
-      --add-opens java.base/java.util=ALL-UNNAMED
-      --add-opens java.base/java.lang=ALL-UNNAMED
-      --add-opens java.base/java.util.concurrent=ALL-UNNAMED
-      --add-opens java.base/java.nio=ALL-UNNAMED
-    </test.additional.args>
   </properties>
 
   <licenses>
@@ -527,6 +520,12 @@
             <reuseForks>false</reuseForks>
             <forkedProcessTimeoutInSeconds>1800</forkedProcessTimeoutInSeconds>
             <rerunFailingTestsCount>${testRetryCount}</rerunFailingTestsCount>
+            <argLine>
+              --add-opens java.base/java.util=ALL-UNNAMED
+              --add-opens java.base/java.lang=ALL-UNNAMED
+              --add-opens java.base/java.util.concurrent=ALL-UNNAMED
+              --add-opens java.base/java.nio=ALL-UNNAMED
+            </argLine>
           </configuration>
         </plugin>
         <!-- package -->
