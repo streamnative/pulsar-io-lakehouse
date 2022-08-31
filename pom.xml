@@ -520,6 +520,11 @@
             <reuseForks>false</reuseForks>
             <forkedProcessTimeoutInSeconds>1800</forkedProcessTimeoutInSeconds>
             <rerunFailingTestsCount>${testRetryCount}</rerunFailingTestsCount>
+            <argLine>
+              --add-opens java.base/java.util=ALL-UNNAMED
+              --add-opens java.base/java.lang=ALL-UNNAMED
+              --add-opens java.base/java.util.concurrent=ALL-UNNAMED
+            </argLine>
           </configuration>
         </plugin>
         <!-- package -->
