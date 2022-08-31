@@ -45,7 +45,7 @@ jobs:
           CLOUD_BUCKET_NAME: ${{ secrets.CLOUD_BUCKET_NAME }}
           AWS_SECRET_KEY: ${{ secrets.AWS_SECRET_KEY }}
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        run: mvn --add-opens java.base/java.util=ALL-UNNAMED --add-opens java.base/java.lang=ALL-UNNAMED --add-opens java.base/java.util.concurrent=ALL-UNNAMEDtest -Pcloud
+        run: mvn --add-opens java.base/java.util=ALL-UNNAMED --add-opens java.base/java.lang=ALL-UNNAMED --add-opens java.base/java.util.concurrent=ALL-UNNAMED test -Pcloud
 
       - name: package surefire artifacts
         if: failure()
