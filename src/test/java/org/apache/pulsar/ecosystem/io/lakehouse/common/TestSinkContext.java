@@ -26,6 +26,7 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import org.apache.pulsar.client.api.PulsarClient;
 import org.apache.pulsar.client.api.SubscriptionType;
+import org.apache.pulsar.common.io.SinkConfig;
 import org.apache.pulsar.io.core.SinkContext;
 import org.slf4j.Logger;
 
@@ -141,6 +142,10 @@ public class TestSinkContext implements SinkContext {
 
     @Override
     public PulsarClient getPulsarClient() {
+        return null;
+    }
+
+    public SinkConfig getSinkConfig() {
         return null;
     }
 }

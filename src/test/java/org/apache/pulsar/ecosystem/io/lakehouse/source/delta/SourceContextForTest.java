@@ -27,6 +27,7 @@ import org.apache.pulsar.client.api.ConsumerBuilder;
 import org.apache.pulsar.client.api.PulsarClientException;
 import org.apache.pulsar.client.api.Schema;
 import org.apache.pulsar.client.api.TypedMessageBuilder;
+import org.apache.pulsar.common.io.SourceConfig;
 import org.apache.pulsar.io.core.SourceContext;
 import org.slf4j.Logger;
 
@@ -145,5 +146,9 @@ public class SourceContextForTest implements SourceContext {
     @Override
     public void recordMetric(String metricName, double value) {
         metrics.put(metricName, value);
+    }
+
+    public SourceConfig getSourceConfig() {
+        return null;
     }
 }
