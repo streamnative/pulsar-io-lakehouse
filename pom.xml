@@ -329,6 +329,10 @@
           <groupId>com.sun.jersey</groupId>
           <artifactId>*</artifactId>
         </exclusion>
+        <exclusion>
+          <artifactId>jetty-servlet</artifactId>
+          <groupId>org.eclipse.jetty</groupId>
+        </exclusion>
       </exclusions>
     </dependency>
 
