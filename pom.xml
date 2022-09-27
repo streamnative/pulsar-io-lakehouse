@@ -52,7 +52,7 @@
     <pulsar.version>2.10.0.4</pulsar.version>
     <log4j2.version>2.17.2</log4j2.version>
     <slf4j.version>1.7.25</slf4j.version>
-    <hadoop.version>3.2.2</hadoop.version>
+    <hadoop.version>3.3.3</hadoop.version>
     <iceberg.version>0.13.1</iceberg.version>
     <parquet.version>1.12.0</parquet.version>
     <hudi.version>0.11.0</hudi.version>
@@ -329,6 +329,10 @@
           <groupId>com.sun.jersey</groupId>
           <artifactId>*</artifactId>
         </exclusion>
+        <exclusion>
+          <artifactId>jetty-servlet</artifactId>
+          <groupId>org.eclipse.jetty</groupId>
+        </exclusion>
       </exclusions>
     </dependency>
 
@@ -419,6 +423,10 @@
           <groupId>io.dropwizard.metrics</groupId>
           <artifactId>*</artifactId>
         </exclusion>
+        <exclusion>
+          <artifactId>log4j</artifactId>
+          <groupId>log4j</groupId>
+        </exclusion>
       </exclusions>
     </dependency>
 
@@ -426,6 +434,12 @@
       <groupId>org.apache.curator</groupId>
       <artifactId>curator-framework</artifactId>
       <version>${curator.version}</version>
+      <exclusions>
+        <exclusion>
+          <artifactId>log4j</artifactId>
+          <groupId>log4j</groupId>
+        </exclusion>
+      </exclusions>
     </dependency>
 
     <dependency>
