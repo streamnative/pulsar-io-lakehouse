@@ -16,7 +16,6 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-
 package org.apache.pulsar.ecosystem.io.lakehouse.parquet;
 
 import static org.testng.Assert.assertEquals;
@@ -43,12 +42,12 @@ import org.apache.pulsar.client.api.schema.GenericRecord;
 import org.apache.pulsar.common.schema.SchemaType;
 import org.apache.pulsar.ecosystem.io.lakehouse.sink.SinkConnectorUtils;
 import org.apache.pulsar.functions.api.Record;
+import org.junit.Assert;
 import org.testng.annotations.Test;
 
 
 /**
  * Delta parquet file writer test.
- *
  */
 @Slf4j
 public class DeltaParquetFileWriterTest {
@@ -112,12 +111,12 @@ public class DeltaParquetFileWriterTest {
         recordMap.put("score", 59.9);
 
         Record<GenericObject> record = SinkConnectorUtils.generateRecord(schemaMap, recordMap,
-            SchemaType.AVRO, "MyRecord");
+                SchemaType.AVRO, "MyRecord");
         Schema schema = new Schema.Parser().parse(record.getSchema().getSchemaInfo().getSchemaDefinition());
 
         try {
             ParquetWriter<org.apache.avro.generic.GenericRecord> writer = DeltaParquetFileWriter
-                .openNewFile(path, schema, configuration, compression);
+                    .openNewFile(path, schema, configuration, compression);
             assertEquals(writer.getDataSize(), 0);
             writer.write((org.apache.avro.generic.GenericRecord) record.getValue().getNativeObject());
             writer.close();
@@ -155,17 +154,17 @@ public class DeltaParquetFileWriterTest {
         List<Record<GenericObject>> recordList = new ArrayList<>();
         try {
             Record<GenericObject> record = SinkConnectorUtils.generateRecord(schemaMap, recordMap,
-                SchemaType.AVRO, "MyRecord");
+                    SchemaType.AVRO, "MyRecord");
             Schema schema = new Schema.Parser().parse(record.getSchema().getSchemaInfo().getSchemaDefinition());
 
             ParquetWriter<org.apache.avro.generic.GenericRecord> writer = DeltaParquetFileWriter
-                .openNewFile(path, schema, configuration, compression);
+                    .openNewFile(path, schema, configuration, compression);
 
             for (int i = 0; i < 100; ++i) {
                 recordMap.put("age", i);
                 recordMap.put("score", 59.9 + i);
                 record = SinkConnectorUtils.generateRecord(schemaMap, recordMap,
-                    SchemaType.AVRO, "MyRecord");
+                        SchemaType.AVRO, "MyRecord");
                 recordList.add(record);
                 writer.write((org.apache.avro.generic.GenericRecord) record.getValue().getNativeObject());
             }
@@ -190,6 +189,47 @@ public class DeltaParquetFileWriterTest {
         }
 
         new File(path).deleteOnExit();
+    }
+
+    @Test
+    public void testGetFileSize() {
+        String path = "/tmp/test_delta-" + UUID.randomUUID();
+        Configuration configuration = new Configuration();
+        String compression = "snappy";
+
+        Map<String, SchemaType> schemaMap = new HashMap<>();
+        schemaMap.put("name", SchemaType.STRING);
+        schemaMap.put("age", SchemaType.INT32);
+        schemaMap.put("phone", SchemaType.STRING);
+        schemaMap.put("address", SchemaType.STRING);
+        schemaMap.put("score", SchemaType.DOUBLE);
+
+        Map<String, Object> recordMap = new HashMap<>();
+        recordMap.put("name", "hang");
+        recordMap.put("age", 18);
+        recordMap.put("phone", "110");
+        recordMap.put("address", "GuangZhou, China");
+        recordMap.put("score", 59.9);
+
+        Record<GenericObject> record = SinkConnectorUtils.generateRecord(schemaMap, recordMap,
+                SchemaType.AVRO, "MyRecord");
+        Schema schema = new Schema.Parser().parse(record.getSchema().getSchemaInfo().getSchemaDefinition());
+
+        try {
+            ParquetWriter<org.apache.avro.generic.GenericRecord> writer = DeltaParquetFileWriter
+                    .openNewFile(path, schema, configuration, compression);
+            assertEquals(writer.getDataSize(), 0);
+            writer.write((org.apache.avro.generic.GenericRecord) record.getValue().getNativeObject());
+            writer.close();
+
+            DeltaParquetFileWriter deltaParquetFileWriter =
+                    new DeltaParquetFileWriter(configuration, "", compression, null);
+            Assert.assertEquals(new File(path).length(), deltaParquetFileWriter.getFileSize(path));
+        } catch (IOException e) {
+            fail();
+        } finally {
+            new File(path).deleteOnExit();
+        }
     }
 
     private static void parquetReader(String path) throws IOException {

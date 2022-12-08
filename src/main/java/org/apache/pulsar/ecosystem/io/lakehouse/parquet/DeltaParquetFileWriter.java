@@ -16,11 +16,11 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-
 package org.apache.pulsar.ecosystem.io.lakehouse.parquet;
 
 import static org.apache.parquet.hadoop.ParquetWriter.DEFAULT_BLOCK_SIZE;
 import static org.apache.parquet.hadoop.ParquetWriter.DEFAULT_PAGE_SIZE;
+import com.google.common.annotations.VisibleForTesting;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
@@ -38,8 +38,7 @@ import org.apache.hadoop.fs.Path;
 import org.apache.parquet.avro.AvroParquetWriter;
 import org.apache.parquet.hadoop.ParquetWriter;
 import org.apache.parquet.hadoop.metadata.CompressionCodecName;
-
-
+import org.apache.parquet.hadoop.util.HadoopInputFile;
 
 
 /**
@@ -87,12 +86,11 @@ public class DeltaParquetFileWriter implements DeltaParquetWriter {
         writer.write(record);
     }
 
-    public long getDataSize() {
-        if (writer != null) {
-            return writer.getDataSize();
-        }
-
-        return -1L;
+    @VisibleForTesting
+    public long getFileSize(String fileFullPath) throws IOException {
+        Path path = new Path(fileFullPath);
+        HadoopInputFile hadoopInputFile = HadoopInputFile.fromPath(path, configuration);
+        return hadoopInputFile.getLength();
     }
 
     @Override
@@ -100,13 +98,12 @@ public class DeltaParquetFileWriter implements DeltaParquetWriter {
         if (isClosed.get()) {
             return null;
         }
-
+        String closedFileFullPath = currentFileFullPath;
         String filePath = currentFileFullPath.substring(
-            currentFileFullPath.indexOf(tablePath) + tablePath.length() + 1);
-        FileStat fileStat = new FileStat(filePath, getDataSize(), partitionValues);
-        lastRollFileTimestamp = System.currentTimeMillis();
+                currentFileFullPath.indexOf(tablePath) + tablePath.length() + 1);
         close();
-
+        lastRollFileTimestamp = System.currentTimeMillis();
+        FileStat fileStat = new FileStat(filePath, getFileSize(closedFileFullPath), partitionValues);
         return Collections.singletonList(fileStat);
     }
 
@@ -138,12 +135,12 @@ public class DeltaParquetFileWriter implements DeltaParquetWriter {
     public static String generateNextFilePath(String partitionColumnPath, String tablePath, String compression) {
         StringBuilder sb = new StringBuilder();
         String suffix = new StringBuilder()
-            .append("part-0000-")
-            .append(UUID.randomUUID())
-            .append("-c000.")
-            .append(compression.toLowerCase(Locale.ROOT))
-            .append(".parquet")
-            .toString();
+                .append("part-0000-")
+                .append(UUID.randomUUID())
+                .append("-c000.")
+                .append(compression.toLowerCase(Locale.ROOT))
+                .append(".parquet")
+                .toString();
 
         sb.append(tablePath);
         if (!tablePath.endsWith("/")) {
@@ -152,26 +149,26 @@ public class DeltaParquetFileWriter implements DeltaParquetWriter {
 
         if (!StringUtils.isBlank(partitionColumnPath)) {
             sb.append(partitionColumnPath)
-                .append("/");
+                    .append("/");
         }
 
         return sb.append(suffix).toString();
     }
 
     protected static ParquetWriter<GenericRecord> openNewFile(String currentFileFullPath,
-                                                       Schema schema,
-                                                       Configuration configuration,
-                                                       String compression) throws IOException {
+                                                              Schema schema,
+                                                              Configuration configuration,
+                                                              String compression) throws IOException {
         ParquetWriter<GenericRecord> writer = AvroParquetWriter
-            .<GenericRecord>builder(new Path(currentFileFullPath))
-            .withRowGroupSize(DEFAULT_BLOCK_SIZE)
-            .withPageSize(DEFAULT_PAGE_SIZE)
-            .withSchema(schema)
-            .withConf(configuration)
-            .withCompressionCodec(CompressionCodecName.valueOf(compression.toUpperCase(Locale.ROOT)))
-            .withValidation(false)
-            .withDictionaryEncoding(false)
-            .build();
+                .<GenericRecord>builder(new Path(currentFileFullPath))
+                .withRowGroupSize(DEFAULT_BLOCK_SIZE)
+                .withPageSize(DEFAULT_PAGE_SIZE)
+                .withSchema(schema)
+                .withConf(configuration)
+                .withCompressionCodec(CompressionCodecName.valueOf(compression.toUpperCase(Locale.ROOT)))
+                .withValidation(false)
+                .withDictionaryEncoding(false)
+                .build();
 
 
         log.info("open: {} parquet writer succeed. {}", currentFileFullPath, writer);
