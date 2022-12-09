@@ -21,6 +21,7 @@ package org.apache.pulsar.ecosystem.io.lakehouse.parquet;
 
 import static org.apache.parquet.hadoop.ParquetWriter.DEFAULT_BLOCK_SIZE;
 import static org.apache.parquet.hadoop.ParquetWriter.DEFAULT_PAGE_SIZE;
+import com.google.common.annotations.VisibleForTesting;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
@@ -38,8 +39,7 @@ import org.apache.hadoop.fs.Path;
 import org.apache.parquet.avro.AvroParquetWriter;
 import org.apache.parquet.hadoop.ParquetWriter;
 import org.apache.parquet.hadoop.metadata.CompressionCodecName;
-
-
+import org.apache.parquet.hadoop.util.HadoopInputFile;
 
 
 /**
@@ -87,12 +87,11 @@ public class DeltaParquetFileWriter implements DeltaParquetWriter {
         writer.write(record);
     }
 
-    public long getDataSize() {
-        if (writer != null) {
-            return writer.getDataSize();
-        }
-
-        return -1L;
+    @VisibleForTesting
+    public long getFileSize(String fileFullPath) throws IOException {
+        Path path = new Path(fileFullPath);
+        HadoopInputFile hadoopInputFile = HadoopInputFile.fromPath(path, configuration);
+        return hadoopInputFile.getLength();
     }
 
     @Override
@@ -100,13 +99,12 @@ public class DeltaParquetFileWriter implements DeltaParquetWriter {
         if (isClosed.get()) {
             return null;
         }
-
+        String closedFileFullPath = currentFileFullPath;
         String filePath = currentFileFullPath.substring(
-            currentFileFullPath.indexOf(tablePath) + tablePath.length() + 1);
-        FileStat fileStat = new FileStat(filePath, getDataSize(), partitionValues);
-        lastRollFileTimestamp = System.currentTimeMillis();
+                currentFileFullPath.indexOf(tablePath) + tablePath.length() + 1);
         close();
-
+        lastRollFileTimestamp = System.currentTimeMillis();
+        FileStat fileStat = new FileStat(filePath, getFileSize(closedFileFullPath), partitionValues);
         return Collections.singletonList(fileStat);
     }
 
