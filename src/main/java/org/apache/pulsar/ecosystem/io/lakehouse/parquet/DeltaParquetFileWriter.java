@@ -16,6 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
+
 package org.apache.pulsar.ecosystem.io.lakehouse.parquet;
 
 import static org.apache.parquet.hadoop.ParquetWriter.DEFAULT_BLOCK_SIZE;
@@ -135,12 +136,12 @@ public class DeltaParquetFileWriter implements DeltaParquetWriter {
     public static String generateNextFilePath(String partitionColumnPath, String tablePath, String compression) {
         StringBuilder sb = new StringBuilder();
         String suffix = new StringBuilder()
-                .append("part-0000-")
-                .append(UUID.randomUUID())
-                .append("-c000.")
-                .append(compression.toLowerCase(Locale.ROOT))
-                .append(".parquet")
-                .toString();
+            .append("part-0000-")
+            .append(UUID.randomUUID())
+            .append("-c000.")
+            .append(compression.toLowerCase(Locale.ROOT))
+            .append(".parquet")
+            .toString();
 
         sb.append(tablePath);
         if (!tablePath.endsWith("/")) {
@@ -149,26 +150,26 @@ public class DeltaParquetFileWriter implements DeltaParquetWriter {
 
         if (!StringUtils.isBlank(partitionColumnPath)) {
             sb.append(partitionColumnPath)
-                    .append("/");
+                .append("/");
         }
 
         return sb.append(suffix).toString();
     }
 
     protected static ParquetWriter<GenericRecord> openNewFile(String currentFileFullPath,
-                                                              Schema schema,
-                                                              Configuration configuration,
-                                                              String compression) throws IOException {
+                                                       Schema schema,
+                                                       Configuration configuration,
+                                                       String compression) throws IOException {
         ParquetWriter<GenericRecord> writer = AvroParquetWriter
-                .<GenericRecord>builder(new Path(currentFileFullPath))
-                .withRowGroupSize(DEFAULT_BLOCK_SIZE)
-                .withPageSize(DEFAULT_PAGE_SIZE)
-                .withSchema(schema)
-                .withConf(configuration)
-                .withCompressionCodec(CompressionCodecName.valueOf(compression.toUpperCase(Locale.ROOT)))
-                .withValidation(false)
-                .withDictionaryEncoding(false)
-                .build();
+            .<GenericRecord>builder(new Path(currentFileFullPath))
+            .withRowGroupSize(DEFAULT_BLOCK_SIZE)
+            .withPageSize(DEFAULT_PAGE_SIZE)
+            .withSchema(schema)
+            .withConf(configuration)
+            .withCompressionCodec(CompressionCodecName.valueOf(compression.toUpperCase(Locale.ROOT)))
+            .withValidation(false)
+            .withDictionaryEncoding(false)
+            .build();
 
 
         log.info("open: {} parquet writer succeed. {}", currentFileFullPath, writer);

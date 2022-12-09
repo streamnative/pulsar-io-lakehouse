@@ -16,6 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
+
 package org.apache.pulsar.ecosystem.io.lakehouse.parquet;
 
 import static org.testng.Assert.assertEquals;
@@ -48,6 +49,7 @@ import org.testng.annotations.Test;
 
 /**
  * Delta parquet file writer test.
+ *
  */
 @Slf4j
 public class DeltaParquetFileWriterTest {
@@ -111,12 +113,12 @@ public class DeltaParquetFileWriterTest {
         recordMap.put("score", 59.9);
 
         Record<GenericObject> record = SinkConnectorUtils.generateRecord(schemaMap, recordMap,
-                SchemaType.AVRO, "MyRecord");
+            SchemaType.AVRO, "MyRecord");
         Schema schema = new Schema.Parser().parse(record.getSchema().getSchemaInfo().getSchemaDefinition());
 
         try {
             ParquetWriter<org.apache.avro.generic.GenericRecord> writer = DeltaParquetFileWriter
-                    .openNewFile(path, schema, configuration, compression);
+                .openNewFile(path, schema, configuration, compression);
             assertEquals(writer.getDataSize(), 0);
             writer.write((org.apache.avro.generic.GenericRecord) record.getValue().getNativeObject());
             writer.close();
@@ -154,17 +156,17 @@ public class DeltaParquetFileWriterTest {
         List<Record<GenericObject>> recordList = new ArrayList<>();
         try {
             Record<GenericObject> record = SinkConnectorUtils.generateRecord(schemaMap, recordMap,
-                    SchemaType.AVRO, "MyRecord");
+                SchemaType.AVRO, "MyRecord");
             Schema schema = new Schema.Parser().parse(record.getSchema().getSchemaInfo().getSchemaDefinition());
 
             ParquetWriter<org.apache.avro.generic.GenericRecord> writer = DeltaParquetFileWriter
-                    .openNewFile(path, schema, configuration, compression);
+                .openNewFile(path, schema, configuration, compression);
 
             for (int i = 0; i < 100; ++i) {
                 recordMap.put("age", i);
                 recordMap.put("score", 59.9 + i);
                 record = SinkConnectorUtils.generateRecord(schemaMap, recordMap,
-                        SchemaType.AVRO, "MyRecord");
+                    SchemaType.AVRO, "MyRecord");
                 recordList.add(record);
                 writer.write((org.apache.avro.generic.GenericRecord) record.getValue().getNativeObject());
             }
