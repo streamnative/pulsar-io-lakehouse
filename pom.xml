@@ -32,7 +32,7 @@
 
   <groupId>org.apache.pulsar.ecosystem</groupId>
   <artifactId>pulsar-io-lakehouse</artifactId>
-  <version>2.9.2</version>
+  <version>2.9.4</version>
   <name>Pulsar Ecosystem :: IO Connector :: Lake House</name>
   <description>It is a lakehouse connector streaming convert data between lakehouse and Apache Pulsar.</description>
 
