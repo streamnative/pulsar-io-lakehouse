@@ -1,4 +1,4 @@
-name: lakehouse mvn build check and unit tests
+name: lakehouse unit tests (JDK17)
 
 on:
   pull_request:
