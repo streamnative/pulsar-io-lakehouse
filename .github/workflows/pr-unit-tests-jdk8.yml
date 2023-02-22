@@ -23,7 +23,7 @@ jobs:
         if: ${{ needs.changed_files_job.outputs.docs_only != 'true' }}
         with:
           distribution: 'temurin'
-          java-version: 1.8
+          java-version: 8
 
       - name: License check
         run: mvn -ntp -B license:check
