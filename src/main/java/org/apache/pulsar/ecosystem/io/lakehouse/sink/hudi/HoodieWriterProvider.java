@@ -68,8 +68,6 @@ public class HoodieWriterProvider {
             .withAutoCommit(false)
             .withIndexConfig(HoodieIndexConfig.newBuilder().withIndexType(HoodieIndex.IndexType.INMEMORY).build())
             .withCompactionConfig(HoodieCompactionConfig.newBuilder()
-                .withAutoArchive(false)
-                .withAutoClean(false)
                 .withInlineCompaction(false).build())
             .withClusteringConfig(HoodieClusteringConfig.newBuilder()
                 .withInlineClustering(false).build());
