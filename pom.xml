@@ -77,6 +77,7 @@
     <puppycrawl.checkstyle.version>8.37</puppycrawl.checkstyle.version>
     <spotbugs-maven-plugin.version>4.2.2</spotbugs-maven-plugin.version>
     <cloudPkgSuffix></cloudPkgSuffix>
+    <test.additional.args />
   </properties>
 
   <licenses>
@@ -553,6 +554,36 @@
         </dependency>
       </dependencies>
     </profile>
+    <profile>
+      <id>jdk11</id>
+      <activation>
+        <jdk>[11,)</jdk>
+      </activation>
+      <properties>
+        <maven.compiler.release>${maven.compiler.target}</maven.compiler.release>
+        <test.additional.args>
+          --add-opens java.base/java.io=ALL-UNNAMED
+          --add-opens java.base/java.lang=ALL-UNNAMED
+          --add-opens java.base/java.lang.reflect=ALL-UNNAMED
+          --add-opens java.base/java.lang.invoke=ALL-UNNAMED
+          --add-opens java.base/java.net=ALL-UNNAMED
+          --add-opens java.base/java.nio=ALL-UNNAMED
+          --add-opens java.base/java.nio.channels.spi=ALL-UNNAMED
+          --add-opens java.base/java.nio.file=ALL-UNNAMED
+          --add-opens java.base/java.util=ALL-UNNAMED
+          --add-opens java.base/java.util.concurrent=ALL-UNNAMED
+          --add-opens java.base/java.util.concurrent.atomic=ALL-UNNAMED
+          --add-opens java.base/java.util.stream=ALL-UNNAMED
+          --add-opens java.base/java.util.zip=ALL-UNNAMED
+          --add-opens java.base/java.time=ALL-UNNAMED
+          --add-opens java.base/jdk.internal.loader=ALL-UNNAMED
+          --add-opens java.base/sun.net.dns=ALL-UNNAMED
+          --add-opens java.base/sun.nio.ch=ALL-UNNAMED
+          --add-opens java.base/sun.security.jca=ALL-UNNAMED
+          --add-opens java.xml/jdk.xml.internal=ALL-UNNAMED
+        </test.additional.args>
+      </properties>
+    </profile>
   </profiles>
 
   <build>
@@ -582,12 +613,7 @@
             <reuseForks>false</reuseForks>
             <forkedProcessTimeoutInSeconds>1800</forkedProcessTimeoutInSeconds>
             <rerunFailingTestsCount>${testRetryCount}</rerunFailingTestsCount>
-            <argLine>
-              --add-opens java.base/java.util=ALL-UNNAMED
-              --add-opens java.base/java.lang=ALL-UNNAMED
-              --add-opens java.base/java.util.concurrent=ALL-UNNAMED
-              --add-opens java.base/java.nio=ALL-UNNAMED
-            </argLine>
+            <argLine> -Xmx2G ${test.additional.args}</argLine>
           </configuration>
         </plugin>
         <!-- package -->
