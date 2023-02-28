@@ -1,4 +1,4 @@
-name: lakehouse unit tests (JDK8)
+name: lakehouse mvn build check and unit tests
 
 on:
   pull_request:
@@ -18,12 +18,12 @@ jobs:
     steps:
       - uses: actions/checkout@v1
 
-      - name: Set up JDK 8
+      - name: Set up JDK 17
         uses: actions/setup-java@v2
         if: ${{ needs.changed_files_job.outputs.docs_only != 'true' }}
         with:
           distribution: 'temurin'
-          java-version: 8
+          java-version: 17
 
       - name: License check
         run: mvn -ntp -B license:check
