@@ -37,13 +37,13 @@
   <description>It is a lakehouse connector streaming convert data between lakehouse and Apache Pulsar.</description>
 
   <properties>
-    <maven.compiler.source>8</maven.compiler.source>
-    <maven.compiler.target>8</maven.compiler.target>
-    <java.version>17</java.version>
+    <maven.compiler.source>1.8</maven.compiler.source>
+    <maven.compiler.target>1.8</maven.compiler.target>
+    <java.version>1.8</java.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     <redirectTestOutputToFile>true</redirectTestOutputToFile>
-    <spotbugs-annotations.version>4.2.2</spotbugs-annotations.version>
+    <spotbugs-annotations.version>3.1.8</spotbugs-annotations.version>
     <testRetryCount>0</testRetryCount>
 
     <!-- connector dependencies -->
@@ -71,11 +71,11 @@
     <!-- build plugin dependencies -->
     <license.plugin.version>3.0</license.plugin.version>
     <maven-checkstyle-plugin.version>3.1.2</maven-checkstyle-plugin.version>
-    <maven-compiler-plugin.version>3.10.1</maven-compiler-plugin.version>
-    <surefire.version>3.0.0-M3</surefire.version>
+    <maven-compiler-plugin.version>3.7.0</maven-compiler-plugin.version>
+    <maven-surefire-plugin.version>2.21.0</maven-surefire-plugin.version>
     <nifi.nar.plugin.version>1.2.0</nifi.nar.plugin.version>
     <puppycrawl.checkstyle.version>8.37</puppycrawl.checkstyle.version>
-    <spotbugs-maven-plugin.version>4.2.2</spotbugs-maven-plugin.version>
+    <spotbugs-maven-plugin.version>3.1.8</spotbugs-maven-plugin.version>
     <cloudPkgSuffix></cloudPkgSuffix>
   </properties>
 
@@ -564,7 +564,8 @@
           <artifactId>maven-compiler-plugin</artifactId>
           <version>${maven-compiler-plugin.version}</version>
           <configuration>
-            <encoding>UTF-8</encoding>
+            <source>${java.version}</source>
+            <target>${java.version}</target>
             <compilerArgs>
               <compilerArg>-Xlint:deprecation</compilerArg>
               <compilerArg>-Xlint:unchecked</compilerArg>
@@ -577,17 +578,12 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-surefire-plugin</artifactId>
+          <version>${maven-surefire-plugin.version}</version>
           <configuration>
             <redirectTestOutputToFile>${redirectTestOutputToFile}</redirectTestOutputToFile>
             <reuseForks>false</reuseForks>
             <forkedProcessTimeoutInSeconds>1800</forkedProcessTimeoutInSeconds>
             <rerunFailingTestsCount>${testRetryCount}</rerunFailingTestsCount>
-            <argLine>
-              --add-opens java.base/java.util=ALL-UNNAMED
-              --add-opens java.base/java.lang=ALL-UNNAMED
-              --add-opens java.base/java.util.concurrent=ALL-UNNAMED
-              --add-opens java.base/java.nio=ALL-UNNAMED
-            </argLine>
           </configuration>
         </plugin>
         <!-- package -->
