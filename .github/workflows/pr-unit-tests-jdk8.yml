@@ -3,12 +3,12 @@ name: lakehouse unit tests (JDK8)
 on:
   pull_request:
     branches:
-      - master
-      - branch-*
+    - master
+    - branch-*
   push:
     branches:
-      - master
-      - branch-*
+    - master
+    - branch-*
 
 jobs:
   build:
@@ -16,47 +16,54 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v1
+    - uses: s4u/maven-settings-action@v2.6.0
+      with:
+        servers: '[{"id": "ossrh", "username": "${{ secrets.SONATYPE_USERNAME }}",
+          "password": "${{ secrets.SONATYPE_PASSWORD }}"}]'
+    - name: Login to cloudsmith
+      run: docker login -u="${{ secrets.CLOUDSMITH_USERNAME }}" -p="${{ secrets.CLOUDSMITH_API_KEY
+        }}" docker.cloudsmith.io
+    - uses: actions/checkout@v1
 
-      - name: Set up JDK 8
-        uses: actions/setup-java@v2
-        if: ${{ needs.changed_files_job.outputs.docs_only != 'true' }}
-        with:
-          distribution: 'temurin'
-          java-version: 8
+    - name: Set up JDK 8
+      uses: actions/setup-java@v2
+      if: ${{ needs.changed_files_job.outputs.docs_only != 'true' }}
+      with:
+        distribution: 'temurin'
+        java-version: 8
 
-      - name: License check
-        run: mvn -ntp -B license:check
+    - name: License check
+      run: mvn -ntp -B license:check
 
-      - name: Build cloud package with Maven skipTests
-        run: mvn clean install -ntp -B -DskipTests -P cloud
+    - name: Build cloud package with Maven skipTests
+      run: mvn clean install -ntp -B -DskipTests -P cloud
 
-      - name: Build with Maven skipTests
-        run: mvn clean install -ntp -B -DskipTests
+    - name: Build with Maven skipTests
+      run: mvn clean install -ntp -B -DskipTests
 
-      - name: Style check
-        run: mvn -ntp -B checkstyle:check
+    - name: Style check
+      run: mvn -ntp -B checkstyle:check
 
-      - name: Spotbugs check
-        run: mvn -ntp -B spotbugs:check
+    - name: Spotbugs check
+      run: mvn -ntp -B spotbugs:check
 
-      - name: unit test after build
-        env:
-          CLOUD_BUCKET_NAME: ${{ secrets.CLOUD_BUCKET_NAME }}
-          AWS_SECRET_KEY: ${{ secrets.AWS_SECRET_KEY }}
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        run: mvn test -Pcloud
+    - name: unit test after build
+      env:
+        CLOUD_BUCKET_NAME: ${{ secrets.CLOUD_BUCKET_NAME }}
+        AWS_SECRET_KEY: ${{ secrets.AWS_SECRET_KEY }}
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      run: mvn test -Pcloud
 
-      - name: package surefire artifacts
-        if: failure()
-        run: |
-          rm -rf artifacts
-          mkdir artifacts
-          find . -type d -name "*surefire*" -exec cp --parents -R {} artifacts/ \;
-          zip -r artifacts.zip artifacts
-      - uses: actions/upload-artifact@master
-        name: upload surefire-artifacts
-        if: failure()
-        with:
-          name: surefire-artifacts
-          path: artifacts.zip
+    - name: package surefire artifacts
+      if: failure()
+      run: |
+        rm -rf artifacts
+        mkdir artifacts
+        find . -type d -name "*surefire*" -exec cp --parents -R {} artifacts/ \;
+        zip -r artifacts.zip artifacts
+    - uses: actions/upload-artifact@master
+      name: upload surefire-artifacts
+      if: failure()
+      with:
+        name: surefire-artifacts
+        path: artifacts.zip
