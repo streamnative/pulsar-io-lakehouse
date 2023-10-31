@@ -250,6 +250,12 @@
         <version>${slf4j.version}</version>
       </dependency>
 
+      <dependency>
+        <groupId>org.xerial.snappy</groupId>
+        <artifactId>snappy-java</artifactId>
+        <version>1.1.8.4</version>
+      </dependency>
+
       <!--  Hoodie dependencies begin   -->
       <dependency>
         <groupId>org.apache.hudi</groupId>
