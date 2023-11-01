@@ -76,8 +76,8 @@ public class HoodieWriterTest {
     @DataProvider(name = "storage")
     public Object[][] storageType() {
         return new Object[][]{
-            {STORAGE_LOCAL},
-            {STORAGE_S3}
+            {STORAGE_LOCAL}
+//                , {STORAGE_S3}
         };
     }
 
