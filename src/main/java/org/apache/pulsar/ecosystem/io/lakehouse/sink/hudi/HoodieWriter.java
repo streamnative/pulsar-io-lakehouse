@@ -40,6 +40,7 @@ public class HoodieWriter implements LakehouseWriter, Closeable {
     HoodieWriterProvider writerProvider;
     HoodieSinkConfigs hoodieSinkConfigs;
     private KeyGenerator keyGenerator;
+    boolean upsertMode;
 
     public HoodieWriter(SinkConnectorConfig sinkConnectorConfig, Schema schema) throws HoodieConnectorException {
         this.hoodieSinkConfigs = HoodieSinkConfigs.newBuilder()
@@ -48,6 +49,7 @@ public class HoodieWriter implements LakehouseWriter, Closeable {
         try {
             this.writerProvider = new HoodieWriterProvider(hoodieSinkConfigs);
             this.keyGenerator = HoodieAvroKeyGeneratorFactory.createKeyGenerator(hoodieSinkConfigs.getProps());
+            this.upsertMode = hoodieSinkConfigs.getUpsertMode();
         } catch (IOException e) {
             throw new HoodieConnectorException("Failed to initialize hoodie writer", e);
         }
@@ -82,7 +84,7 @@ public class HoodieWriter implements LakehouseWriter, Closeable {
             log.debug("Flush current records");
         }
         try {
-            writer.flushRecords();
+            writer.flushRecords(upsertMode);
             return true;
         } catch (HoodieConnectorException e) {
             log.error("Failed to flush records to the hudi table", e);
@@ -93,7 +95,7 @@ public class HoodieWriter implements LakehouseWriter, Closeable {
     @Override
     public void close() throws IOException {
         try {
-            writer.close();
+            writer.close(upsertMode);
         } catch (HoodieConnectorException e) {
             throw new IOException(e);
         }
