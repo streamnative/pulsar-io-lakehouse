@@ -113,8 +113,8 @@ public class SinkWriter implements Runnable {
                     recordsCnt++;
                     commitIfNeed();
                 }
-            } catch (Exception e) {
-                log.error("process record failed. ", e);
+            } catch (Throwable throwable) {
+                log.error("process record failed. ", throwable);
                 // fail the sink connector.
                 running = false;
             }
