@@ -74,9 +74,7 @@ public class BufferedConnectWriter {
     public void flushRecords(boolean upsertMode) throws HoodieConnectorException {
         final String instantTime = writeClient.startCommit();
         List<WriteStatus> writerStatusList;
-        log.info("DEBUG-Upsert mode: " + upsertMode);
         if (upsertMode) {
-            //! TESTING UPSERT
             writerStatusList = writeClient.upsertPreppedRecords(
                     new LinkedList<>(bufferedRecords.values()), instantTime);
         } else {
