@@ -45,7 +45,15 @@ jobs:
           CLOUD_BUCKET_NAME: ${{ secrets.CLOUD_BUCKET_NAME }}
           AWS_SECRET_KEY: ${{ secrets.AWS_SECRET_KEY }}
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        run: mvn test -Pcloud
+        run: mvn test -Pcloud -Dtest="!org.apache.pulsar.ecosystem.io.lakehouse.sink.hudi.HoodieTestS3Cloud"
+
+      - name: cloud test after build
+        if: github.event_name == 'push'
+        env:
+          CLOUD_BUCKET_NAME: ${{ secrets.CLOUD_BUCKET_NAME }}
+          AWS_SECRET_KEY: ${{ secrets.AWS_SECRET_KEY }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        run: mvn test -Pcloud -Dtest='org.apache.pulsar.ecosystem.io.lakehouse.sink.hudi.HoodieTestS3Cloud'
 
       - name: package surefire artifacts
         if: failure()
