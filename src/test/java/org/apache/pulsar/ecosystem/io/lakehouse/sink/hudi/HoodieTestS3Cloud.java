@@ -18,16 +18,11 @@
  */
 package org.apache.pulsar.ecosystem.io.lakehouse.sink.hudi;
 
-import java.net.URI;
-import org.apache.pulsar.ecosystem.io.lakehouse.SinkConnectorConfig;
 import org.testng.annotations.DataProvider;
 
 public class HoodieTestS3Cloud extends HoodieWriterTest {
 
     private static final String STORAGE_S3 = "S3";
-
-    private URI testPath;
-    private SinkConnectorConfig sinkConfig;
 
     @DataProvider(name = "storage")
     public Object[][] storageType() {
