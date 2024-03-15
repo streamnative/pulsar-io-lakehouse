@@ -151,4 +151,9 @@ public class SourceContextForTest implements SourceContext {
     public SourceConfig getSourceConfig() {
         return null;
     }
+
+    @Override
+    public void fatal(Throwable t) {
+        return;
+    }
 }
