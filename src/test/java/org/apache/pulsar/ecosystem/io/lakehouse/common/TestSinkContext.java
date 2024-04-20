@@ -148,4 +148,7 @@ public class TestSinkContext implements SinkContext {
     public SinkConfig getSinkConfig() {
         return null;
     }
+
+    public void fatal(Throwable t) {
+    }
 }
