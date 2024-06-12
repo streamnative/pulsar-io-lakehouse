@@ -32,7 +32,7 @@ jobs:
 
       - name: build
         run: |
-          if ! [ -f ./scripts/get-version.sh ]; then
+          if [ -f ./scripts/get-version.sh ]; then
               version=`./scripts/get-version.sh`
           else
               version=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
@@ -48,7 +48,7 @@ jobs:
           retry_wait_seconds: 60
           timeout_minutes: 5
           command: |
-            if ! [ -f ./scripts/get-version.sh ]; then
+            if [ -f ./scripts/get-version.sh ]; then
                 CONNECTOR_VERSION=`./scripts/get-version.sh`
             else
                 CONNECTOR_VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
