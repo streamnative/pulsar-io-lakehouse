@@ -35,7 +35,8 @@ jobs:
           command: |
             CONNECTOR_VERSION=`./scripts/get-version.sh`
             PULSAR_VERSION=`mvn -q -Dexec.executable=echo -Dexec.args='${pulsar.version}' --non-recursive exec:exec 2>/dev/null`
+            SNAPPY_VERSION=`mvn help:evaluate -Dexpression=snappy.java.version -q -DforceStdout`
             REPO=`mvn -q -Dexec.executable=echo -Dexec.args='${project.artifactId}' --non-recursive exec:exec 2>/dev/null`
             IMAGE_REPO=streamnative/${REPO}
-            docker build --build-arg PULSAR_VERSION="$PULSAR_VERSION" -t ${IMAGE_REPO}:${CONNECTOR_VERSION} -f ./image/Dockerfile ./
+            docker build --build-arg PULSAR_VERSION="$PULSAR_VERSION" --build-arg SNAPPY_VERSION="$SNAPPY_VERSION" -t ${IMAGE_REPO}:${CONNECTOR_VERSION} -f ./image/Dockerfile ./
             docker push ${IMAGE_REPO}:${CONNECTOR_VERSION}

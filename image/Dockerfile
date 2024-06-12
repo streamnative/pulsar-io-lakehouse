@@ -18,5 +18,16 @@
 #
 
 ARG PULSAR_VERSION
+FROM alpine AS snappy-java
+
+ARG SNAPPY_VERSION=1.1.10.5
+RUN apk add git alpine-sdk util-linux cmake autoconf automake libtool openjdk17 maven curl bash tar
+ENV JAVA_HOME=/usr
+RUN curl -Ls https://github.com/xerial/snappy-java/archive/refs/tags/v$SNAPPY_VERSION.tar.gz | tar zxf - && cd snappy-java-$SNAPPY_VERSION && make clean-native native
+
 FROM streamnative/pulsar-functions-java-runner:${PULSAR_VERSION}
+USER 0
+COPY --from=snappy-java /tmp/libsnappyjava.so /usr/lib/libsnappyjava.so
+# need to configure -Dorg.xerial.snappy.use.systemlib=true in the jvm options to use the system lib
+USER $UID
 COPY --chown=$UID:$GID target/pulsar-io-lakehouse-*-cloud.nar /pulsar/connectors/
