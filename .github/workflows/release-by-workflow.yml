@@ -28,14 +28,14 @@ jobs:
 
       - uses: robinraju/release-downloader@v1.10
         with:
-          tag: v${{ inputs.version }}
+          tag: v3.0.5.3
           fileName: '*'
 
       - name: build and push docker image
         uses: nick-fields/retry@v2
         env:
-            PULSAR_VERSION: ${{ inputs.version }}
-            CONNECTOR_VERSION: ${{ inputs.version }}
+            PULSAR_VERSION: 3.0.5.3
+            CONNECTOR_VERSION: 3.0.5.3
         with:
           max_attempts: 99
           retry_wait_seconds: 60
