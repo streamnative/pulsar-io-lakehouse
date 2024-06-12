@@ -71,10 +71,17 @@ public class BufferedConnectWriter {
         bufferedRecords.put(record.getRecordKey(), record);
     }
 
-    public void flushRecords() throws HoodieConnectorException {
+    public void flushRecords(boolean upsertMode) throws HoodieConnectorException {
         final String instantTime = writeClient.startCommit();
-        List<WriteStatus> writerStatusList = writeClient.bulkInsertPreppedRecords(
-            new LinkedList<>(bufferedRecords.values()), instantTime, Option.empty());
+        List<WriteStatus> writerStatusList;
+        if (upsertMode) {
+            writerStatusList = writeClient.upsertPreppedRecords(
+                    new LinkedList<>(bufferedRecords.values()), instantTime);
+        } else {
+            writerStatusList = writeClient.bulkInsertPreppedRecords(
+                    new LinkedList<>(bufferedRecords.values()), instantTime, Option.empty());
+        }
+
         long totalErrorRecords = writerStatusList.stream().mapToLong(WriteStatus::getTotalErrorRecords).sum();
         long totalRecords = writerStatusList.stream().mapToLong(WriteStatus::getTotalRecords).sum();
         boolean hasErrors = totalErrorRecords > 0;
@@ -108,8 +115,8 @@ public class BufferedConnectWriter {
         return context;
     }
 
-    public void close() throws HoodieConnectorException {
-        flushRecords();
+    public void close(boolean upsertMode) throws HoodieConnectorException {
+        flushRecords(upsertMode);
         writeClient.close();
     }
 }

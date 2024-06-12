@@ -56,6 +56,12 @@ public class HoodieSinkConfigs extends HoodieConfig {
         .defaultValue(1000)
         .withDocumentation("");
 
+    public static final ConfigProperty<Boolean> UPSERT_RECORDS = ConfigProperty
+            .key("hoodieUpsertRecords")
+            .defaultValue(false)
+            .withDocumentation("Whether records should be upserted to the Hudi table or not. "
+                    + "If set to false, records are inserted instead.");
+
     protected HoodieSinkConfigs() {
         super();
     }
@@ -70,6 +76,10 @@ public class HoodieSinkConfigs extends HoodieConfig {
 
     public int getHoodieCommitMaxRecords() {
         return getInt(MAX_RECORDS_PER_COMMIT);
+    }
+
+    public boolean getUpsertMode() {
+        return getBoolean(UPSERT_RECORDS);
     }
 
     public String getPulsarServiceUrl() {
