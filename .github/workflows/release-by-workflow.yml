@@ -7,6 +7,10 @@ on:
         description: 'The version of the release. Without the `v` prefix'
         required: true
         default: '3.0.5.3'
+      snappy_version:
+        description: 'The version of the snappy-java library'
+        required: true
+        default: ''
 jobs:
   upload:
     name: Upload Release files
@@ -33,6 +37,7 @@ jobs:
         env:
             PULSAR_VERSION: ${{ inputs.version }}
             CONNECTOR_VERSION: ${{ inputs.version }}
+            SNAPPY_VERSION: ${{ inputs.snappy_version }}
         with:
           max_attempts: 99
           retry_wait_seconds: 60
@@ -42,5 +47,5 @@ jobs:
             mv pulsar-io-lakehouse-*.nar target
             REPO=`mvn -q -Dexec.executable=echo -Dexec.args='${project.artifactId}' --non-recursive exec:exec 2>/dev/null`
             IMAGE_REPO=streamnative/${REPO}
-            docker build --build-arg PULSAR_VERSION="$PULSAR_VERSION" -t ${IMAGE_REPO}:${CONNECTOR_VERSION} -f ./image/Dockerfile ./
+            docker build --build-arg PULSAR_VERSION="$PULSAR_VERSION" --build-arg SNAPPY_VERSION="$SNAPPY_VERSION" -t ${IMAGE_REPO}:${CONNECTOR_VERSION} -f ./image/Dockerfile ./
             docker push ${IMAGE_REPO}:${CONNECTOR_VERSION}
