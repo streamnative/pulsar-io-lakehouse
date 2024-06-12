@@ -1,4 +1,4 @@
-name: Lakehouse Connector Release
+name: Lakehouse Connector Release (Manual)
 
 on:
   workflow_dispatch:
