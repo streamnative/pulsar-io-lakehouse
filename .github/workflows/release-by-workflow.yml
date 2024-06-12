@@ -1,8 +1,12 @@
-name: Lakehouse Connector Release
+name: Lakehouse Connector Release (Manual)
 
 on:
-  release:
-    types: [published]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'The version of the release. Without the `v` prefix'
+        required: true
+        default: '3.0.5.3'
 jobs:
   upload:
     name: Upload Release files
@@ -19,22 +23,23 @@ jobs:
       - name: Login streamnative docker hub
         run: docker login -u="${{ secrets.DOCKER_USER }}" -p="${{ secrets.DOCKER_PASSWORD }}"
 
-      - name: build
-        run: |
-          version=`./scripts/get-version.sh`
-          mvn clean install -DskipTests
-          echo "::set-output name=jar-file::pulsar-io-lakehouse-${version}-cloud.nar"
-          echo "::set-output name=readme-file::pulsar-io-lakehouse-readme.md"
+      - uses: robinraju/release-downloader@v1.10
+        with:
+          tag: v${{ inputs.version }}
+          fileName: '*'
 
       - name: build and push docker image
         uses: nick-fields/retry@v2
+        env:
+            PULSAR_VERSION: ${{ inputs.version }}
+            CONNECTOR_VERSION: ${{ inputs.version }}
         with:
           max_attempts: 99
           retry_wait_seconds: 60
           timeout_minutes: 5
           command: |
-            CONNECTOR_VERSION=`./scripts/get-version.sh`
-            PULSAR_VERSION=`mvn -q -Dexec.executable=echo -Dexec.args='${pulsar.version}' --non-recursive exec:exec 2>/dev/null`
+            mkdir -p target
+            mv pulsar-io-lakehouse-*.nar target
             REPO=`mvn -q -Dexec.executable=echo -Dexec.args='${project.artifactId}' --non-recursive exec:exec 2>/dev/null`
             IMAGE_REPO=streamnative/${REPO}
             docker build --build-arg PULSAR_VERSION="$PULSAR_VERSION" -t ${IMAGE_REPO}:${CONNECTOR_VERSION} -f ./image/Dockerfile ./
