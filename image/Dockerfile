@@ -20,10 +20,13 @@
 ARG PULSAR_VERSION
 FROM alpine AS snappy-java
 
-ARG SNAPPY_VERSION=1.1.10.5
+ARG SNAPPY_VERSION=1.1.8.4
 RUN apk add git alpine-sdk util-linux cmake autoconf automake libtool openjdk17 maven curl bash tar
 ENV JAVA_HOME=/usr
-RUN curl -Ls https://github.com/xerial/snappy-java/archive/refs/tags/v$SNAPPY_VERSION.tar.gz | tar zxf - && cd snappy-java-$SNAPPY_VERSION && make clean-native native
+
+# todo: before the 1.1.9.1, the snappy tag is not start with 'v', after that version, the tag is start with 'v'
+# we need to update the download link once the version is updated
+RUN curl -Ls https://github.com/xerial/snappy-java/archive/refs/tags/$SNAPPY_VERSION.tar.gz | tar zxf - && cd snappy-java-$SNAPPY_VERSION && make clean-native native
 
 FROM streamnative/pulsar-functions-java-runner:${PULSAR_VERSION}
 USER 0
