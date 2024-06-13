@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version='1.0' encoding='UTF-8'?>
 <!--
 
     Licensed to the Apache Software Foundation (ASF) under one
@@ -19,23 +19,18 @@
     under the License.
 
 -->
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <parent>
     <groupId>org.apache</groupId>
     <artifactId>apache</artifactId>
     <version>18</version>
   </parent>
-
   <modelVersion>4.0.0</modelVersion>
-
   <groupId>org.apache.pulsar.ecosystem</groupId>
   <artifactId>pulsar-io-lakehouse</artifactId>
-  <version>2.11.0-SNAPSHOT</version>
+  <version>3.3.0.3</version>
   <name>Pulsar Ecosystem :: IO Connector :: Lake House</name>
   <description>It is a lakehouse connector streaming convert data between lakehouse and Apache Pulsar.</description>
-
   <properties>
     <maven.compiler.source>8</maven.compiler.source>
     <maven.compiler.target>8</maven.compiler.target>
@@ -45,11 +40,10 @@
     <redirectTestOutputToFile>true</redirectTestOutputToFile>
     <spotbugs-annotations.version>4.2.2</spotbugs-annotations.version>
     <testRetryCount>0</testRetryCount>
-
     <!-- connector dependencies -->
     <jackson.version>2.13.2.1</jackson.version>
     <lombok.version>1.18.22</lombok.version>
-    <pulsar.version>2.10.0.4</pulsar.version>
+    <pulsar.version>3.3.0.3</pulsar.version>
     <log4j2.version>2.17.2</log4j2.version>
     <slf4j.version>1.7.25</slf4j.version>
     <hadoop.version>3.2.4</hadoop.version>
@@ -63,12 +57,10 @@
     <gcs.version>hadoop3-2.2.1</gcs.version>
     <curator.version>2.12.0</curator.version>
     <snappy.java.version>1.1.8.4</snappy.java.version>
-
     <!-- test dependencies -->
     <testng.version>7.3.0</testng.version>
     <awaitility.version>4.0.3</awaitility.version>
     <mockito.version>3.12.4</mockito.version>
-
     <!-- build plugin dependencies -->
     <license.plugin.version>3.0</license.plugin.version>
     <maven-checkstyle-plugin.version>3.1.2</maven-checkstyle-plugin.version>
@@ -77,10 +69,9 @@
     <nifi.nar.plugin.version>1.2.0</nifi.nar.plugin.version>
     <puppycrawl.checkstyle.version>8.37</puppycrawl.checkstyle.version>
     <spotbugs-maven-plugin.version>4.2.2</spotbugs-maven-plugin.version>
-    <cloudPkgSuffix></cloudPkgSuffix>
-    <test.additional.args />
+    <cloudPkgSuffix/>
+    <test.additional.args/>
   </properties>
-
   <licenses>
     <license>
       <name>Apache License, Version 2.0</name>
@@ -88,7 +79,6 @@
       <distribution>repo</distribution>
     </license>
   </licenses>
-
   <!-- keep all the dependencies used by all modules here -->
   <dependencyManagement>
     <dependencies>
@@ -182,8 +172,6 @@
         <artifactId>log4j-slf4j-impl</artifactId>
         <version>${log4j2.version}</version>
       </dependency>
-
-
       <!-- iceberg dependency -->
       <dependency>
         <groupId>org.apache.iceberg</groupId>
@@ -215,20 +203,17 @@
         <artifactId>iceberg-hive-metastore</artifactId>
         <version>${iceberg.version}</version>
       </dependency>
-
       <!-- delta lake dependency -->
       <dependency>
         <groupId>org.apache.parquet</groupId>
         <artifactId>parquet-avro</artifactId>
         <version>${parquet.avro.version}</version>
       </dependency>
-
       <dependency>
         <groupId>io.delta</groupId>
         <artifactId>delta-standalone_2.12</artifactId>
         <version>${delta.version}</version>
       </dependency>
-
       <dependency>
         <groupId>org.apache.parquet</groupId>
         <artifactId>parquet-column</artifactId>
@@ -239,7 +224,6 @@
         <artifactId>parquet-hadoop</artifactId>
         <version>${parquet.version}</version>
       </dependency>
-
       <dependency>
         <groupId>org.slf4j</groupId>
         <artifactId>slf4j-api</artifactId>
@@ -250,13 +234,11 @@
         <artifactId>slf4j-simple</artifactId>
         <version>${slf4j.version}</version>
       </dependency>
-
       <dependency>
         <groupId>org.xerial.snappy</groupId>
         <artifactId>snappy-java</artifactId>
         <version>${snappy.java.version}</version>
       </dependency>
-
       <!--  Hoodie dependencies begin   -->
       <dependency>
         <groupId>org.apache.hudi</groupId>
@@ -270,7 +252,6 @@
         </exclusions>
       </dependency>
       <!--  Hoodie dependencies end    -->
-
       <!-- Cloud dependencies begin -->
       <dependency>
         <groupId>org.apache.hadoop</groupId>
@@ -288,14 +269,12 @@
         <artifactId>aws-java-sdk-bundle</artifactId>
         <version>${aws.sdk.version}</version>
       </dependency>
-
       <dependency>
         <groupId>com.google.cloud.bigdataoss</groupId>
         <artifactId>gcs-connector</artifactId>
         <version>${gcs.version}</version>
         <classifier>shaded</classifier>
       </dependency>
-
       <dependency>
         <groupId>org.apache.hadoop</groupId>
         <artifactId>hadoop-azure</artifactId>
@@ -311,10 +290,7 @@
           </exclusion>
         </exclusions>
       </dependency>
-
       <!-- Cloud dependencies end -->
-
-
       <!-- test dependencies -->
       <dependency>
         <groupId>org.testng</groupId>
@@ -340,13 +316,10 @@
         <version>${mockito.version}</version>
         <scope>test</scope>
       </dependency>
-
     </dependencies>
   </dependencyManagement>
-
   <!-- include the dependencies -->
   <dependencies>
-
     <!-- provided dependencies (available at compilation and test classpaths and *NOT* packaged) -->
     <dependency>
       <groupId>org.projectlombok</groupId>
@@ -358,13 +331,11 @@
       <artifactId>spotbugs-annotations</artifactId>
       <scope>provided</scope>
     </dependency>
-
     <!-- runtime dependencies -->
     <dependency>
       <groupId>io.streamnative</groupId>
       <artifactId>pulsar-io-core</artifactId>
     </dependency>
-
     <dependency>
       <groupId>com.fasterxml.jackson.core</groupId>
       <artifactId>jackson-databind</artifactId>
@@ -378,37 +349,30 @@
       <groupId>org.apache.hadoop</groupId>
       <artifactId>hadoop-client</artifactId>
     </dependency>
-
     <dependency>
       <groupId>org.apache.iceberg</groupId>
       <artifactId>iceberg-api</artifactId>
     </dependency>
-
     <dependency>
       <groupId>org.apache.iceberg</groupId>
       <artifactId>iceberg-core</artifactId>
     </dependency>
-
     <dependency>
       <groupId>org.apache.iceberg</groupId>
       <artifactId>iceberg-parquet</artifactId>
     </dependency>
-
     <dependency>
       <groupId>org.apache.iceberg</groupId>
       <artifactId>iceberg-common</artifactId>
     </dependency>
-
     <dependency>
       <groupId>org.apache.iceberg</groupId>
       <artifactId>iceberg-data</artifactId>
     </dependency>
-
     <dependency>
       <groupId>org.apache.iceberg</groupId>
       <artifactId>iceberg-hive-metastore</artifactId>
     </dependency>
-
     <dependency>
       <groupId>io.delta</groupId>
       <artifactId>delta-standalone_2.12</artifactId>
@@ -417,7 +381,6 @@
       <groupId>org.apache.parquet</groupId>
       <artifactId>parquet-avro</artifactId>
     </dependency>
-
     <dependency>
       <groupId>org.apache.parquet</groupId>
       <artifactId>parquet-column</artifactId>
@@ -426,7 +389,6 @@
       <groupId>org.apache.parquet</groupId>
       <artifactId>parquet-hadoop</artifactId>
     </dependency>
-
     <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-api</artifactId>
@@ -435,12 +397,10 @@
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-simple</artifactId>
     </dependency>
-
     <dependency>
       <groupId>org.xerial.snappy</groupId>
       <artifactId>snappy-java</artifactId>
     </dependency>
-
     <dependency>
       <groupId>org.apache.logging.log4j</groupId>
       <artifactId>log4j-slf4j-impl</artifactId>
@@ -461,12 +421,10 @@
       <groupId>org.apache.logging.log4j</groupId>
       <artifactId>log4j-slf4j-impl</artifactId>
     </dependency>
-
     <dependency>
       <groupId>io.netty</groupId>
       <artifactId>netty-common</artifactId>
     </dependency>
-
     <dependency>
       <groupId>org.apache.hudi</groupId>
       <artifactId>hudi-java-client</artifactId>
@@ -485,7 +443,6 @@
         </exclusion>
       </exclusions>
     </dependency>
-
     <dependency>
       <groupId>org.apache.curator</groupId>
       <artifactId>curator-framework</artifactId>
@@ -497,7 +454,6 @@
         </exclusion>
       </exclusions>
     </dependency>
-
     <dependency>
       <groupId>org.apache.hudi</groupId>
       <artifactId>hudi-client-common</artifactId>
@@ -511,7 +467,6 @@
         </exclusion>
       </exclusions>
     </dependency>
-
     <!-- test dependencies -->
     <dependency>
       <groupId>org.testng</groupId>
@@ -529,7 +484,6 @@
       <scope>test</scope>
     </dependency>
   </dependencies>
-
   <profiles>
     <profile>
       <id>cloud</id>
@@ -553,13 +507,11 @@
           <groupId>com.amazonaws</groupId>
           <artifactId>aws-java-sdk-bundle</artifactId>
         </dependency>
-
         <dependency>
           <groupId>com.google.cloud.bigdataoss</groupId>
           <artifactId>gcs-connector</artifactId>
           <classifier>shaded</classifier>
         </dependency>
-
         <dependency>
           <groupId>org.apache.hadoop</groupId>
           <artifactId>hadoop-azure</artifactId>
@@ -597,7 +549,6 @@
       </properties>
     </profile>
   </profiles>
-
   <build>
     <finalName>${project.artifactId}-${project.version}${cloudPkgSuffix}</finalName>
     <pluginManagement>
@@ -613,7 +564,7 @@
               <compilerArg>-Xlint:unchecked</compilerArg>
               <!-- https://issues.apache.org/jira/browse/MCOMPILER-205 -->
               <compilerArg>-Xpkginfo:always</compilerArg>
-	        </compilerArgs>
+            </compilerArgs>
           </configuration>
         </plugin>
         <!-- test -->
@@ -725,38 +676,32 @@
         </plugin>
       </plugins>
     </pluginManagement>
-
     <plugins>
-      <!-- compile --> 
+      <!-- compile -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
       </plugin>
-
       <!-- test -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>
       </plugin>
-
       <!-- package -->
       <plugin>
         <groupId>org.apache.nifi</groupId>
         <artifactId>nifi-nar-maven-plugin</artifactId>
       </plugin>
-
       <!-- license -->
       <plugin>
         <groupId>com.mycila</groupId>
         <artifactId>license-maven-plugin</artifactId>
       </plugin>
-
       <!-- checkstyle -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-checkstyle-plugin</artifactId>
       </plugin>
-
       <!-- spotbugs -->
       <plugin>
         <groupId>com.github.spotbugs</groupId>
@@ -764,5 +709,24 @@
       </plugin>
     </plugins>
   </build>
-
+  <repositories>
+    <repository>
+      <id>ossrh</id>
+      <url>https://s01.oss.sonatype.org/service/local/repositories/iostreamnative-3161/content</url>
+    </repository>
+    <repository>
+      <id>nexus-snapshot</id>
+      <url>https://s01.oss.sonatype.org/content/repositories/snapshots</url>
+    </repository>
+  </repositories>
+  <distributionManagement>
+    <snapshotRepository>
+      <id>ossrh</id>
+      <url>https://s01.oss.sonatype.org/content/repositories/snapshots</url>
+    </snapshotRepository>
+    <repository>
+      <id>ossrh</id>
+      <url>https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+    </repository>
+  </distributionManagement>
 </project>
