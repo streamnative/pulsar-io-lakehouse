@@ -23,6 +23,7 @@ jobs:
         run: |
           version=`./scripts/get-version.sh`
           mvn clean install -DskipTests
+          mvn clean install -DskipTests -Pcloud
           echo "::set-output name=jar-file::pulsar-io-lakehouse-${version}-cloud.nar"
           echo "::set-output name=readme-file::pulsar-io-lakehouse-readme.md"
 
