@@ -1,10 +1,10 @@
 ---
 dockerfile: "https://hub.docker.com/r/streamnative/pulsar-io-lakehouse"
 download: "https://github.com/streamnative/pulsar-io-lakehouse/releases"
-alias: Lakehouse delta Lake Sink Connector
+alias: Delta Lake Sink Connector
 ---
 
-The Lakehouse [Delta Lake](https://delta.io/) sink connector fetches data from a Pulsar topic and saves data to the Lakehouse tables.
+The [Delta Lake](https://delta.io/) sink connector fetches data from a Pulsar topic and saves data to the Delta Lake tables.
 
 ![](/docs/lakehouse-sink.png)
 
@@ -14,7 +14,7 @@ The Lakehouse [Delta Lake](https://delta.io/) sink connector fetches data from a
 
 Tips: Only support use AWS S3 as storage.
 
-The prerequisites for connecting an Lakehouse delta Lake sink connector to external systems include:
+The prerequisites for connecting an Delta Lake sink connector to external systems include:
 
 1. Create cloud buckets in **AWS S3**.
 2. Create the [AWS User](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_users_create.html) and create `AccessKey`(Please record `AccessKey` and `SecretAccessKey`).
@@ -159,7 +159,7 @@ OutPut:
 
 ## Configuration Properties
 
-Before using the Lakehouse delta sink connector, you need to configure it. This table outlines the properties and the
+Before using the Delta lake sink connector, you need to configure it. This table outlines the properties and the
 descriptions.
 
 | Name                       | Type         | Required | Default                     | Description                                                                                                  |
