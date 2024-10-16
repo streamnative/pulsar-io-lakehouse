@@ -28,7 +28,7 @@ ENV JAVA_HOME=/usr
 # we need to update the download link once the version is updated
 RUN curl -Ls https://github.com/xerial/snappy-java/archive/refs/tags/$SNAPPY_VERSION.tar.gz | tar zxf - && cd snappy-java-$SNAPPY_VERSION && make clean-native native
 
-FROM streamnative/pulsar-functions-java-runner:${PULSAR_VERSION}
+FROM snstage/pulsar-functions-java-runner:${PULSAR_VERSION}
 USER 0
 COPY --from=snappy-java /tmp/libsnappyjava.so /usr/lib/libsnappyjava.so
 # need to configure -Dorg.xerial.snappy.use.systemlib=true in the jvm options to use the system lib
