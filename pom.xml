@@ -28,7 +28,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.apache.pulsar.ecosystem</groupId>
   <artifactId>pulsar-io-lakehouse</artifactId>
-  <version>3.0.8.2</version>
+  <version>3.0.8.2-shaded</version>
   <name>Pulsar Ecosystem :: IO Connector :: Lake House</name>
   <description>It is a lakehouse connector streaming convert data between lakehouse and Apache Pulsar.</description>
   <properties>
@@ -43,7 +43,7 @@
     <!-- connector dependencies -->
     <jackson.version>2.13.2.1</jackson.version>
     <lombok.version>1.18.22</lombok.version>
-    <pulsar.version>3.0.8.2</pulsar.version>
+    <pulsar.version>3.0.8.2-shaded</pulsar.version>
     <log4j2.version>2.17.2</log4j2.version>
     <slf4j.version>1.7.25</slf4j.version>
     <hadoop.version>3.2.4</hadoop.version>
@@ -712,7 +712,7 @@
   <repositories>
     <repository>
       <id>ossrh</id>
-      <url>https://s01.oss.sonatype.org/service/local/repositories/iostreamnative-3568/content</url>
+      <url>https://s01.oss.sonatype.org/service/local/repositories/iostreamnative-3597/content</url>
     </repository>
     <repository>
       <id>nexus-snapshot-ci</id>
