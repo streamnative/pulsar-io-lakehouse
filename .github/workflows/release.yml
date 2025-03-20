@@ -1,8 +1,10 @@
 name: Lakehouse Connector Release
 
 on:
-  release:
-    types: [published]
+  push:
+    tags:
+      - "v[0-9]+.[0-9]+.[0-9]+"
+
 jobs:
   upload:
     name: Upload Release files
@@ -18,6 +20,12 @@ jobs:
 
       - name: Login streamnative docker hub
         run: docker login -u="${{ secrets.DOCKER_USER }}" -p="${{ secrets.DOCKER_PASSWORD }}"
+
+      - name: Set project version
+        run: |
+          project_version=${GITHUB_REF#refs/tags/v}
+          echo "set project_version: $project_version"
+          ./scripts/set-project-version.sh $project_version
 
       - name: build
         run: |
