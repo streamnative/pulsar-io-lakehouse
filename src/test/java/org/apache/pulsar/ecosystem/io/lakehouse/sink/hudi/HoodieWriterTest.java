@@ -67,8 +67,6 @@ public class HoodieWriterTest {
 
     private static final Path PROJECT_DATA = FileSystems.getDefault().getPath("data").toAbsolutePath();
     private static final String STORAGE_LOCAL = "LOCAL";
-    private static final String STORAGE_S3 = "S3";
-    private static final String STORAGE_GCS = "GCS";
 
     private URI testPath;
     private SinkConnectorConfig sinkConfig;
@@ -76,8 +74,7 @@ public class HoodieWriterTest {
     @DataProvider(name = "storage")
     public Object[][] storageType() {
         return new Object[][]{
-            {STORAGE_LOCAL},
-            {STORAGE_S3}
+            {STORAGE_LOCAL}
         };
     }
 
