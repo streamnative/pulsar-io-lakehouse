@@ -27,6 +27,12 @@ jobs:
       - name: Login streamnative docker hub
         run: docker login -u="${{ secrets.DOCKER_USER }}" -p="${{ secrets.DOCKER_PASSWORD }}"
 
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
       - uses: robinraju/release-downloader@v1.10
         with:
           tag: v${{ inputs.version }}
@@ -41,11 +47,17 @@ jobs:
         with:
           max_attempts: 99
           retry_wait_seconds: 60
-          timeout_minutes: 5
+          timeout_minutes: 30
           command: |
             mkdir -p target
             mv pulsar-io-lakehouse-*.nar target
             REPO=`mvn -q -Dexec.executable=echo -Dexec.args='${project.artifactId}' --non-recursive exec:exec 2>/dev/null`
             IMAGE_REPO=streamnative/${REPO}
-            docker build --build-arg PULSAR_VERSION="$PULSAR_VERSION" --build-arg SNAPPY_VERSION="$SNAPPY_VERSION" -t ${IMAGE_REPO}:${CONNECTOR_VERSION} -f ./image/Dockerfile ./
-            docker push ${IMAGE_REPO}:${CONNECTOR_VERSION}
+            docker buildx build \
+              --platform linux/amd64,linux/arm64 \
+              --build-arg PULSAR_VERSION="$PULSAR_VERSION" \
+              --build-arg SNAPPY_VERSION="$SNAPPY_VERSION" \
+              -t ${IMAGE_REPO}:${CONNECTOR_VERSION} \
+              -f ./image/Dockerfile \
+              --push \
+              ./
